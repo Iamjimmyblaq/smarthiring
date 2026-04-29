@@ -10,8 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Briefcase, Trash2 } from "lucide-react";
+import { Plus, Briefcase, Trash2, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { usePlan, FREE_JOB_LIMIT, FREE_RESUME_LIMIT } from "@/hooks/usePlan";
 
 type Job = Tables<"jobs"> & { candidate_count?: number };
 
@@ -23,7 +24,10 @@ const Jobs = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [requirements, setRequirements] = useState("");
+  const [skillsInput, setSkillsInput] = useState("");
+  const [minYears, setMinYears] = useState<number>(0);
   const [saving, setSaving] = useState(false);
+  const planState = usePlan();
 
   useEffect(() => {
     document.title = "Jobs — SmartHire";
@@ -54,18 +58,35 @@ const Jobs = () => {
 
   const createJob = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!planState.canCreateJob) {
+      toast.error(`Free plan limited to ${FREE_JOB_LIMIT} job. Upgrade to create more.`);
+      navigate("/pricing");
+      return;
+    }
     setSaving(true);
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
+    const required_skills = skillsInput
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
     const { data, error } = await supabase
       .from("jobs")
-      .insert({ title, description, requirements, user_id: userData.user.id })
+      .insert({
+        title,
+        description,
+        requirements,
+        required_skills,
+        min_years_experience: Number.isFinite(minYears) ? minYears : 0,
+        user_id: userData.user.id,
+      })
       .select()
       .single();
     setSaving(false);
     if (error) return toast.error(error.message);
     setOpen(false);
-    setTitle(""); setDescription(""); setRequirements("");
+    setTitle(""); setDescription(""); setRequirements(""); setSkillsInput(""); setMinYears(0);
+    planState.refresh();
     toast.success("Job created");
     if (data) navigate(`/jobs/${data.id}`);
   };
@@ -75,6 +96,7 @@ const Jobs = () => {
     const { error } = await supabase.from("jobs").delete().eq("id", id);
     if (error) return toast.error(error.message);
     setJobs((j) => j.filter((x) => x.id !== id));
+    planState.refresh();
   };
 
   return (
@@ -86,7 +108,13 @@ const Jobs = () => {
             <h1 className="text-3xl font-semibold tracking-tight">Jobs</h1>
             <p className="text-muted-foreground mt-1">Create a role and start screening candidates.</p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <div className="flex items-center gap-2">
+            {planState.plan === "free" && (
+              <Link to="/pricing">
+                <Button variant="outline" className="gap-2"><Sparkles className="h-4 w-4" /> Upgrade</Button>
+              </Link>
+            )}
+            <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2"><Plus className="h-4 w-4" /> New job</Button>
             </DialogTrigger>
@@ -105,13 +133,37 @@ const Jobs = () => {
                   <Label htmlFor="req">Key requirements</Label>
                   <Textarea id="req" rows={5} required value={requirements} onChange={(e) => setRequirements(e.target.value)} placeholder="e.g. 5+ yrs Python, distributed systems, AWS" />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="skills">Required skills (comma-separated)</Label>
+                  <Input id="skills" value={skillsInput} onChange={(e) => setSkillsInput(e.target.value)} placeholder="Python, PostgreSQL, AWS, Docker, Kubernetes" />
+                  <p className="text-xs text-muted-foreground">Each skill is matched against the resume to power explainable scoring.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="years">Minimum years of experience</Label>
+                  <Input id="years" type="number" min={0} max={30} value={minYears} onChange={(e) => setMinYears(parseInt(e.target.value || "0", 10))} />
+                </div>
                 <DialogFooter>
                   <Button type="submit" disabled={saving}>{saving ? "Creating…" : "Create job"}</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
+
+        {planState.plan === "free" && !planState.loading && (
+          <Card className="mb-6 border-dashed">
+            <CardContent className="py-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="text-sm">
+                <span className="font-medium">Free plan</span>
+                <span className="text-muted-foreground"> · {planState.jobCount}/{FREE_JOB_LIMIT} job · {planState.resumeCount}/{FREE_RESUME_LIMIT} resumes used</span>
+              </div>
+              <Link to="/pricing">
+                <Button size="sm" variant="outline" className="gap-2"><Sparkles className="h-4 w-4" /> Upgrade to Pro</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
 
         {loading ? (
           <p className="text-muted-foreground">Loading…</p>

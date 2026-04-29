@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
 
     const { data: job, error: jErr } = await admin
       .from("jobs")
-      .select("id, title, description, requirements")
+      .select("id, title, description, requirements, required_skills, min_years_experience")
       .eq("id", candidate.job_id)
       .maybeSingle();
     if (jErr || !job) return json({ error: "Job not found" }, 404);
@@ -62,8 +62,25 @@ Deno.serve(async (req) => {
       return json({ error: "Empty resume text" }, 400);
     }
 
-    const systemPrompt = `You are an expert technical recruiter. Score a candidate's resume against a job. Be strict, fair, and concise. Return ONLY via the score_candidate tool.`;
-    const userPrompt = `JOB TITLE: ${job.title}\n\nJOB DESCRIPTION:\n${job.description}\n\nKEY REQUIREMENTS:\n${job.requirements}\n\nRESUME:\n${resumeText}`;
+    const requiredSkills: string[] = (job as { required_skills?: string[] }).required_skills ?? [];
+    const minYears: number = (job as { min_years_experience?: number }).min_years_experience ?? 0;
+
+    const systemPrompt = `You are an expert technical recruiter. Score a candidate's resume against a job. Be strict, fair, and concise. Always return your evaluation ONLY via the score_candidate tool. When evaluating skills, match each REQUIRED SKILL against the resume — count a skill as matched only if there's clear evidence (mentioned in projects, work experience, or skills section). Estimate total years of professional experience from the resume. Also rate the resume quality (formatting, completeness, clarity, contact info, structure).`;
+    const userPrompt = `JOB TITLE: ${job.title}
+
+JOB DESCRIPTION:
+${job.description}
+
+KEY REQUIREMENTS (free text):
+${job.requirements}
+
+REQUIRED SKILLS (structured, evaluate each):
+${requiredSkills.length ? requiredSkills.map((s) => `- ${s}`).join("\n") : "(none specified — infer from requirements)"}
+
+MINIMUM YEARS OF EXPERIENCE REQUIRED: ${minYears}
+
+RESUME:
+${resumeText}`;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -88,11 +105,16 @@ Deno.serve(async (req) => {
                 skills_score: { type: "integer", minimum: 0, maximum: 100 },
                 experience_score: { type: "integer", minimum: 0, maximum: 100 },
                 education_score: { type: "integer", minimum: 0, maximum: 100 },
+                matched_skills: { type: "array", items: { type: "string" }, description: "Subset of REQUIRED SKILLS the candidate clearly demonstrates. Use the exact skill name as provided." },
+                missing_skills: { type: "array", items: { type: "string" }, description: "Subset of REQUIRED SKILLS not evidenced in the resume. Use the exact skill name as provided." },
+                years_experience: { type: "number", description: "Estimated total years of professional experience (decimal allowed, e.g. 4.5). 0 if none." },
+                resume_quality_score: { type: "integer", minimum: 0, maximum: 100, description: "Overall quality of the resume itself: completeness, formatting, clarity, presence of contact info, dates, achievements." },
+                resume_quality_issues: { type: "array", items: { type: "string" }, description: "0-4 short concrete issues with the resume (e.g. 'No contact info', 'Missing dates', 'Very short'). Empty array if resume is solid." },
                 strengths: { type: "array", items: { type: "string" }, description: "3-5 short strengths" },
                 gaps: { type: "array", items: { type: "string" }, description: "2-4 short gaps vs requirements" },
                 summary: { type: "string", description: "2-3 sentence rationale" },
               },
-              required: ["overall_score", "skills_score", "experience_score", "education_score", "strengths", "gaps", "summary", "candidate_name", "candidate_email"],
+              required: ["overall_score", "skills_score", "experience_score", "education_score", "strengths", "gaps", "summary", "candidate_name", "candidate_email", "matched_skills", "missing_skills", "years_experience", "resume_quality_score", "resume_quality_issues"],
               additionalProperties: false,
             },
           },
@@ -128,6 +150,11 @@ Deno.serve(async (req) => {
       skills_score: args.skills_score,
       experience_score: args.experience_score,
       education_score: args.education_score,
+      matched_skills: args.matched_skills ?? [],
+      missing_skills: args.missing_skills ?? [],
+      years_experience: args.years_experience ?? null,
+      resume_quality_score: args.resume_quality_score ?? null,
+      resume_quality_issues: args.resume_quality_issues ?? [],
       strengths: args.strengths ?? [],
       gaps: args.gaps ?? [],
       summary: args.summary ?? "",

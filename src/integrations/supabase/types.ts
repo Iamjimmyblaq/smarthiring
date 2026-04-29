@@ -24,11 +24,15 @@ export type Database = {
           gaps: string[] | null
           id: string
           job_id: string
+          matched_skills: string[]
+          missing_skills: string[]
           name: string | null
           overall_score: number | null
           phone: string | null
           processing_status: string
           resume_path: string | null
+          resume_quality_issues: string[]
+          resume_quality_score: number | null
           resume_text: string | null
           skills_score: number | null
           status: string
@@ -36,6 +40,7 @@ export type Database = {
           summary: string | null
           updated_at: string
           user_id: string
+          years_experience: number | null
         }
         Insert: {
           created_at?: string
@@ -46,11 +51,15 @@ export type Database = {
           gaps?: string[] | null
           id?: string
           job_id: string
+          matched_skills?: string[]
+          missing_skills?: string[]
           name?: string | null
           overall_score?: number | null
           phone?: string | null
           processing_status?: string
           resume_path?: string | null
+          resume_quality_issues?: string[]
+          resume_quality_score?: number | null
           resume_text?: string | null
           skills_score?: number | null
           status?: string
@@ -58,6 +67,7 @@ export type Database = {
           summary?: string | null
           updated_at?: string
           user_id: string
+          years_experience?: number | null
         }
         Update: {
           created_at?: string
@@ -68,11 +78,15 @@ export type Database = {
           gaps?: string[] | null
           id?: string
           job_id?: string
+          matched_skills?: string[]
+          missing_skills?: string[]
           name?: string | null
           overall_score?: number | null
           phone?: string | null
           processing_status?: string
           resume_path?: string | null
+          resume_quality_issues?: string[]
+          resume_quality_score?: number | null
           resume_text?: string | null
           skills_score?: number | null
           status?: string
@@ -80,6 +94,7 @@ export type Database = {
           summary?: string | null
           updated_at?: string
           user_id?: string
+          years_experience?: number | null
         }
         Relationships: [
           {
@@ -96,6 +111,8 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          min_years_experience: number
+          required_skills: string[]
           requirements: string
           status: string
           title: string
@@ -106,6 +123,8 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          min_years_experience?: number
+          required_skills?: string[]
           requirements?: string
           status?: string
           title: string
@@ -116,6 +135,8 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          min_years_experience?: number
+          required_skills?: string[]
           requirements?: string
           status?: string
           title?: string
@@ -145,6 +166,36 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_plans: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          plan: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          plan?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          plan?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
