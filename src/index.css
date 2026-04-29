@@ -50,6 +50,14 @@ All colors MUST be HSL.
     --shadow-soft: 0 1px 2px hsl(222 39% 11% / 0.04), 0 8px 24px -12px hsl(222 39% 11% / 0.12);
     --shadow-glow: 0 8px 32px -8px hsl(158 64% 38% / 0.35);
 
+    /* Marketing brand (used by .theme-marketing scope) */
+    --brand: 258 90% 66%;            /* violet-500 */
+    --brand-foreground: 0 0% 100%;
+    --brand-2: 234 89% 64%;          /* indigo-500 */
+    --gradient-brand: linear-gradient(135deg, hsl(258 90% 66%), hsl(234 89% 64%));
+    --gradient-brand-soft: linear-gradient(135deg, hsl(258 90% 66% / 0.18), hsl(234 89% 64% / 0.12));
+    --shadow-brand: 0 0 24px -4px hsl(258 90% 66% / 0.55);
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -65,6 +73,30 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  /* Marketing surface — applied to landing/demo via <main className="theme-marketing">.
+     Keeps app dashboard untouched. */
+  .theme-marketing {
+    --background: 230 40% 4%;        /* obsidian */
+    --foreground: 215 25% 88%;
+    --card: 224 28% 8%;
+    --card-foreground: 215 25% 92%;
+    --popover: 224 28% 8%;
+    --popover-foreground: 215 25% 92%;
+    --primary: 258 90% 66%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 224 24% 12%;
+    --secondary-foreground: 215 25% 92%;
+    --muted: 224 22% 14%;
+    --muted-foreground: 215 18% 62%;
+    --accent: 234 89% 64%;
+    --accent-foreground: 0 0% 100%;
+    --border: 220 20% 16%;
+    --input: 220 20% 16%;
+    --ring: 258 90% 66%;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 
   .dark {
