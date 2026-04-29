@@ -10,6 +10,7 @@ import Jobs from "./pages/Jobs.tsx";
 import JobDetail from "./pages/JobDetail.tsx";
 import Pricing from "./pages/Pricing.tsx";
 import PaymentVerify from "./pages/PaymentVerify.tsx";
+import Demo from "./pages/Demo.tsx";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/jobs/:id" element={<JobDetail />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/payment/verify" element={<PaymentVerify />} />
+          <Route path="/demo" element={<Demo />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
