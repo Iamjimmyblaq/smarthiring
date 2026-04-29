@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   ArrowLeft, Upload, ChevronRight, CheckCircle2, XCircle, Loader2, Star,
-  Trophy, AlertTriangle, FileWarning, Sparkles,
+  Trophy, AlertTriangle, FileWarning,
 } from "lucide-react";
 import { extractResumeText, quickExtractMeta } from "@/lib/resume-parser";
 import type { Tables } from "@/integrations/supabase/types";
