@@ -6,15 +6,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Sparkles } from "lucide-react";
 import { usePlan, FREE_JOB_LIMIT, FREE_RESUME_LIMIT } from "@/hooks/usePlan";
 import { toast } from "sonner";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Pricing = () => {
   const navigate = useNavigate();
   const planState = usePlan();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => { document.title = "Pricing — SmartHire"; }, []);
 
-  const handleUpgrade = () => {
-    toast.info("Payments are being set up — your upgrade will be available shortly.");
+  const handleUpgrade = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("paystack-initialize", {
+        body: { callback_url: `${window.location.origin}/payment/verify` },
+      });
+      if (error) throw error;
+      if (!data?.authorization_url) throw new Error("No checkout URL returned");
+      window.location.href = data.authorization_url;
+    } catch (e: any) {
+      toast.error(e.message || "Could not start checkout");
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,8 +74,8 @@ const Pricing = () => {
               <Feature>Bias reduction mode</Feature>
               <Feature>Bulk actions & exports</Feature>
               <Feature>Priority support</Feature>
-              <Button className="w-full mt-4 gap-2" onClick={handleUpgrade} disabled={planState.plan === "pro"}>
-                {planState.plan === "pro" ? "Current plan" : <>Upgrade to Pro <Sparkles className="h-4 w-4" /></>}
+              <Button className="w-full mt-4 gap-2" onClick={handleUpgrade} disabled={planState.plan === "pro" || loading}>
+                {planState.plan === "pro" ? "Current plan" : loading ? "Redirecting…" : <>Upgrade to Pro <Sparkles className="h-4 w-4" /></>}
               </Button>
             </CardContent>
           </Card>
