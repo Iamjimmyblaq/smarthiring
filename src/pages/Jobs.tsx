@@ -10,10 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Briefcase, Trash2 } from "lucide-react";
+import { Plus, Briefcase, Trash2, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { usePlan, FREE_JOB_LIMIT, FREE_RESUME_LIMIT } from "@/hooks/usePlan";
-import { Sparkles } from "lucide-react";
 
 type Job = Tables<"jobs"> & { candidate_count?: number };
 
