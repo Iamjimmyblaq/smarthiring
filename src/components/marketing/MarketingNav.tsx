@@ -2,7 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import Logo from "@/components/Logo";
 
 export default function MarketingNav() {
   const { pathname } = useLocation();
@@ -24,11 +25,8 @@ export default function MarketingNav() {
   return (
     <nav className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="size-8 rounded-md bg-gradient-to-br from-brand to-brand-2 flex items-center justify-center shadow-[var(--shadow-brand)]">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
-          <span className="font-semibold tracking-tight text-foreground">SmartHire</span>
+        <Link to="/" className="group">
+          <Logo size={28} wordmarkClassName="text-foreground" />
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
