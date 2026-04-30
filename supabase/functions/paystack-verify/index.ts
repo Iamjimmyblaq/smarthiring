@@ -32,7 +32,8 @@ Deno.serve(async (req) => {
     });
     const data = await res.json();
     if (!data.status || data.data?.status !== "success") {
-      return json({ error: "Payment not successful", details: data }, 400);
+      console.error("Paystack verify failed", { reference, response: data });
+      return json({ error: "Payment could not be verified. Please contact support." }, 400);
     }
 
     const metaUserId = data.data?.metadata?.user_id;
