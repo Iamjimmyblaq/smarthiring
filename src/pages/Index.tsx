@@ -12,6 +12,12 @@ const Index = () => {
     document.title = "SmartHire — Hire Smarter, Not Harder";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute("content", "AI-powered resume screening that ranks every applicant in seconds and cuts screening time by 70%.");
+    document.documentElement.classList.add("theme-marketing");
+    document.body.classList.add("theme-marketing");
+    return () => {
+      document.documentElement.classList.remove("theme-marketing");
+      document.body.classList.remove("theme-marketing");
+    };
   }, []);
 
   return (
