@@ -24,6 +24,12 @@ export default function Demo() {
       setAuthed(!!data.session);
       setAuthChecked(true);
     });
+    document.documentElement.classList.add("theme-marketing");
+    document.body.classList.add("theme-marketing");
+    return () => {
+      document.documentElement.classList.remove("theme-marketing");
+      document.body.classList.remove("theme-marketing");
+    };
   }, []);
 
   if (!authChecked) {
