@@ -37,8 +37,9 @@ Deno.serve(async (req) => {
     }
 
     const metaUserId = data.data?.metadata?.user_id;
-    if (metaUserId && metaUserId !== user.id) {
-      return json({ error: "User mismatch" }, 403);
+    if (!metaUserId || metaUserId !== user.id) {
+      console.error("Paystack metadata user mismatch", { reference, metaUserId, userId: user.id });
+      return json({ error: "Forbidden" }, 403);
     }
 
     // Upgrade plan via service role
