@@ -153,10 +153,37 @@ const Index = () => {
         </div>
       </section>
 
+      {/* LIFECYCLE */}
+      <section className="py-28 border-t border-white/5">
+        <div className="max-w-6xl mx-auto px-6">
+          <SectionLabel center>Full recruitment lifecycle</SectionLabel>
+          <h2 className="mt-3 text-center text-4xl md:text-5xl font-semibold tracking-tight text-foreground">
+            One pipeline. Every stage. Zero spreadsheets.
+          </h2>
+          <p className="mt-4 text-center text-muted-foreground max-w-2xl mx-auto">
+            From sourcing to onboarding — track every candidate through a clean 5-stage workflow.
+          </p>
+          <div className="mt-16 grid md:grid-cols-5 gap-4">
+            {[
+              { icon: Inbox, label: "Sourced", desc: "AI-ranked applicants" },
+              { icon: Filter, label: "Screening", desc: "Auto-shortlist top fits" },
+              { icon: CalendarCheck, label: "Interview", desc: "Schedule & rate" },
+              { icon: FileSignature, label: "Offer", desc: "Salary, dates, status" },
+              { icon: UserCheck, label: "Hired", desc: "Onboarding checklist" },
+            ].map((s, i) => (
+              <div key={s.label} className="relative rounded-2xl border border-white/10 bg-card p-5 text-center">
+                <div className="text-xs font-mono text-brand">0{i + 1}</div>
+                <s.icon className="mt-3 h-6 w-6 text-foreground mx-auto" />
+                <h3 className="mt-3 text-base font-semibold text-foreground">{s.label}</h3>
+                <p className="mt-1 text-xs text-muted-foreground">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FEATURES */}
       <section id="features" className="py-28 border-t border-white/5">
-      {/* LIFECYCLE - inserted before features above; this block intentionally empty */}
-        {/* placeholder for layout */}
         <div className="max-w-6xl mx-auto px-6">
           <SectionLabel>Features</SectionLabel>
           <h2 className="mt-3 text-4xl md:text-5xl font-semibold tracking-tight text-foreground max-w-3xl">
