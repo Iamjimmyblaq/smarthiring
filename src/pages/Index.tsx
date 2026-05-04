@@ -5,6 +5,7 @@ import MarketingNav from "@/components/marketing/MarketingNav";
 import {
   ArrowRight, Sparkles, Upload, Brain, ListChecks, Zap, Target, Filter,
   ShieldCheck, BarChart3, Inbox, Clock, CheckCircle2,
+  Users, CalendarCheck, FileSignature, UserCheck,
 } from "lucide-react";
 
 const Index = () => {
@@ -154,6 +155,7 @@ const Index = () => {
 
       {/* FEATURES */}
       <section id="features" className="py-28 border-t border-white/5">
+        {/* placeholder for layout */}
         <div className="max-w-6xl mx-auto px-6">
           <SectionLabel>Features</SectionLabel>
           <h2 className="mt-3 text-4xl md:text-5xl font-semibold tracking-tight text-foreground max-w-3xl">
