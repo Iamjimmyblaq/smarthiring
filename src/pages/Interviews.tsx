@@ -80,8 +80,7 @@ export default function Interviews() {
   };
 
   const updateStatus = async (id: string, status: string) => {
-    const patch: Record<string, unknown> = { status };
-    const { error } = await supabase.from("interviews").update(patch).eq("id", id);
+    const { error } = await supabase.from("interviews").update({ status }).eq("id", id);
     if (error) return toast.error(error.message);
     load();
   };
