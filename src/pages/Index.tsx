@@ -155,6 +155,7 @@ const Index = () => {
 
       {/* FEATURES */}
       <section id="features" className="py-28 border-t border-white/5">
+      {/* LIFECYCLE - inserted before features above; this block intentionally empty */}
         {/* placeholder for layout */}
         <div className="max-w-6xl mx-auto px-6">
           <SectionLabel>Features</SectionLabel>
