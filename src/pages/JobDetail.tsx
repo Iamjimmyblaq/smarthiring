@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { STAGES, type StageKey } from "@/lib/lifecycle";
 import { toast } from "sonner";
 import {
   ArrowLeft, Upload, ChevronRight, CheckCircle2, XCircle, Loader2, Star,
@@ -155,6 +157,11 @@ const JobDetail = () => {
 
   const setStatus = async (cid: string, status: string) => {
     const { error } = await supabase.from("candidates").update({ status }).eq("id", cid);
+    if (error) toast.error(error.message);
+  };
+
+  const setStage = async (cid: string, stage: StageKey) => {
+    const { error } = await supabase.from("candidates").update({ stage }).eq("id", cid);
     if (error) toast.error(error.message);
   };
 
@@ -479,6 +486,15 @@ const JobDetail = () => {
                         <Button size="sm" variant={c.status === "rejected" ? "destructive" : "outline"} onClick={() => setStatus(c.id, c.status === "rejected" ? "new" : "rejected")}>
                           {c.status === "rejected" ? "Rejected" : "Reject"}
                         </Button>
+                        <div className="ml-auto flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Stage:</span>
+                          <Select value={(c.stage as StageKey) ?? "sourced"} onValueChange={(v) => setStage(c.id, v as StageKey)}>
+                            <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {STAGES.map((s) => <SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
                   )}

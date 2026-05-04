@@ -11,6 +11,10 @@ import JobDetail from "./pages/JobDetail.tsx";
 import Pricing from "./pages/Pricing.tsx";
 import PaymentVerify from "./pages/PaymentVerify.tsx";
 import Demo from "./pages/Demo.tsx";
+import Pipeline from "./pages/Pipeline.tsx";
+import Interviews from "./pages/Interviews.tsx";
+import Offers from "./pages/Offers.tsx";
+import Onboarding from "./pages/Onboarding.tsx";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +29,10 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/pipeline" element={<Pipeline />} />
+          <Route path="/interviews" element={<Interviews />} />
+          <Route path="/offers" element={<Offers />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/payment/verify" element={<PaymentVerify />} />
           <Route path="/demo" element={<Demo />} />

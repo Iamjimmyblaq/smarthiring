@@ -35,6 +35,7 @@ export type Database = {
           resume_quality_score: number | null
           resume_text: string | null
           skills_score: number | null
+          stage: string
           status: string
           strengths: string[] | null
           summary: string | null
@@ -62,6 +63,7 @@ export type Database = {
           resume_quality_score?: number | null
           resume_text?: string | null
           skills_score?: number | null
+          stage?: string
           status?: string
           strengths?: string[] | null
           summary?: string | null
@@ -89,6 +91,7 @@ export type Database = {
           resume_quality_score?: number | null
           resume_text?: string | null
           skills_score?: number | null
+          stage?: string
           status?: string
           strengths?: string[] | null
           summary?: string | null
@@ -105,6 +108,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      interviews: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          duration_minutes: number
+          feedback: string | null
+          id: string
+          interview_type: string
+          interviewer: string | null
+          job_id: string
+          location: string | null
+          notes: string | null
+          rating: number | null
+          scheduled_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          duration_minutes?: number
+          feedback?: string | null
+          id?: string
+          interview_type?: string
+          interviewer?: string | null
+          job_id: string
+          location?: string | null
+          notes?: string | null
+          rating?: number | null
+          scheduled_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          duration_minutes?: number
+          feedback?: string | null
+          id?: string
+          interview_type?: string
+          interviewer?: string | null
+          job_id?: string
+          location?: string | null
+          notes?: string | null
+          rating?: number | null
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       jobs: {
         Row: {
@@ -139,6 +196,96 @@ export type Database = {
           required_skills?: string[]
           requirements?: string
           status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      offers: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          job_id: string
+          notes: string | null
+          responded_at: string | null
+          salary_amount: number | null
+          salary_currency: string
+          sent_at: string | null
+          start_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          responded_at?: string | null
+          salary_amount?: number | null
+          salary_currency?: string
+          sent_at?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          responded_at?: string | null
+          salary_amount?: number | null
+          salary_currency?: string
+          sent_at?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      onboarding_tasks: {
+        Row: {
+          candidate_id: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          candidate_id: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          sort_order?: number
           title?: string
           updated_at?: string
           user_id?: string
