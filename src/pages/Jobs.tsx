@@ -26,6 +26,8 @@ const Jobs = () => {
   const [requirements, setRequirements] = useState("");
   const [skillsInput, setSkillsInput] = useState("");
   const [minYears, setMinYears] = useState<number>(0);
+  const [companyName, setCompanyName] = useState("");
+  const [hrEmail, setHrEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const planState = usePlan();
 
@@ -78,6 +80,8 @@ const Jobs = () => {
         requirements,
         required_skills,
         min_years_experience: Number.isFinite(minYears) ? minYears : 0,
+        company_name: companyName.trim() || null,
+        hr_email: hrEmail.trim() || null,
         user_id: userData.user.id,
       })
       .select()
@@ -86,6 +90,7 @@ const Jobs = () => {
     if (error) return toast.error(error.message);
     setOpen(false);
     setTitle(""); setDescription(""); setRequirements(""); setSkillsInput(""); setMinYears(0);
+    setCompanyName(""); setHrEmail("");
     planState.refresh();
     toast.success("Job created");
     if (data) navigate(`/jobs/${data.id}`);
@@ -142,6 +147,19 @@ const Jobs = () => {
                   <Label htmlFor="years">Minimum years of experience</Label>
                   <Input id="years" type="number" min={0} max={30} value={minYears} onChange={(e) => setMinYears(parseInt(e.target.value || "0", 10))} />
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="company">Company name</Label>
+                    <Input id="company" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Acme Inc." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="hr">HR / Hiring email</Label>
+                    <Input id="hr" type="email" value={hrEmail} onChange={(e) => setHrEmail(e.target.value)} placeholder="hiring@acme.com" />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground -mt-2">
+                  Used to sign auto-generated interview/rejection emails. Leave blank to use your profile defaults.
+                </p>
                 <DialogFooter>
                   <Button type="submit" disabled={saving}>{saving ? "Creating…" : "Create job"}</Button>
                 </DialogFooter>
