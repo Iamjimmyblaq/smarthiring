@@ -242,34 +242,96 @@ export default function Interviews() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {items.map((iv) => (
-              <Card key={iv.id}>
-                <CardContent className="py-4 flex flex-wrap items-center gap-4">
-                  <div className="flex-1 min-w-[200px]">
-                    <p className="font-medium">{candName(iv.candidate_id)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(iv.scheduled_at).toLocaleString()} · {iv.duration_minutes}min · {iv.interview_type}
-                      {iv.interviewer ? ` · with ${iv.interviewer}` : ""}
-                    </p>
-                  </div>
-                  <Badge variant={iv.status === "completed" ? "default" : iv.status === "cancelled" ? "secondary" : "outline"}>
-                    {iv.status}
-                  </Badge>
-                  <Select value={iv.status} onValueChange={(v) => updateStatus(iv.id, v)}>
-                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="scheduled">Scheduled</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                      <SelectItem value="no_show">No-show</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button variant="ghost" size="icon" onClick={() => remove(iv.id)}>
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {items.map((iv) => {
+              const cand = candidates.find((c) => c.id === iv.candidate_id);
+              const sentKind = cand?.decision_email_kind;
+              return (
+                <Card key={iv.id}>
+                  <CardContent className="py-4 space-y-3">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div className="flex-1 min-w-[200px]">
+                        <p className="font-medium">{candName(iv.candidate_id)}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(iv.scheduled_at).toLocaleString()} · {iv.duration_minutes}min · {iv.interview_type}
+                          {iv.interviewer ? ` · with ${iv.interviewer}` : ""}
+                        </p>
+                      </div>
+                      <Badge variant={iv.status === "completed" ? "default" : iv.status === "cancelled" ? "secondary" : "outline"}>
+                        {iv.status}
+                      </Badge>
+                      <Select value={iv.status} onValueChange={(v) => updateStatus(iv.id, v)}>
+                        <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="scheduled">Scheduled</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                          <SelectItem value="no_show">No-show</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button variant="ghost" size="icon" onClick={() => remove(iv.id)}>
+                        <Trash2 className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 pt-2 border-t">
+                      <span className="text-xs text-muted-foreground">Rate candidate:</span>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => setRating(iv, n)}
+                            className="p-0.5"
+                            aria-label={`Rate ${n} of 5`}
+                          >
+                            <Star
+                              className={`h-5 w-5 ${
+                                (iv.rating ?? 0) >= n
+                                  ? "fill-primary text-primary"
+                                  : "text-muted-foreground"
+                              }`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      {iv.rating != null && (
+                        <span className="text-xs text-muted-foreground">
+                          {iv.rating >= 3 ? "→ Interview email" : "→ Rejection email"}
+                        </span>
+                      )}
+                      <div className="flex-1" />
+                      {sentKind ? (
+                        <Badge variant="secondary" className="gap-1">
+                          <Mail className="h-3 w-3" />
+                          {sentKind === "interview" ? "Interview email opened" : "Rejection email opened"}
+                        </Badge>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            disabled={!cand?.email}
+                            onClick={() => sendDecisionEmail(iv, "interview")}
+                          >
+                            <Mail className="h-4 w-4" /> Interview email
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            disabled={!cand?.email}
+                            onClick={() => sendDecisionEmail(iv, "rejection")}
+                          >
+                            <Mail className="h-4 w-4" /> Rejection email
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </main>
