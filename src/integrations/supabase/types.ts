@@ -17,6 +17,8 @@ export type Database = {
       candidates: {
         Row: {
           created_at: string
+          decision_email_kind: string | null
+          decision_email_sent_at: string | null
           education_score: number | null
           email: string | null
           error_message: string | null
@@ -45,6 +47,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          decision_email_kind?: string | null
+          decision_email_sent_at?: string | null
           education_score?: number | null
           email?: string | null
           error_message?: string | null
@@ -73,6 +77,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          decision_email_kind?: string | null
+          decision_email_sent_at?: string | null
           education_score?: number | null
           email?: string | null
           error_message?: string | null
@@ -165,8 +171,10 @@ export type Database = {
       }
       jobs: {
         Row: {
+          company_name: string | null
           created_at: string
           description: string
+          hr_email: string | null
           id: string
           min_years_experience: number
           required_skills: string[]
@@ -177,8 +185,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          company_name?: string | null
           created_at?: string
           description?: string
+          hr_email?: string | null
           id?: string
           min_years_experience?: number
           required_skills?: string[]
@@ -189,8 +199,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          company_name?: string | null
           created_at?: string
           description?: string
+          hr_email?: string | null
           id?: string
           min_years_experience?: number
           required_skills?: string[]
@@ -294,23 +306,29 @@ export type Database = {
       }
       profiles: {
         Row: {
+          company_name: string | null
           created_at: string
           email: string | null
           full_name: string | null
+          hr_email: string | null
           id: string
           updated_at: string
         }
         Insert: {
+          company_name?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
+          hr_email?: string | null
           id: string
           updated_at?: string
         }
         Update: {
+          company_name?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
+          hr_email?: string | null
           id?: string
           updated_at?: string
         }
