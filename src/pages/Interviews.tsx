@@ -11,16 +11,21 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Calendar, Trash2 } from "lucide-react";
+import { Plus, Calendar, Trash2, Mail, Star } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { generateDecisionEmail, openInMailClient } from "@/lib/recruitment-emails";
 
 type Interview = Tables<"interviews">;
-type Candidate = Pick<Tables<"candidates">, "id" | "name" | "job_id">;
+type Candidate = Pick<Tables<"candidates">, "id" | "name" | "job_id" | "email" | "decision_email_kind" | "decision_email_sent_at">;
+type JobLite = Pick<Tables<"jobs">, "id" | "title" | "company_name" | "hr_email">;
+type ProfileLite = Pick<Tables<"profiles">, "id" | "company_name" | "hr_email" | "full_name">;
 
 export default function Interviews() {
   const navigate = useNavigate();
   const [items, setItems] = useState<Interview[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [jobs, setJobs] = useState<JobLite[]>([]);
+  const [profile, setProfile] = useState<ProfileLite | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -44,12 +49,19 @@ export default function Interviews() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: ints }, { data: cands }] = await Promise.all([
+    const { data: u } = await supabase.auth.getUser();
+    const [{ data: ints }, { data: cands }, { data: jbs }, { data: prof }] = await Promise.all([
       supabase.from("interviews").select("*").order("scheduled_at", { ascending: true }),
-      supabase.from("candidates").select("id, name, job_id"),
+      supabase.from("candidates").select("id, name, job_id, email, decision_email_kind, decision_email_sent_at"),
+      supabase.from("jobs").select("id, title, company_name, hr_email"),
+      u.user
+        ? supabase.from("profiles").select("id, company_name, hr_email, full_name").eq("id", u.user.id).maybeSingle()
+        : Promise.resolve({ data: null } as { data: ProfileLite | null }),
     ]);
     setItems(ints ?? []);
     setCandidates(cands ?? []);
+    setJobs(jbs ?? []);
+    setProfile(prof ?? null);
     setLoading(false);
   };
 
@@ -83,6 +95,61 @@ export default function Interviews() {
     const { error } = await supabase.from("interviews").update({ status }).eq("id", id);
     if (error) return toast.error(error.message);
     load();
+  };
+
+  const sendDecisionEmail = async (iv: Interview, kind: "interview" | "rejection") => {
+    const cand = candidates.find((c) => c.id === iv.candidate_id);
+    const job = jobs.find((j) => j.id === iv.job_id);
+    if (!cand) return toast.error("Candidate not found");
+    if (!cand.email) return toast.error("Candidate has no email on file");
+
+    const companyName = job?.company_name || profile?.company_name || "";
+    const hrEmail = job?.hr_email || profile?.hr_email || "";
+    const email = generateDecisionEmail(kind, {
+      candidateName: cand.name ?? "",
+      candidateEmail: cand.email,
+      jobTitle: job?.title ?? "the role",
+      companyName,
+      hrEmail,
+      hrName: profile?.full_name ?? null,
+    });
+
+    openInMailClient(email);
+
+    await supabase
+      .from("candidates")
+      .update({
+        decision_email_kind: kind,
+        decision_email_sent_at: new Date().toISOString(),
+        stage: kind === "interview" ? "offer" : "rejected",
+        status: kind === "interview" ? "shortlisted" : "rejected",
+      })
+      .eq("id", cand.id);
+
+    toast.success(
+      kind === "interview"
+        ? "Interview email opened in your mail app"
+        : "Rejection email opened in your mail app"
+    );
+    load();
+  };
+
+  const setRating = async (iv: Interview, rating: number) => {
+    const { error } = await supabase
+      .from("interviews")
+      .update({ rating, status: "completed" })
+      .eq("id", iv.id);
+    if (error) return toast.error(error.message);
+
+    const cand = candidates.find((c) => c.id === iv.candidate_id);
+    const alreadySent = !!cand?.decision_email_sent_at;
+    if (!alreadySent && cand?.email) {
+      const kind: "interview" | "rejection" = rating >= 3 ? "interview" : "rejection";
+      // Auto-open the pre-filled email for HR to review and send.
+      await sendDecisionEmail(iv, kind);
+    } else {
+      load();
+    }
   };
 
   const remove = async (id: string) => {
