@@ -11,16 +11,21 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Calendar, Trash2 } from "lucide-react";
+import { Plus, Calendar, Trash2, Mail, Star } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { generateDecisionEmail, openInMailClient } from "@/lib/recruitment-emails";
 
 type Interview = Tables<"interviews">;
-type Candidate = Pick<Tables<"candidates">, "id" | "name" | "job_id">;
+type Candidate = Pick<Tables<"candidates">, "id" | "name" | "job_id" | "email" | "decision_email_kind" | "decision_email_sent_at">;
+type JobLite = Pick<Tables<"jobs">, "id" | "title" | "company_name" | "hr_email">;
+type ProfileLite = Pick<Tables<"profiles">, "id" | "company_name" | "hr_email" | "full_name">;
 
 export default function Interviews() {
   const navigate = useNavigate();
   const [items, setItems] = useState<Interview[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [jobs, setJobs] = useState<JobLite[]>([]);
+  const [profile, setProfile] = useState<ProfileLite | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -44,12 +49,19 @@ export default function Interviews() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: ints }, { data: cands }] = await Promise.all([
+    const { data: u } = await supabase.auth.getUser();
+    const [{ data: ints }, { data: cands }, { data: jbs }, { data: prof }] = await Promise.all([
       supabase.from("interviews").select("*").order("scheduled_at", { ascending: true }),
-      supabase.from("candidates").select("id, name, job_id"),
+      supabase.from("candidates").select("id, name, job_id, email, decision_email_kind, decision_email_sent_at"),
+      supabase.from("jobs").select("id, title, company_name, hr_email"),
+      u.user
+        ? supabase.from("profiles").select("id, company_name, hr_email, full_name").eq("id", u.user.id).maybeSingle()
+        : Promise.resolve({ data: null } as { data: ProfileLite | null }),
     ]);
     setItems(ints ?? []);
     setCandidates(cands ?? []);
+    setJobs(jbs ?? []);
+    setProfile(prof ?? null);
     setLoading(false);
   };
 
@@ -83,6 +95,61 @@ export default function Interviews() {
     const { error } = await supabase.from("interviews").update({ status }).eq("id", id);
     if (error) return toast.error(error.message);
     load();
+  };
+
+  const sendDecisionEmail = async (iv: Interview, kind: "interview" | "rejection") => {
+    const cand = candidates.find((c) => c.id === iv.candidate_id);
+    const job = jobs.find((j) => j.id === iv.job_id);
+    if (!cand) return toast.error("Candidate not found");
+    if (!cand.email) return toast.error("Candidate has no email on file");
+
+    const companyName = job?.company_name || profile?.company_name || "";
+    const hrEmail = job?.hr_email || profile?.hr_email || "";
+    const email = generateDecisionEmail(kind, {
+      candidateName: cand.name ?? "",
+      candidateEmail: cand.email,
+      jobTitle: job?.title ?? "the role",
+      companyName,
+      hrEmail,
+      hrName: profile?.full_name ?? null,
+    });
+
+    openInMailClient(email);
+
+    await supabase
+      .from("candidates")
+      .update({
+        decision_email_kind: kind,
+        decision_email_sent_at: new Date().toISOString(),
+        stage: kind === "interview" ? "offer" : "rejected",
+        status: kind === "interview" ? "shortlisted" : "rejected",
+      })
+      .eq("id", cand.id);
+
+    toast.success(
+      kind === "interview"
+        ? "Interview email opened in your mail app"
+        : "Rejection email opened in your mail app"
+    );
+    load();
+  };
+
+  const setRating = async (iv: Interview, rating: number) => {
+    const { error } = await supabase
+      .from("interviews")
+      .update({ rating, status: "completed" })
+      .eq("id", iv.id);
+    if (error) return toast.error(error.message);
+
+    const cand = candidates.find((c) => c.id === iv.candidate_id);
+    const alreadySent = !!cand?.decision_email_sent_at;
+    if (!alreadySent && cand?.email) {
+      const kind: "interview" | "rejection" = rating >= 3 ? "interview" : "rejection";
+      // Auto-open the pre-filled email for HR to review and send.
+      await sendDecisionEmail(iv, kind);
+    } else {
+      load();
+    }
   };
 
   const remove = async (id: string) => {
@@ -175,34 +242,96 @@ export default function Interviews() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {items.map((iv) => (
-              <Card key={iv.id}>
-                <CardContent className="py-4 flex flex-wrap items-center gap-4">
-                  <div className="flex-1 min-w-[200px]">
-                    <p className="font-medium">{candName(iv.candidate_id)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(iv.scheduled_at).toLocaleString()} · {iv.duration_minutes}min · {iv.interview_type}
-                      {iv.interviewer ? ` · with ${iv.interviewer}` : ""}
-                    </p>
-                  </div>
-                  <Badge variant={iv.status === "completed" ? "default" : iv.status === "cancelled" ? "secondary" : "outline"}>
-                    {iv.status}
-                  </Badge>
-                  <Select value={iv.status} onValueChange={(v) => updateStatus(iv.id, v)}>
-                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="scheduled">Scheduled</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                      <SelectItem value="no_show">No-show</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button variant="ghost" size="icon" onClick={() => remove(iv.id)}>
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {items.map((iv) => {
+              const cand = candidates.find((c) => c.id === iv.candidate_id);
+              const sentKind = cand?.decision_email_kind;
+              return (
+                <Card key={iv.id}>
+                  <CardContent className="py-4 space-y-3">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div className="flex-1 min-w-[200px]">
+                        <p className="font-medium">{candName(iv.candidate_id)}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(iv.scheduled_at).toLocaleString()} · {iv.duration_minutes}min · {iv.interview_type}
+                          {iv.interviewer ? ` · with ${iv.interviewer}` : ""}
+                        </p>
+                      </div>
+                      <Badge variant={iv.status === "completed" ? "default" : iv.status === "cancelled" ? "secondary" : "outline"}>
+                        {iv.status}
+                      </Badge>
+                      <Select value={iv.status} onValueChange={(v) => updateStatus(iv.id, v)}>
+                        <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="scheduled">Scheduled</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                          <SelectItem value="no_show">No-show</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button variant="ghost" size="icon" onClick={() => remove(iv.id)}>
+                        <Trash2 className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 pt-2 border-t">
+                      <span className="text-xs text-muted-foreground">Rate candidate:</span>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => setRating(iv, n)}
+                            className="p-0.5"
+                            aria-label={`Rate ${n} of 5`}
+                          >
+                            <Star
+                              className={`h-5 w-5 ${
+                                (iv.rating ?? 0) >= n
+                                  ? "fill-primary text-primary"
+                                  : "text-muted-foreground"
+                              }`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      {iv.rating != null && (
+                        <span className="text-xs text-muted-foreground">
+                          {iv.rating >= 3 ? "→ Interview email" : "→ Rejection email"}
+                        </span>
+                      )}
+                      <div className="flex-1" />
+                      {sentKind ? (
+                        <Badge variant="secondary" className="gap-1">
+                          <Mail className="h-3 w-3" />
+                          {sentKind === "interview" ? "Interview email opened" : "Rejection email opened"}
+                        </Badge>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            disabled={!cand?.email}
+                            onClick={() => sendDecisionEmail(iv, "interview")}
+                          >
+                            <Mail className="h-4 w-4" /> Interview email
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            disabled={!cand?.email}
+                            onClick={() => sendDecisionEmail(iv, "rejection")}
+                          >
+                            <Mail className="h-4 w-4" /> Rejection email
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </main>
