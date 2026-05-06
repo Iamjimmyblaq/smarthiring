@@ -35,6 +35,7 @@ export default function Interviews() {
   const [duration, setDuration] = useState(30);
   const [type, setType] = useState("video");
   const [interviewer, setInterviewer] = useState("");
+  const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -79,6 +80,7 @@ export default function Interviews() {
       duration_minutes: duration,
       interview_type: type,
       interviewer: interviewer || null,
+      location: location || null,
       notes: notes || null,
     });
     setSaving(false);
@@ -87,7 +89,7 @@ export default function Interviews() {
     await supabase.from("candidates").update({ stage: "interview" }).eq("id", cand.id);
     toast.success("Interview scheduled");
     setOpen(false);
-    setCandidateId(""); setScheduledAt(""); setDuration(30); setType("video"); setInterviewer(""); setNotes("");
+    setCandidateId(""); setScheduledAt(""); setDuration(30); setType("video"); setInterviewer(""); setLocation(""); setNotes("");
     load();
   };
 
@@ -112,6 +114,12 @@ export default function Interviews() {
       companyName,
       hrEmail,
       hrName: profile?.full_name ?? null,
+      scheduledAt: iv.scheduled_at,
+      durationMinutes: iv.duration_minutes,
+      interviewType: iv.interview_type,
+      interviewer: iv.interviewer,
+      location: iv.location,
+      notes: iv.notes,
     });
 
     openInMailClient(email);
@@ -217,6 +225,10 @@ export default function Interviews() {
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <Label>Venue / meeting link</Label>
+                  <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Office address, phone number, or video link" />
+                </div>
+                <div className="space-y-2">
                   <Label>Notes</Label>
                   <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </div>
@@ -254,6 +266,7 @@ export default function Interviews() {
                         <p className="text-sm text-muted-foreground">
                           {new Date(iv.scheduled_at).toLocaleString()} · {iv.duration_minutes}min · {iv.interview_type}
                           {iv.interviewer ? ` · with ${iv.interviewer}` : ""}
+                          {iv.location ? ` · ${iv.location}` : ""}
                         </p>
                       </div>
                       <Badge variant={iv.status === "completed" ? "default" : iv.status === "cancelled" ? "secondary" : "outline"}>

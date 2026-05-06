@@ -13,7 +13,7 @@ import { STAGES, type StageKey } from "@/lib/lifecycle";
 import { toast } from "sonner";
 import {
   ArrowLeft, Upload, ChevronRight, CheckCircle2, XCircle, Loader2, Star,
-  Trophy, AlertTriangle, FileWarning,
+  Trophy, AlertTriangle, FileWarning, FileText, PlayCircle,
 } from "lucide-react";
 import { extractResumeText, quickExtractMeta } from "@/lib/resume-parser";
 import type { Tables } from "@/integrations/supabase/types";
@@ -49,6 +49,7 @@ const JobDetail = () => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
+  const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const planState = usePlan();
 
@@ -122,7 +123,7 @@ const JobDetail = () => {
     }
   }, [id]);
 
-  const handleFiles = async (files: FileList | null) => {
+  const queueFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     let arr = Array.from(files);
     if (planState.plan === "free") {
@@ -137,6 +138,14 @@ const JobDetail = () => {
         arr = arr.slice(0, remaining);
       }
     }
+    setQueuedFiles(arr);
+    setUploadProgress({ done: 0, total: arr.length });
+    toast.success(`${arr.length} resume${arr.length > 1 ? "s" : ""} ready to scan`);
+  };
+
+  const processQueuedFiles = async () => {
+    let arr = queuedFiles;
+    if (arr.length === 0) return;
     setUploading(true);
     setUploadProgress({ done: 0, total: arr.length });
     let idx = 0;
@@ -151,6 +160,8 @@ const JobDetail = () => {
     });
     await Promise.all(workers);
     setUploading(false);
+    setQueuedFiles([]);
+    await loadAll();
     planState.refresh();
     toast.success(`Processed ${arr.length} resume${arr.length > 1 ? "s" : ""}`);
   };
@@ -248,7 +259,7 @@ const JobDetail = () => {
           <CardContent className="py-6">
             <div
               onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
+              onDrop={(e) => { e.preventDefault(); queueFiles(e.dataTransfer.files); }}
               className="border-2 border-dashed rounded-lg p-8 text-center hover:bg-muted/40 transition-colors cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
@@ -267,9 +278,31 @@ const JobDetail = () => {
                 multiple
                 accept=".pdf,.docx,.txt"
                 className="hidden"
-                onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }}
+                onChange={(e) => { queueFiles(e.target.files); e.target.value = ""; }}
               />
             </div>
+            {queuedFiles.length > 0 && !uploading && (
+              <div className="mt-4 rounded-lg border bg-muted/30 p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium flex items-center gap-2">
+                      <FileText className="h-4 w-4" /> {queuedFiles.length} file{queuedFiles.length > 1 ? "s" : ""} uploaded
+                    </p>
+                    <p className="text-sm text-muted-foreground">Ready to scan and rank against this job.</p>
+                  </div>
+                  <Button onClick={processQueuedFiles} className="gap-2">
+                    <PlayCircle className="h-4 w-4" /> Proceed to scan
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {queuedFiles.map((file) => (
+                    <Badge key={`${file.name}-${file.size}`} variant="secondary" className="max-w-full truncate">
+                      {file.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
             {uploading && (
               <div className="mt-4 space-y-2">
                 <div className="flex justify-between text-sm">

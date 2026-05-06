@@ -10,6 +10,12 @@ export interface EmailContext {
   companyName?: string | null;
   hrEmail?: string | null;
   hrName?: string | null;
+  scheduledAt?: string | null;
+  durationMinutes?: number | null;
+  interviewType?: string | null;
+  interviewer?: string | null;
+  location?: string | null;
+  notes?: string | null;
 }
 
 export interface GeneratedEmail {
@@ -21,12 +27,31 @@ export interface GeneratedEmail {
 
 const firstName = (full: string) => (full || "").trim().split(/\s+/)[0] || "there";
 
+const formatDateTime = (value?: string | null) => {
+  if (!value) return "the scheduled time";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString(undefined, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
 export function generateDecisionEmail(
   kind: DecisionKind,
   ctx: EmailContext
 ): GeneratedEmail {
   const company = ctx.companyName?.trim() || "our team";
   const signoff = ctx.hrName?.trim() || (ctx.hrEmail ? ctx.hrEmail.split("@")[0] : "Hiring Team");
+  const interviewDate = formatDateTime(ctx.scheduledAt);
+  const duration = ctx.durationMinutes ? `${ctx.durationMinutes} minutes` : "to be confirmed";
+  const venue = ctx.location?.trim() || (ctx.interviewType ? `${ctx.interviewType} interview` : "to be confirmed");
+  const interviewer = ctx.interviewer?.trim() || signoff;
+  const notes = ctx.notes?.trim();
 
   const subject =
     kind === "interview"
@@ -37,11 +62,16 @@ export function generateDecisionEmail(
     kind === "interview"
       ? `Hi ${firstName(ctx.candidateName)},
 
-Thank you for taking the time to interview for the ${ctx.jobTitle} role at ${company}. We were really impressed with your background and would love to move you forward to the next stage.
+Thank you for your application for the ${ctx.jobTitle} role at ${company}. We were impressed with your background and would like to invite you for an interview.
 
-Could you share a few times that work for you over the next week? We'll get something on the calendar right away.
+Interview details:
+Date and time: ${interviewDate}
+Duration: ${duration}
+Venue / format: ${venue}
+Interviewer: ${interviewer}${notes ? `
+Additional notes: ${notes}` : ""}
 
-Looking forward to speaking again soon.
+Please reply to confirm your availability for this interview.
 
 Best,
 ${signoff}
@@ -71,6 +101,12 @@ ${company}`;
 }
 
 export function openInMailClient(email: GeneratedEmail) {
-  // Use location.href so the OS-default mail handler picks it up reliably.
-  window.location.href = email.mailto;
+  // Trigger from a real anchor click so browsers can hand off to Gmail/Outlook/default mail apps.
+  const anchor = document.createElement("a");
+  anchor.href = email.mailto;
+  anchor.target = "_blank";
+  anchor.rel = "noopener noreferrer";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
 }
