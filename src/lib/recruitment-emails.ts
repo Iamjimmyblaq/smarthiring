@@ -101,6 +101,12 @@ ${company}`;
 }
 
 export function openInMailClient(email: GeneratedEmail) {
-  // Use location.href so the OS-default mail handler picks it up reliably.
-  window.location.href = email.mailto;
+  // Trigger from a real anchor click so browsers can hand off to Gmail/Outlook/default mail apps.
+  const anchor = document.createElement("a");
+  anchor.href = email.mailto;
+  anchor.target = "_blank";
+  anchor.rel = "noopener noreferrer";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
 }
