@@ -123,7 +123,7 @@ const Jobs = () => {
             <DialogTrigger asChild>
               <Button className="gap-2"><Plus className="h-4 w-4" /> New job</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto">
               <DialogHeader><DialogTitle>Create a new job</DialogTitle></DialogHeader>
               <form onSubmit={createJob} className="space-y-4">
                 <div className="space-y-2">
