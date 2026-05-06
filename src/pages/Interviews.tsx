@@ -35,6 +35,7 @@ export default function Interviews() {
   const [duration, setDuration] = useState(30);
   const [type, setType] = useState("video");
   const [interviewer, setInterviewer] = useState("");
+  const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -79,6 +80,7 @@ export default function Interviews() {
       duration_minutes: duration,
       interview_type: type,
       interviewer: interviewer || null,
+      location: location || null,
       notes: notes || null,
     });
     setSaving(false);
@@ -87,7 +89,7 @@ export default function Interviews() {
     await supabase.from("candidates").update({ stage: "interview" }).eq("id", cand.id);
     toast.success("Interview scheduled");
     setOpen(false);
-    setCandidateId(""); setScheduledAt(""); setDuration(30); setType("video"); setInterviewer(""); setNotes("");
+    setCandidateId(""); setScheduledAt(""); setDuration(30); setType("video"); setInterviewer(""); setLocation(""); setNotes("");
     load();
   };
 
@@ -112,6 +114,12 @@ export default function Interviews() {
       companyName,
       hrEmail,
       hrName: profile?.full_name ?? null,
+      scheduledAt: iv.scheduled_at,
+      durationMinutes: iv.duration_minutes,
+      interviewType: iv.interview_type,
+      interviewer: iv.interviewer,
+      location: iv.location,
+      notes: iv.notes,
     });
 
     openInMailClient(email);
