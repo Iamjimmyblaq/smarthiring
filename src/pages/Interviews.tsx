@@ -225,6 +225,10 @@ export default function Interviews() {
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <Label>Venue / meeting link</Label>
+                  <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Office address, phone number, or video link" />
+                </div>
+                <div className="space-y-2">
                   <Label>Notes</Label>
                   <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </div>
@@ -262,6 +266,7 @@ export default function Interviews() {
                         <p className="text-sm text-muted-foreground">
                           {new Date(iv.scheduled_at).toLocaleString()} · {iv.duration_minutes}min · {iv.interview_type}
                           {iv.interviewer ? ` · with ${iv.interviewer}` : ""}
+                          {iv.location ? ` · ${iv.location}` : ""}
                         </p>
                       </div>
                       <Badge variant={iv.status === "completed" ? "default" : iv.status === "cancelled" ? "secondary" : "outline"}>
