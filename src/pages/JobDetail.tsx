@@ -13,7 +13,7 @@ import { STAGES, type StageKey } from "@/lib/lifecycle";
 import { toast } from "sonner";
 import {
   ArrowLeft, Upload, ChevronRight, CheckCircle2, XCircle, Loader2, Star,
-  Trophy, AlertTriangle, FileWarning,
+  Trophy, AlertTriangle, FileWarning, FileText, PlayCircle,
 } from "lucide-react";
 import { extractResumeText, quickExtractMeta } from "@/lib/resume-parser";
 import type { Tables } from "@/integrations/supabase/types";
@@ -49,6 +49,7 @@ const JobDetail = () => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
+  const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const planState = usePlan();
 
@@ -122,7 +123,7 @@ const JobDetail = () => {
     }
   }, [id]);
 
-  const handleFiles = async (files: FileList | null) => {
+  const queueFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     let arr = Array.from(files);
     if (planState.plan === "free") {
@@ -137,6 +138,14 @@ const JobDetail = () => {
         arr = arr.slice(0, remaining);
       }
     }
+    setQueuedFiles(arr);
+    setUploadProgress({ done: 0, total: arr.length });
+    toast.success(`${arr.length} resume${arr.length > 1 ? "s" : ""} ready to scan`);
+  };
+
+  const processQueuedFiles = async () => {
+    let arr = queuedFiles;
+    if (arr.length === 0) return;
     setUploading(true);
     setUploadProgress({ done: 0, total: arr.length });
     let idx = 0;
@@ -151,6 +160,8 @@ const JobDetail = () => {
     });
     await Promise.all(workers);
     setUploading(false);
+    setQueuedFiles([]);
+    await loadAll();
     planState.refresh();
     toast.success(`Processed ${arr.length} resume${arr.length > 1 ? "s" : ""}`);
   };
