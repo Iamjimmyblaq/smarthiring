@@ -5,9 +5,25 @@ import AppHeader from "@/components/AppHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Download, FileSpreadsheet, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { STAGES, type StageKey } from "@/lib/lifecycle";
 import type { Tables } from "@/integrations/supabase/types";
+import {
+  exportAllStagesExcel,
+  exportAllStagesPdf,
+  exportStageExcel,
+  exportStagePdf,
+} from "@/lib/candidate-exports";
 
 type Candidate = Tables<"candidates"> & { jobs?: { title: string } | null };
 
@@ -50,11 +66,30 @@ export default function Pipeline() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="container mx-auto py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight">Recruitment Pipeline</h1>
-          <p className="text-muted-foreground mt-1">
-            Track every candidate through the full hiring lifecycle.
-          </p>
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">Recruitment Pipeline</h1>
+            <p className="text-muted-foreground mt-1">
+              Track every candidate through the full hiring lifecycle.
+            </p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2" disabled={candidates.length === 0}>
+                <Download className="h-4 w-4" /> Download all stages
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Export full pipeline</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => exportAllStagesExcel(candidates)}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel (.xlsx)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportAllStagesPdf(candidates)}>
+                <FileText className="h-4 w-4 mr-2" /> PDF (.pdf)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {loading ? (
@@ -76,7 +111,32 @@ export default function Pipeline() {
                 <div key={s.key} className="rounded-xl border bg-card/40 p-3 min-h-[300px]">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm font-semibold">{s.label}</h2>
-                    <Badge variant="secondary" className="text-xs">{list.length}</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="secondary" className="text-xs">{list.length}</Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                            disabled={list.length === 0}
+                            aria-label={`Download ${s.label}`}
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Download {s.label}</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => exportStageExcel(s.key, list)}>
+                            <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel (.xlsx)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => exportStagePdf(s.key, list)}>
+                            <FileText className="h-4 w-4 mr-2" /> PDF (.pdf)
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     {list.map((c) => (
