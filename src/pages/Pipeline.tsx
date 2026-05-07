@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, FileSpreadsheet, FileText } from "lucide-react";
+import { Download, FileSpreadsheet, FileText, Users } from "lucide-react";
 import { toast } from "sonner";
 import { STAGES, type StageKey } from "@/lib/lifecycle";
 import type { Tables } from "@/integrations/supabase/types";
@@ -66,12 +66,31 @@ export default function Pipeline() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="container mx-auto py-8">
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Recruitment Pipeline</h1>
-            <p className="text-muted-foreground mt-1">
-              Track every candidate through the full hiring lifecycle.
-            </p>
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4 rounded-2xl border bg-gradient-to-br from-primary/5 via-background to-accent/10 p-6 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-md">
+              <Users className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight">Recruitment Pipeline</h1>
+              <p className="text-muted-foreground mt-1">
+                Track every candidate through the full hiring lifecycle.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {STAGES.map((s) => {
+                  const count = candidates.filter((c) => (c.stage ?? "sourced") === s.key).length;
+                  return (
+                    <span
+                      key={s.key}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${s.color}`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
+                      {s.label} · {count}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -108,11 +127,17 @@ export default function Pipeline() {
             {STAGES.map((s) => {
               const list = candidates.filter((c) => (c.stage ?? "sourced") === s.key);
               return (
-                <div key={s.key} className="rounded-xl border bg-card/40 p-3 min-h-[300px]">
+                <div
+                  key={s.key}
+                  className={`rounded-2xl border-2 p-3 min-h-[320px] shadow-sm transition-shadow hover:shadow-md ${s.column}`}
+                >
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-sm font-semibold">{s.label}</h2>
+                    <h2 className="text-sm font-semibold flex items-center gap-2">
+                      <span className={`h-2 w-2 rounded-full ${s.dot}`} />
+                      <span className={s.accent}>{s.label}</span>
+                    </h2>
                     <div className="flex items-center gap-1">
-                      <Badge variant="secondary" className="text-xs">{list.length}</Badge>
+                      <Badge className={`text-xs border ${s.color}`} variant="outline">{list.length}</Badge>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
