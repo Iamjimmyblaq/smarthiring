@@ -108,10 +108,15 @@ const Jobs = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="container mx-auto py-10">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Jobs</h1>
-            <p className="text-muted-foreground mt-1">Create a role and start screening candidates.</p>
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-gradient-to-br from-primary/5 via-background to-accent/10 p-6 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-md">
+              <Briefcase className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight">Jobs</h1>
+              <p className="text-muted-foreground mt-1">Create a role and start screening candidates.</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {planState.plan === "free" && (
@@ -194,16 +199,26 @@ const Jobs = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {jobs.map((job) => (
-              <Card key={job.id} className="hover:shadow-md transition-shadow">
+              <Card
+                key={job.id}
+                className="group relative overflow-hidden border-2 hover:border-accent/50 hover:shadow-lg transition-all duration-300"
+              >
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-accent to-primary opacity-70 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-accent/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                 <CardHeader className="flex flex-row items-start justify-between space-y-0">
-                  <Link to={`/jobs/${job.id}`} className="space-y-1 flex-1">
-                    <CardTitle className="text-base">{job.title}</CardTitle>
-                    <Badge variant="secondary">{job.status}</Badge>
+                  <Link to={`/jobs/${job.id}`} className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2">
+                      <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary/15 to-accent/20 flex items-center justify-center">
+                        <Briefcase className="h-4 w-4 text-accent" />
+                      </div>
+                      <CardTitle className="text-base group-hover:text-accent transition-colors">{job.title}</CardTitle>
+                    </div>
+                    <Badge variant="secondary" className="capitalize">{job.status}</Badge>
                   </Link>
                   <Button variant="ghost" size="icon" onClick={() => deleteJob(job.id)}>
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />
                   </Button>
                 </CardHeader>
                 <CardContent>

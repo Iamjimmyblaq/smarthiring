@@ -21,14 +21,16 @@ Deno.serve(async (req) => {
     if (userErr || !userData.user) return json({ error: "Unauthorized" }, 401);
     const user = userData.user;
 
-    const { callback_url } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({} as any));
+    const callback_url = body?.callback_url;
     const PAYSTACK_SECRET = Deno.env.get("PAYSTACK_SECRET_KEY");
     if (!PAYSTACK_SECRET) return json({ error: "Paystack not configured" }, 500);
 
-    // Pro plan: $29/mo => approx ₦43,500 (kobo). We'll charge in USD if supported, else NGN.
-    // Paystack supports USD for some merchants; default to NGN to be safe.
-    const amount = 4350000; // 43,500 NGN in kobo (~$29)
-    const currency = "NGN";
+    // Pro plan: $29/mo. Default to USD so the checkout is open to customers
+    // worldwide (Paystack accepts international cards for USD transactions).
+    // Body can override currency/amount for regional pricing.
+    const currency: string = (body?.currency as string) || "USD";
+    const amount: number = Number(body?.amount) || (currency === "NGN" ? 4350000 : 2900);
 
     const res = await fetch("https://api.paystack.co/transaction/initialize", {
       method: "POST",
@@ -41,6 +43,7 @@ Deno.serve(async (req) => {
         amount,
         currency,
         callback_url,
+        channels: ["card", "bank", "apple_pay", "ussd", "qr", "mobile_money", "bank_transfer"],
         metadata: { user_id: user.id, plan: "pro" },
       }),
     });
