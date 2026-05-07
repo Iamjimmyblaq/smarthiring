@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import AppHeader from "@/components/AppHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const PaymentVerify = () => {
@@ -44,7 +44,12 @@ const PaymentVerify = () => {
             {status === "error" && <XCircle className="h-10 w-10 mx-auto text-destructive" />}
             <p className="text-lg">{message}</p>
             {status !== "loading" && (
-              <Button className="w-full" onClick={() => navigate("/jobs")}>Go to dashboard</Button>
+              <div className="space-y-2">
+                <Button className="w-full" onClick={() => navigate("/jobs")}>Go to dashboard</Button>
+                <Button variant="outline" className="w-full gap-2" onClick={() => navigate("/")}>
+                  <Home className="h-4 w-4" /> Back to home
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
