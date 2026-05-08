@@ -176,6 +176,33 @@ const JobDetail = () => {
     if (error) toast.error(error.message);
   };
 
+  const startAiInterview = async (cand: Candidate) => {
+    if (!cand.email) {
+      toast.error("Add an email to this candidate first.");
+      return;
+    }
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user || !id) return;
+    const { data, error } = await supabase
+      .from("interview_sessions")
+      .insert({ user_id: u.user.id, job_id: id, candidate_id: cand.id })
+      .select("token")
+      .single();
+    if (error) return toast.error(error.message);
+    const link = `${window.location.origin}/interview/${data.token}`;
+    try { await navigator.clipboard.writeText(link); } catch { /* ignore */ }
+    const subject = encodeURIComponent(`AI screening interview for ${job?.title ?? "the role"}`);
+    const body = encodeURIComponent(
+      `Hi ${cand.name ?? ""},\n\nThank you for applying for ${job?.title ?? "the role"}${job?.company_name ? ` at ${job.company_name}` : ""}. ` +
+      `As the next step, please complete a short AI-powered screening interview at the link below. It takes about 5–10 minutes and you can do it from any device with a microphone.\n\n` +
+      `${link}\n\nThe link expires in 14 days. Please complete it at your earliest convenience.\n\nThank you!`
+    );
+    const a = document.createElement("a");
+    a.href = `mailto:${cand.email}?subject=${subject}&body=${body}`;
+    a.click();
+    toast.success("Interview link created and copied. Email draft opened.");
+  };
+
   const bulkSetStatus = async (status: string) => {
     if (selected.size === 0) return;
     const ids = Array.from(selected);
