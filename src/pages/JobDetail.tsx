@@ -13,7 +13,7 @@ import { STAGES, type StageKey } from "@/lib/lifecycle";
 import { toast } from "sonner";
 import {
   ArrowLeft, Upload, ChevronRight, CheckCircle2, XCircle, Loader2, Star,
-  Trophy, AlertTriangle, FileWarning, FileText, PlayCircle,
+  Trophy, AlertTriangle, FileWarning, FileText, PlayCircle, Mic, Copy,
 } from "lucide-react";
 import { extractResumeText, quickExtractMeta } from "@/lib/resume-parser";
 import type { Tables } from "@/integrations/supabase/types";
@@ -518,6 +518,9 @@ const JobDetail = () => {
                         </Button>
                         <Button size="sm" variant={c.status === "rejected" ? "destructive" : "outline"} onClick={() => setStatus(c.id, c.status === "rejected" ? "new" : "rejected")}>
                           {c.status === "rejected" ? "Rejected" : "Reject"}
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => startAiInterview(c)}>
+                          <Mic className="h-4 w-4" /> AI interview
                         </Button>
                         <div className="ml-auto flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">Stage:</span>
