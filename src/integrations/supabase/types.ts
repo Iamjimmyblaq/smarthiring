@@ -115,6 +115,69 @@ export type Database = {
           },
         ]
       }
+      interview_sessions: {
+        Row: {
+          agent_id: string | null
+          candidate_id: string
+          conversation_id: string | null
+          created_at: string
+          ended_at: string | null
+          expires_at: string
+          id: string
+          job_id: string
+          recommendation: string | null
+          scores: Json | null
+          sentiment: string | null
+          started_at: string | null
+          status: string
+          summary: string | null
+          token: string
+          transcript: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          candidate_id: string
+          conversation_id?: string | null
+          created_at?: string
+          ended_at?: string | null
+          expires_at?: string
+          id?: string
+          job_id: string
+          recommendation?: string | null
+          scores?: Json | null
+          sentiment?: string | null
+          started_at?: string | null
+          status?: string
+          summary?: string | null
+          token?: string
+          transcript?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          candidate_id?: string
+          conversation_id?: string | null
+          created_at?: string
+          ended_at?: string | null
+          expires_at?: string
+          id?: string
+          job_id?: string
+          recommendation?: string | null
+          scores?: Json | null
+          sentiment?: string | null
+          started_at?: string | null
+          status?: string
+          summary?: string | null
+          token?: string
+          transcript?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       interviews: {
         Row: {
           candidate_id: string
@@ -369,7 +432,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_interview_session_by_token: {
+        Args: { _token: string }
+        Returns: {
+          candidate_name: string
+          company_name: string
+          expires_at: string
+          id: string
+          job_description: string
+          job_title: string
+          required_skills: string[]
+          status: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
