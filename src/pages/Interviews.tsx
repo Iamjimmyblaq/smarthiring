@@ -10,12 +10,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Calendar, Trash2, Mail, Star } from "lucide-react";
+import { Plus, Calendar, Trash2, Mail, Star, Sparkles, Copy, FileText, Loader2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { generateDecisionEmail, openInMailClient } from "@/lib/recruitment-emails";
 
 type Interview = Tables<"interviews">;
+type AiSession = Tables<"interview_sessions">;
 type Candidate = Pick<Tables<"candidates">, "id" | "name" | "job_id" | "email" | "decision_email_kind" | "decision_email_sent_at">;
 type JobLite = Pick<Tables<"jobs">, "id" | "title" | "company_name" | "hr_email">;
 type ProfileLite = Pick<Tables<"profiles">, "id" | "company_name" | "hr_email" | "full_name">;
@@ -23,6 +25,8 @@ type ProfileLite = Pick<Tables<"profiles">, "id" | "company_name" | "hr_email" |
 export default function Interviews() {
   const navigate = useNavigate();
   const [items, setItems] = useState<Interview[]>([]);
+  const [aiSessions, setAiSessions] = useState<AiSession[]>([]);
+  const [reportOpen, setReportOpen] = useState<AiSession | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [jobs, setJobs] = useState<JobLite[]>([]);
   const [profile, setProfile] = useState<ProfileLite | null>(null);
@@ -51,8 +55,9 @@ export default function Interviews() {
   const load = async () => {
     setLoading(true);
     const { data: u } = await supabase.auth.getUser();
-    const [{ data: ints }, { data: cands }, { data: jbs }, { data: prof }] = await Promise.all([
+    const [{ data: ints }, { data: ai }, { data: cands }, { data: jbs }, { data: prof }] = await Promise.all([
       supabase.from("interviews").select("*").order("scheduled_at", { ascending: true }),
+      supabase.from("interview_sessions").select("*").order("created_at", { ascending: false }),
       supabase.from("candidates").select("id, name, job_id, email, decision_email_kind, decision_email_sent_at"),
       supabase.from("jobs").select("id, title, company_name, hr_email"),
       u.user
@@ -60,6 +65,7 @@ export default function Interviews() {
         : Promise.resolve({ data: null } as { data: ProfileLite | null }),
     ]);
     setItems(ints ?? []);
+    setAiSessions(ai ?? []);
     setCandidates(cands ?? []);
     setJobs(jbs ?? []);
     setProfile(prof ?? null);
@@ -169,6 +175,19 @@ export default function Interviews() {
 
   const candName = (id: string) => candidates.find((c) => c.id === id)?.name ?? "Candidate";
 
+  const copyLink = async (token: string) => {
+    const link = `${window.location.origin}/interview/${token}`;
+    try { await navigator.clipboard.writeText(link); toast.success("Link copied"); }
+    catch { toast.error("Could not copy"); }
+  };
+
+  const deleteAiSession = async (id: string) => {
+    if (!confirm("Delete this AI interview session?")) return;
+    const { error } = await supabase.from("interview_sessions").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    setAiSessions((x) => x.filter((s) => s.id !== id));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -244,7 +263,15 @@ export default function Interviews() {
 
         {loading ? (
           <p className="text-muted-foreground">Loading…</p>
-        ) : items.length === 0 ? (
+        ) : (
+        <Tabs defaultValue="scheduled">
+          <TabsList className="mb-6">
+            <TabsTrigger value="scheduled" className="gap-2"><Calendar className="h-4 w-4" /> Scheduled ({items.length})</TabsTrigger>
+            <TabsTrigger value="ai" className="gap-2"><Sparkles className="h-4 w-4" /> AI Sessions ({aiSessions.length})</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="scheduled">
+        {items.length === 0 ? (
           <Card className="text-center py-16">
             <CardContent className="space-y-2">
               <Calendar className="h-10 w-10 mx-auto text-muted-foreground" />
@@ -347,6 +374,105 @@ export default function Interviews() {
             })}
           </div>
         )}
+          </TabsContent>
+
+          <TabsContent value="ai">
+            {aiSessions.length === 0 ? (
+              <Card className="text-center py-16">
+                <CardContent className="space-y-2">
+                  <Sparkles className="h-10 w-10 mx-auto text-muted-foreground" />
+                  <p className="text-lg font-medium">No AI interviews yet</p>
+                  <p className="text-muted-foreground">Start one from a candidate row in any job.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {aiSessions.map((s) => {
+                  const job = jobs.find((j) => j.id === s.job_id);
+                  const overall = (s.scores as { overall?: number } | null)?.overall;
+                  return (
+                    <Card key={s.id}>
+                      <CardContent className="py-4 flex flex-wrap items-center gap-4">
+                        <div className="flex-1 min-w-[200px]">
+                          <p className="font-medium">{candName(s.candidate_id)}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {job?.title ?? "—"} · {new Date(s.created_at).toLocaleString()}
+                            {s.recommendation && s.status === "completed" ? ` · ${s.recommendation.replace("_", " ")}` : ""}
+                          </p>
+                        </div>
+                        {overall != null && (
+                          <Badge className="bg-accent text-accent-foreground">{overall}/100</Badge>
+                        )}
+                        <Badge variant={s.status === "completed" ? "default" : s.status === "live" ? "secondary" : "outline"}>
+                          {s.status === "live" ? <span className="flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> live</span> : s.status}
+                        </Badge>
+                        {s.status !== "completed" && (
+                          <Button size="sm" variant="outline" className="gap-1" onClick={() => copyLink(s.token)}>
+                            <Copy className="h-3.5 w-3.5" /> Copy link
+                          </Button>
+                        )}
+                        {s.status === "completed" && (
+                          <Button size="sm" variant="outline" className="gap-1" onClick={() => setReportOpen(s)}>
+                            <FileText className="h-3.5 w-3.5" /> View report
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" onClick={() => deleteAiSession(s.id)}>
+                          <Trash2 className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+        )}
+
+        <Dialog open={!!reportOpen} onOpenChange={(o) => !o && setReportOpen(null)}>
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>AI Interview Report — {reportOpen ? candName(reportOpen.candidate_id) : ""}</DialogTitle>
+            </DialogHeader>
+            {reportOpen && (() => {
+              const scores = (reportOpen.scores ?? {}) as Record<string, number>;
+              const transcript = (reportOpen.transcript ?? []) as Array<{ role: string; text: string }>;
+              return (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    {["overall", "communication", "confidence", "technical"].map((k) => (
+                      <div key={k} className="rounded-lg border p-3">
+                        <p className="text-xs uppercase text-muted-foreground">{k}</p>
+                        <p className="text-2xl font-semibold">{scores[k] ?? "—"}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">Sentiment: {reportOpen.sentiment ?? "—"}</Badge>
+                    <Badge className="bg-accent text-accent-foreground">Recommendation: {reportOpen.recommendation?.replace("_", " ") ?? "—"}</Badge>
+                  </div>
+                  {reportOpen.summary && (
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Summary</p>
+                      <p className="text-sm">{reportOpen.summary}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Transcript</p>
+                    <div className="rounded-lg border bg-muted/30 p-3 max-h-72 overflow-y-auto text-sm space-y-1.5">
+                      {transcript.length === 0 && <p className="text-muted-foreground">No transcript captured.</p>}
+                      {transcript.map((t, i) => (
+                        <div key={i}>
+                          <span className="font-medium">{t.role === "agent" ? "Interviewer" : "Candidate"}:</span> {t.text}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
