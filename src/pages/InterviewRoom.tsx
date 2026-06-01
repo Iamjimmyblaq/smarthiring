@@ -51,13 +51,22 @@ export default function InterviewRoom() {
     document.title = "AI Interview — SmartHire";
     if (!token) return;
     (async () => {
-      const { data, error } = await supabase.rpc("get_interview_session_by_token", { _token: token });
-      if (error || !data || data.length === 0) {
-        setError("This interview link is invalid or has expired.");
-      } else {
-        setInfo(data[0] as SessionInfo);
+      try {
+        const { data, error } = await supabase.rpc("get_interview_session_by_token", { _token: token });
+        if (error) {
+          console.error("Interview RPC error", error);
+          setError(error.message || "This interview link is invalid or has expired.");
+        } else if (!data || (data as unknown[]).length === 0) {
+          setError("This interview link is invalid or has expired.");
+        } else {
+          setInfo((data as SessionInfo[])[0]);
+        }
+      } catch (e) {
+        console.error("Interview load failed", e);
+        setError(e instanceof Error ? e.message : "Failed to load interview");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, [token]);
 
