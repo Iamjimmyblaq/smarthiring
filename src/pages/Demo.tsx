@@ -36,6 +36,14 @@ export default function Demo() {
   if (!authChecked) {
     return (
       <main className="theme-marketing min-h-screen flex items-center justify-center">
+        <Helmet>
+          <title>Live Demo — SmartHire</title>
+          <meta name="description" content="Try SmartHire live: a Frontend Developer role prefilled with 10 sample candidates, ranked instantly with explainable AI scoring." />
+          <link rel="canonical" href="https://smarthiring.lovable.app/demo" />
+          <meta property="og:title" content="Live Demo — SmartHire" />
+          <meta property="og:description" content="Try SmartHire live with a prefilled role and 10 sample candidates ranked instantly." />
+          <meta property="og:url" content="https://smarthiring.lovable.app/demo" />
+        </Helmet>
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </main>
     );
@@ -44,6 +52,14 @@ export default function Demo() {
   if (!authed) {
     return (
       <main className="theme-marketing min-h-screen">
+        <Helmet>
+          <title>Live Demo — SmartHire</title>
+          <meta name="description" content="Try SmartHire live: a Frontend Developer role prefilled with 10 sample candidates, ranked instantly with explainable AI scoring." />
+          <link rel="canonical" href="https://smarthiring.lovable.app/demo" />
+          <meta property="og:title" content="Live Demo — SmartHire" />
+          <meta property="og:description" content="Try SmartHire live with a prefilled role and 10 sample candidates ranked instantly." />
+          <meta property="og:url" content="https://smarthiring.lovable.app/demo" />
+        </Helmet>
         <MarketingNav />
         <section className="pt-40 pb-32">
           <div className="max-w-xl mx-auto px-6 text-center">
