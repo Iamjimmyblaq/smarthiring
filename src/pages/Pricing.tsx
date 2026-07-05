@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +34,27 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Pricing — SmartHire</title>
+        <meta name="description" content="SmartHire pricing: start free with 1 job and 100 resumes, or upgrade to Pro at $29/mo for unlimited jobs, unlimited resumes and advanced AI insights." />
+        <link rel="canonical" href="https://smarthiring.lovable.app/pricing" />
+        <meta property="og:title" content="Pricing — SmartHire" />
+        <meta property="og:description" content="Free plan for 1 job and 100 resumes. Pro at $29/mo for unlimited hiring." />
+        <meta property="og:url" content="https://smarthiring.lovable.app/pricing" />
+        <meta name="twitter:title" content="Pricing — SmartHire" />
+        <meta name="twitter:description" content="Free plan for 1 job and 100 resumes. Pro at $29/mo for unlimited hiring." />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "SmartHire Pro",
+          "description": "Unlimited jobs, unlimited resumes, advanced AI insights, bias reduction mode, bulk actions and priority support.",
+          "brand": { "@type": "Brand", "name": "SmartHire" },
+          "offers": [
+            { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "url": "https://smarthiring.lovable.app/pricing" },
+            { "@type": "Offer", "name": "Pro", "price": "29", "priceCurrency": "USD", "url": "https://smarthiring.lovable.app/pricing" }
+          ]
+        })}</script>
+      </Helmet>
       <AppHeader />
       <main className="container mx-auto py-12 max-w-5xl">
         <div className="text-center mb-10">
@@ -40,11 +62,12 @@ const Pricing = () => {
           <p className="text-muted-foreground mt-3">Start free. Upgrade when you need more roles or volume.</p>
         </div>
 
+        <h2 className="sr-only">Plans</h2>
         <div className="grid md:grid-cols-2 gap-6">
           <Card className={planState.plan === "free" ? "border-primary" : ""}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Free</CardTitle>
+                <CardTitle asChild><h3>Free</h3></CardTitle>
                 {planState.plan === "free" && <span className="text-xs rounded-full bg-secondary px-2 py-0.5">Current</span>}
               </div>
               <p className="text-3xl font-semibold mt-2">$0</p>
@@ -63,7 +86,7 @@ const Pricing = () => {
           <Card className="border-accent relative overflow-hidden">
             <div className="absolute top-3 right-3 text-xs rounded-full bg-accent text-accent-foreground px-2 py-0.5">Recommended</div>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-accent" /> Pro</CardTitle>
+              <CardTitle asChild><h3 className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-accent" /> Pro</h3></CardTitle>
               <p className="text-3xl font-semibold mt-2">$29<span className="text-base font-normal text-muted-foreground">/mo</span></p>
               <p className="text-sm text-muted-foreground">For teams hiring at volume.</p>
             </CardHeader>
