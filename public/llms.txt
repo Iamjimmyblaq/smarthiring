@@ -1,0 +1,12 @@
+# SmartHire
+
+> AI-powered resume screening that parses, scores and ranks every applicant against your role — cutting screening time by 70%.
+
+SmartHire is a hiring platform for lean recruiting teams. Recruiters define a role, upload resumes in bulk, and get an explainable AI ranking with matched skills, experience deltas, strengths and gaps. The full pipeline covers Sourced → Screening → Interview → Offer → Hired.
+
+## Pages
+
+- [Home](/): Product overview, how it works, and full recruitment lifecycle.
+- [Pricing](/pricing): Free and Pro plan details, limits and features.
+- [Live Demo](/demo): Interactive demo of the AI resume screening flow.
+- [Sign in](/auth): Sign in or create an account.
