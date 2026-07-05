@@ -67,7 +67,7 @@ const Pricing = () => {
           <Card className={planState.plan === "free" ? "border-primary" : ""}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle><h2 className="text-lg font-semibold leading-none tracking-tight">Free</h2></CardTitle>
+                <h2 className="text-2xl font-semibold leading-none tracking-tight">Free</h2>
                 {planState.plan === "free" && <span className="text-xs rounded-full bg-secondary px-2 py-0.5">Current</span>}
               </div>
               <p className="text-3xl font-semibold mt-2">$0</p>
@@ -86,7 +86,7 @@ const Pricing = () => {
           <Card className="border-accent relative overflow-hidden">
             <div className="absolute top-3 right-3 text-xs rounded-full bg-accent text-accent-foreground px-2 py-0.5">Recommended</div>
             <CardHeader>
-              <CardTitle><h2 className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2"><Sparkles className="h-5 w-5 text-accent" /> Pro</h2></CardTitle>
+              <h2 className="text-2xl font-semibold leading-none tracking-tight flex items-center gap-2"><Sparkles className="h-5 w-5 text-accent" /> Pro</h2>
               <p className="text-3xl font-semibold mt-2">$29<span className="text-base font-normal text-muted-foreground">/mo</span></p>
               <p className="text-sm text-muted-foreground">For teams hiring at volume.</p>
             </CardHeader>
