@@ -52,14 +52,15 @@ export default function InterviewRoom() {
     if (!token) return;
     (async () => {
       try {
-        const { data, error } = await supabase.rpc("get_interview_session_by_token", { _token: token });
-        if (error) {
-          console.error("Interview RPC error", error);
-          setError(error.message || "This interview link is invalid or has expired.");
-        } else if (!data || (data as unknown[]).length === 0) {
-          setError("This interview link is invalid or has expired.");
+        const { data, error } = await supabase.functions.invoke("get-interview-session", {
+          body: { token },
+        });
+        if (error || !data || (data as { error?: string }).error) {
+          const msg = (data as { error?: string } | null)?.error || error?.message || "This interview link is invalid or has expired.";
+          console.error("Interview session load error", msg);
+          setError(msg);
         } else {
-          setInfo((data as SessionInfo[])[0]);
+          setInfo(data as SessionInfo);
         }
       } catch (e) {
         console.error("Interview load failed", e);
