@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import MarketingNav from "@/components/marketing/MarketingNav";
 import {
@@ -23,6 +24,16 @@ const Index = () => {
 
   return (
     <main className="theme-marketing min-h-screen">
+      <Helmet>
+        <title>SmartHire — Hire Smarter, Not Harder</title>
+        <meta name="description" content="AI-powered resume screening that ranks every applicant in seconds. Cut screening time by 70% and shortlist the right people faster." />
+        <link rel="canonical" href="https://smarthiring.lovable.app/" />
+        <meta property="og:title" content="SmartHire — Hire Smarter, Not Harder" />
+        <meta property="og:description" content="AI-powered resume screening that ranks every applicant in seconds." />
+        <meta property="og:url" content="https://smarthiring.lovable.app/" />
+        <meta name="twitter:title" content="SmartHire — Hire Smarter, Not Harder" />
+        <meta name="twitter:description" content="AI-powered resume screening that ranks every applicant in seconds." />
+      </Helmet>
       <MarketingNav />
 
       {/* HERO */}
