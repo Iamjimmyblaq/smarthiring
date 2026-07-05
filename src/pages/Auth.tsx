@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -61,6 +62,15 @@ const Auth = () => {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-background px-4">
+      <Helmet>
+        <title>Sign in — SmartHire</title>
+        <meta name="description" content="Sign in to SmartHire or create a free account to start ranking candidates with AI in seconds." />
+        <link rel="canonical" href="https://smarthiring.lovable.app/auth" />
+        <meta property="og:title" content="Sign in — SmartHire" />
+        <meta property="og:description" content="Sign in or create a free SmartHire account to start ranking candidates." />
+        <meta property="og:url" content="https://smarthiring.lovable.app/auth" />
+      </Helmet>
+      <h1 className="sr-only">Sign in or Create Account</h1>
       <Card className="w-full max-w-md shadow-sm">
         <CardHeader className="space-y-2 text-center">
           <div className="mx-auto h-10 w-10 rounded-md bg-primary flex items-center justify-center">

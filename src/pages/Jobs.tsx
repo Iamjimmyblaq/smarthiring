@@ -217,7 +217,7 @@ const Jobs = () => {
                     </div>
                     <Badge variant="secondary" className="capitalize">{job.status}</Badge>
                   </Link>
-                  <Button variant="ghost" size="icon" onClick={() => deleteJob(job.id)}>
+                  <Button variant="ghost" size="icon" aria-label="Delete job" onClick={() => deleteJob(job.id)}>
                     <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />
                   </Button>
                 </CardHeader>
