@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { emitWebhook } from "../_shared/webhooks.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -239,6 +240,13 @@ ${transcriptText}`;
     } catch (e) {
       console.error("Notification email error", e);
     }
+
+    try {
+      await emitWebhook(session.user_id, "interview.completed", {
+        session_id: session.id, candidate_id: session.candidate_id, job_id: session.job_id,
+        scores, recommendation, summary,
+      });
+    } catch (e) { console.error("webhook error", e); }
 
     return json({ ok: true, recommendation, summary, scores });
   } catch (e) {
