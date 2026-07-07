@@ -8,3 +8,12 @@ verify_jwt = false
 
 [functions.get-interview-session]
 verify_jwt = false
+
+[functions.candidate-stage-notify]
+verify_jwt = false
+
+[functions.interview-scheduled-notify]
+verify_jwt = false
+
+[functions.api]
+verify_jwt = false

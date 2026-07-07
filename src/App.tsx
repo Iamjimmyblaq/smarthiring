@@ -16,6 +16,8 @@ import Interviews from "./pages/Interviews.tsx";
 import Offers from "./pages/Offers.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import InterviewRoom from "./pages/InterviewRoom.tsx";
+import Developers from "./pages/Developers.tsx";
+import ApiDocs from "./pages/ApiDocs.tsx";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +40,8 @@ const App = () => (
           <Route path="/payment/verify" element={<PaymentVerify />} />
           <Route path="/demo" element={<Demo />} />
           <Route path="/interview/:token" element={<InterviewRoom />} />
+          <Route path="/developers" element={<Developers />} />
+          <Route path="/api-docs" element={<ApiDocs />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

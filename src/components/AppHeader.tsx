@@ -16,6 +16,7 @@ export default function AppHeader() {
     { to: "/interviews", label: "Interviews" },
     { to: "/offers", label: "Offers" },
     { to: "/onboarding", label: "Onboarding" },
+    { to: "/developers", label: "Developers" },
   ];
   return (
     <header className="border-b bg-card/60 backdrop-blur sticky top-0 z-10">
