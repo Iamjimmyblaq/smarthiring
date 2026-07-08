@@ -10,6 +10,10 @@ function toBase64Url(input: string): string {
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+function sanitizeHeader(value: string): string {
+  return value.replace(/[\r\n]/g, " ").trim();
+}
+
 interface SendOpts {
   to: string;
   subject: string;
@@ -24,14 +28,14 @@ export async function sendGmail(opts: SendOpts) {
     console.warn("sendGmail skipped: missing keys/recipient", { hasGmail: !!GOOGLE_MAIL_API_KEY, to: opts.to });
     return { ok: false, reason: "missing_config" };
   }
-  const fromName = (opts.fromName || "SmartHire").replace(/[\r\n<>]/g, "");
   const boundary = `bnd_${crypto.randomUUID()}`;
   const headers = [
-    `To: ${opts.to}`,
-    `From: ${fromName} via SmartHire <me@smarthire>`,
-    opts.replyTo ? `Reply-To: ${opts.replyTo}` : "",
-    `Subject: ${opts.subject}`,
+    `To: ${sanitizeHeader(opts.to)}`,
+    opts.replyTo ? `Reply-To: ${sanitizeHeader(opts.replyTo)}` : "",
+    `Subject: ${sanitizeHeader(opts.subject)}`,
     "MIME-Version: 1.0",
+    "Auto-Submitted: auto-generated",
+    "X-Auto-Response-Suppress: All",
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
   ].filter(Boolean).join("\r\n");
   const body = [

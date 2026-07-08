@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { baseLayout, sendGmail } from "../_shared/gmail.ts";
 import { emitWebhook } from "../_shared/webhooks.ts";
 
 const corsHeaders = {
@@ -9,8 +10,6 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
-const GOOGLE_MAIL_API_KEY = Deno.env.get("GOOGLE_MAIL_API_KEY");
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -20,55 +19,6 @@ function json(body: unknown, status = 200) {
 }
 
 interface TranscriptTurn { role: "user" | "agent"; text: string; ts?: number }
-
-function toBase64Url(input: string): string {
-  const bytes = new TextEncoder().encode(input);
-  let bin = "";
-  bytes.forEach((b) => (bin += String.fromCharCode(b)));
-  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function buildMime(to: string, subject: string, html: string, text: string): string {
-  const boundary = `bnd_${crypto.randomUUID()}`;
-  return [
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    "MIME-Version: 1.0",
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    "",
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    "",
-    text,
-    "",
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    "",
-    html,
-    "",
-    `--${boundary}--`,
-  ].join("\r\n");
-}
-
-async function sendGmail(to: string, subject: string, html: string, text: string) {
-  if (!GOOGLE_MAIL_API_KEY || !LOVABLE_API_KEY || !to) {
-    console.warn("sendGmail skipped: missing keys or recipient");
-    return;
-  }
-  const raw = toBase64Url(buildMime(to, subject, html, text));
-  const res = await fetch(`${GATEWAY_URL}/users/me/messages/send`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": GOOGLE_MAIL_API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ raw }),
-  });
-  if (!res.ok) {
-    console.error("Gmail send failed", to, res.status, await res.text());
-  }
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -215,6 +165,7 @@ ${transcriptText}`;
     try {
       const companyName = job?.company_name || recruiter?.company_name || "the hiring team";
       const jobTitle = job?.title || "the role";
+      const recruiterEmail = job?.hr_email || recruiter?.hr_email || recruiter?.email;
       const overall = scores?.overall ?? null;
       const recLabel = recommendation.replace(/_/g, " ");
       const scoreLine = overall !== null ? `Overall score: ${overall}/100 · Recommendation: ${recLabel}` : "";
@@ -223,19 +174,18 @@ ${transcriptText}`;
       if (candidate?.email) {
         const subj = `Your interview for ${jobTitle} is complete`;
         const text = `Hi ${candidate.name || "there"},\n\nThanks for completing your AI interview for the ${jobTitle} role at ${companyName}. Your responses have been shared with the hiring team, and they'll be in touch about next steps.\n\nBest,\n${companyName} via SmartHire`;
-        const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#222"><h2 style="margin:0 0 12px">Interview complete ✅</h2><p>Hi ${candidate.name || "there"},</p><p>Thanks for completing your AI interview for <strong>${jobTitle}</strong> at <strong>${companyName}</strong>. Your responses have been shared with the hiring team, and they'll be in touch about next steps.</p><p style="color:#777;font-size:13px;margin-top:32px">Powered by SmartHire</p></div>`;
-        await sendGmail(candidate.email, subj, html, text);
+        const html = baseLayout(`<h2 style="margin:0 0 12px">Interview complete</h2><p>Hi ${candidate.name || "there"},</p><p>Thanks for completing your AI interview for <strong>${jobTitle}</strong> at <strong>${companyName}</strong>. Your responses have been shared with the hiring team, and they'll be in touch about next steps.</p>`);
+        await sendGmail({ to: candidate.email, subject: subj, html, text, fromName: companyName, replyTo: recruiterEmail });
       }
 
       // Recruiter email
-      const recruiterEmail = job?.hr_email || recruiter?.hr_email || recruiter?.email;
       if (recruiterEmail) {
         const subj = `AI interview report: ${candidate?.name || "Candidate"} — ${jobTitle}`;
         const strengthsHtml = strengths.length ? `<ul>${strengths.map((s) => `<li>${s}</li>`).join("")}</ul>` : "<p><em>None captured</em></p>";
         const gapsHtml = gaps.length ? `<ul>${gaps.map((g) => `<li>${g}</li>`).join("")}</ul>` : "<p><em>None captured</em></p>";
         const text = `AI interview complete for ${candidate?.name || "candidate"} (${candidate?.email || "no email"}) — ${jobTitle}.\n\n${scoreLine}\n\nSummary: ${summary || "n/a"}\n\nStrengths: ${strengths.join("; ") || "n/a"}\nGaps: ${gaps.join("; ") || "n/a"}\n\nView the full transcript in SmartHire → Interviews → AI Sessions.`;
         const html = `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;padding:24px;color:#222"><h2 style="margin:0 0 8px">AI interview report</h2><p style="color:#666;margin:0 0 20px">${candidate?.name || "Candidate"} · ${jobTitle}</p>${overall !== null ? `<div style="padding:12px 16px;background:#f4f6fb;border-radius:8px;margin-bottom:16px"><strong>Overall:</strong> ${overall}/100 &nbsp;·&nbsp; <strong>Recommendation:</strong> ${recLabel}${scores ? ` &nbsp;·&nbsp; Comm ${scores.communication} · Tech ${scores.technical} · Confidence ${scores.confidence}` : ""}</div>` : ""}<h3>Summary</h3><p>${summary || "<em>No summary generated</em>"}</p><h3>Strengths</h3>${strengthsHtml}<h3>Gaps</h3>${gapsHtml}<p style="color:#777;font-size:13px;margin-top:28px">Open the full transcript in SmartHire → Interviews → AI Sessions.</p></div>`;
-        await sendGmail(recruiterEmail, subj, html, text);
+        await sendGmail({ to: recruiterEmail, subject: subj, html, text, replyTo: candidate?.email || undefined });
       }
     } catch (e) {
       console.error("Notification email error", e);
