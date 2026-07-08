@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,14 @@ type SessionInfo = {
 };
 
 type Turn = { role: "user" | "agent"; text: string; ts: number };
+
+async function getFunctionErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof FunctionsHttpError) {
+    const details = await error.context.json().catch(() => null) as { error?: string } | null;
+    return details?.error || fallback;
+  }
+  return error instanceof Error ? error.message : fallback;
+}
 
 export default function InterviewRoom() {
   return (
@@ -64,7 +73,7 @@ function InterviewRoomContent() {
           body: { token },
         });
         if (error || !data || (data as { error?: string }).error) {
-          const msg = (data as { error?: string } | null)?.error || error?.message || "This interview link is invalid or has expired.";
+          const msg = (data as { error?: string } | null)?.error || await getFunctionErrorMessage(error, "This interview link is invalid or has expired.");
           console.error("Interview session load error", msg);
           setError(msg);
         } else {
