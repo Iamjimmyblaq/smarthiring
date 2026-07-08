@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useConversation } from "@elevenlabs/react";
+import { ConversationProvider, useConversation } from "@elevenlabs/react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,14 @@ type SessionInfo = {
 type Turn = { role: "user" | "agent"; text: string; ts: number };
 
 export default function InterviewRoom() {
+  return (
+    <ConversationProvider>
+      <InterviewRoomContent />
+    </ConversationProvider>
+  );
+}
+
+function InterviewRoomContent() {
   const { token } = useParams<{ token: string }>();
   const [info, setInfo] = useState<SessionInfo | null>(null);
   const [loading, setLoading] = useState(true);
