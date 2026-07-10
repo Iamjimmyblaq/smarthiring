@@ -14,7 +14,7 @@ export default function ApiDocs() {
       <main className="container mx-auto py-8 max-w-4xl space-y-6">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">SmartHire API</h1>
-          <p className="text-muted-foreground mt-2">Integrate SmartHire into your careers site, ATS, or backend.</p>
+          <p className="text-muted-foreground mt-2">Integrate SmartHire into your careers site, ATS, or backend. Jobs created through the API appear in your SmartHire jobs board automatically.</p>
         </div>
 
         <Card>
@@ -30,13 +30,13 @@ export default function ApiDocs() {
           <CardHeader><CardTitle>Jobs</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <p><code>GET /jobs</code> — list your jobs</p>
-            <p><code>POST /jobs</code> — create a job</p>
+            <p><code>POST /jobs</code> — create a job and list it in SmartHire automatically</p>
             <p><code>GET /jobs/:id</code> — retrieve</p>
             <p><code>PATCH /jobs/:id</code> — update</p>
             <p><code>DELETE /jobs/:id</code> — delete</p>
             <Code>{`curl -X POST ${BASE}/jobs \\
   -H "X-API-Key: sh_live_..." -H "Content-Type: application/json" \\
-  -d '{"title":"Senior Engineer","description":"...","required_skills":["React","TypeScript"]}'`}</Code>
+  -d '{"title":"Senior Engineer","description":"Build product features","requirements":"5+ years React","required_skills":["React","TypeScript"],"company_name":"Acme","hr_email":"hiring@acme.com"}'`}</Code>
           </CardContent>
         </Card>
 

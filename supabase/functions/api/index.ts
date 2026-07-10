@@ -8,6 +8,9 @@ const cors = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SITE_URL = Deno.env.get("SITE_URL") || "https://smarthiring.lovable.app";
+const RESERVED_JOB_FIELDS = new Set(["id", "user_id", "created_at", "updated_at"]);
+const JOB_FIELDS = new Set(["title", "description", "requirements", "required_skills", "min_years_experience", "company_name", "hr_email", "status"]);
+const CANDIDATE_FIELDS = new Set(["job_id", "name", "email", "phone", "resume_path", "resume_text", "stage", "status", "processing_status"]);
 
 async function sha256Hex(input: string) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
@@ -16,6 +19,40 @@ async function sha256Hex(input: string) {
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
+}
+
+function pickFields(body: Record<string, unknown>, allowed: Set<string>) {
+  return Object.fromEntries(Object.entries(body).filter(([key]) => allowed.has(key)));
+}
+
+function asText(value: unknown, fallback = "") {
+  return typeof value === "string" ? value.trim() : fallback;
+}
+
+function asSkills(value: unknown) {
+  if (Array.isArray(value)) return value.map((x) => String(x).trim()).filter(Boolean);
+  if (typeof value === "string") return value.split(",").map((x) => x.trim()).filter(Boolean);
+  return [];
+}
+
+function normalizeJobInput(body: Record<string, unknown>) {
+  for (const field of Object.keys(body)) {
+    if (RESERVED_JOB_FIELDS.has(field)) delete body[field];
+  }
+  const title = asText(body.title);
+  if (!title) return { error: "title required" } as const;
+  return {
+    data: {
+      title,
+      description: asText(body.description),
+      requirements: asText(body.requirements),
+      required_skills: asSkills(body.required_skills ?? body.skills),
+      min_years_experience: Number.isFinite(Number(body.min_years_experience)) ? Number(body.min_years_experience) : 0,
+      company_name: asText(body.company_name) || null,
+      hr_email: asText(body.hr_email) || null,
+      status: asText(body.status, "open") || "open",
+    },
+  } as const;
 }
 
 async function authenticate(req: Request, admin: ReturnType<typeof createClient>) {
@@ -58,14 +95,19 @@ Deno.serve(async (req) => {
         return json({ data });
       }
       if (req.method === "POST" && !id) {
-        const body = await req.json();
-        const { data, error } = await admin.from("jobs").insert({ ...body, user_id: auth.userId }).select().single();
+        const body = await req.json().catch(() => ({}));
+        const normalized = normalizeJobInput({ ...body });
+        if ("error" in normalized) return json({ error: normalized.error }, 400);
+        const { data, error } = await admin.from("jobs").insert({ ...normalized.data, user_id: auth.userId }).select().single();
         if (error) return json({ error: error.message }, 400);
         return json({ data }, 201);
       }
       if (req.method === "PATCH" && id) {
-        const body = await req.json();
-        const { data, error } = await admin.from("jobs").update(body).eq("id", id).eq("user_id", auth.userId).select().single();
+        const body = await req.json().catch(() => ({}));
+        const patch = pickFields(body, JOB_FIELDS);
+        if ("required_skills" in patch) patch.required_skills = asSkills(patch.required_skills);
+        if ("min_years_experience" in patch) patch.min_years_experience = Number(patch.min_years_experience) || 0;
+        const { data, error } = await admin.from("jobs").update(patch).eq("id", id).eq("user_id", auth.userId).select().single();
         if (error) return json({ error: error.message }, 400);
         return json({ data });
       }
@@ -92,24 +134,27 @@ Deno.serve(async (req) => {
         return json({ data });
       }
       if (req.method === "POST" && !id) {
-        const body = await req.json();
+        const body = await req.json().catch(() => ({}));
         if (!body.job_id) return json({ error: "job_id required" }, 400);
+        const { data: job } = await admin.from("jobs").select("id").eq("id", body.job_id).eq("user_id", auth.userId).maybeSingle();
+        if (!job) return json({ error: "job not found" }, 404);
         const { data, error } = await admin.from("candidates").insert({
           user_id: auth.userId,
           job_id: body.job_id,
           name: body.name,
           email: body.email,
           phone: body.phone,
-          resume_url: body.resume_url,
+          resume_path: body.resume_path || body.resume_url || null,
+          resume_text: body.resume_text || null,
           stage: body.stage || "sourced",
-          source: body.source || "api",
         }).select().single();
         if (error) return json({ error: error.message }, 400);
         return json({ data }, 201);
       }
       if (req.method === "PATCH" && id) {
-        const body = await req.json();
-        const { data, error } = await admin.from("candidates").update(body).eq("id", id).eq("user_id", auth.userId).select().single();
+        const body = await req.json().catch(() => ({}));
+        const patch = pickFields(body, CANDIDATE_FIELDS);
+        const { data, error } = await admin.from("candidates").update(patch).eq("id", id).eq("user_id", auth.userId).select().single();
         if (error) return json({ error: error.message }, 400);
         return json({ data });
       }
@@ -130,7 +175,7 @@ Deno.serve(async (req) => {
           duration_minutes: body.duration_minutes || 45,
           interview_type: body.interview_type || "virtual",
           interviewer: body.interviewer || null,
-          meeting_link: body.meeting_link || null,
+          location: body.location || body.meeting_link || null,
           status: "scheduled",
         }).select().single();
         if (error) return json({ error: error.message }, 400);
