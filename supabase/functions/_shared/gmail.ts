@@ -23,19 +23,33 @@ interface SendOpts {
   replyTo?: string;
 }
 
+function stripHtml(input: string): string {
+  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function sendGmail(opts: SendOpts) {
   if (!GOOGLE_MAIL_API_KEY || !LOVABLE_API_KEY || !opts.to) {
     console.warn("sendGmail skipped: missing keys/recipient", { hasGmail: !!GOOGLE_MAIL_API_KEY, to: opts.to });
     return { ok: false, reason: "missing_config" };
   }
   const boundary = `bnd_${crypto.randomUUID()}`;
+  const text = stripHtml(opts.text || opts.html);
+  const html = opts.html || `<p>${escapeHtml(text).replace(/\n/g, "<br>")}</p>`;
   const headers = [
     `To: ${sanitizeHeader(opts.to)}`,
     opts.replyTo ? `Reply-To: ${sanitizeHeader(opts.replyTo)}` : "",
     `Subject: ${sanitizeHeader(opts.subject)}`,
     "MIME-Version: 1.0",
-    "Auto-Submitted: auto-generated",
-    "X-Auto-Response-Suppress: All",
+    opts.fromName ? `X-SmartHire-Sender: ${sanitizeHeader(opts.fromName)}` : "",
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
   ].filter(Boolean).join("\r\n");
   const body = [
@@ -43,12 +57,12 @@ export async function sendGmail(opts: SendOpts) {
     `--${boundary}`,
     'Content-Type: text/plain; charset="UTF-8"',
     "",
-    opts.text,
+    text,
     "",
     `--${boundary}`,
     'Content-Type: text/html; charset="UTF-8"',
     "",
-    opts.html,
+    html,
     "",
     `--${boundary}--`,
   ].join("\r\n");
@@ -71,5 +85,5 @@ export async function sendGmail(opts: SendOpts) {
 }
 
 export function baseLayout(inner: string) {
-  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#222">${inner}<p style="color:#777;font-size:13px;margin-top:32px">Powered by SmartHire</p></div>`;
+  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#222;line-height:1.55">${inner}<p style="color:#777;font-size:13px;margin-top:32px">Sent from the SmartHire recruiting workspace.</p></div>`;
 }

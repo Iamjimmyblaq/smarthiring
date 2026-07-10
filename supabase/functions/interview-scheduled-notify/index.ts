@@ -28,9 +28,10 @@ Deno.serve(async (req) => {
       const hrEmail = job?.hr_email || rec?.hr_email || rec?.email;
       const when = new Date(iv.scheduled_at).toLocaleString();
       const subj = `Interview scheduled: ${jobTitle} — ${when}`;
-      const meetingLine = iv.meeting_link ? `\nMeeting link: ${iv.meeting_link}` : "";
+      const meetingLink = iv.location || iv.meeting_link;
+      const meetingLine = meetingLink ? `\nMeeting link: ${meetingLink}` : "";
       const text = `Hi ${cand.name || "there"},\n\nYour interview for ${jobTitle} at ${company} is scheduled for ${when} (${iv.duration_minutes || 45} min, ${iv.interview_type || "virtual"}).${iv.interviewer ? `\nInterviewer: ${iv.interviewer}` : ""}${meetingLine}\n\nPlease reply to this email if you need to reschedule.\n\nBest,\n${company}`;
-      const html = baseLayout(`<h2 style="margin:0 0 12px">Interview scheduled</h2><p>Hi ${cand.name || "there"},</p><p>Your interview for <strong>${jobTitle}</strong> at <strong>${company}</strong> is scheduled for:</p><div style="padding:12px 16px;background:#f4f6fb;border-radius:8px;margin:12px 0"><strong>${when}</strong><br/>${iv.duration_minutes || 45} minutes · ${iv.interview_type || "virtual"}${iv.interviewer ? ` · with ${iv.interviewer}` : ""}</div>${iv.meeting_link ? `<p><a href="${iv.meeting_link}">Join meeting</a></p>` : ""}<p>Reply to this email if you need to reschedule.</p>`);
+      const html = baseLayout(`<h2 style="margin:0 0 12px">Interview scheduled</h2><p>Hi ${cand.name || "there"},</p><p>Your interview for <strong>${jobTitle}</strong> at <strong>${company}</strong> is scheduled for:</p><div style="padding:12px 16px;background:#f4f6fb;border-radius:8px;margin:12px 0"><strong>${when}</strong><br/>${iv.duration_minutes || 45} minutes · ${iv.interview_type || "virtual"}${iv.interviewer ? ` · with ${iv.interviewer}` : ""}</div>${meetingLink ? `<p><a href="${meetingLink}">Join meeting</a></p>` : ""}<p>Reply to this email if you need to reschedule.</p>`);
       await sendGmail({ to: cand.email, subject: subj, text, html, fromName: rec?.full_name || company, replyTo: hrEmail });
       await emitWebhook(cand.user_id, "interview.scheduled", { interview_id, candidate_id: cand.id, scheduled_at: iv.scheduled_at });
     }
