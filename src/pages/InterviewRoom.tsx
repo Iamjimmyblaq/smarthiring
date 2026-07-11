@@ -95,13 +95,22 @@ function InterviewRoomContent() {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       const { data, error } = await supabase.functions.invoke("elevenlabs-token", { body: { token } });
-      if (error) throw error;
-      if (!data?.conversationToken) throw new Error("No conversation token returned");
-      await conversation.startSession({
-        conversationToken: data.conversationToken,
-        connectionType: "webrtc",
-        overrides: data.overrides,
-      });
+      if (error) throw new Error(await getFunctionErrorMessage(error, "Could not start the AI interview."));
+      if (data?.conversationToken) {
+        await conversation.startSession({
+          conversationToken: data.conversationToken,
+          connectionType: "webrtc",
+          overrides: data.overrides,
+        });
+      } else if (data?.agentId) {
+        await conversation.startSession({
+          agentId: data.agentId,
+          connectionType: "webrtc",
+          overrides: data.overrides,
+        });
+      } else {
+        throw new Error("No interview agent was returned. Please ask the recruiter to regenerate the link.");
+      }
     } catch (e) {
       console.error(e);
       setError(e instanceof Error ? e.message : "Failed to start interview. Check your microphone permissions.");

@@ -10,6 +10,15 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
 const ELEVENLABS_AGENT_ID = Deno.env.get("ELEVENLABS_AGENT_ID");
 
+function parseElevenLabsError(input: string) {
+  try {
+    const parsed = JSON.parse(input) as { detail?: { code?: string; message?: string; status?: string } };
+    return parsed.detail ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -20,7 +29,6 @@ function json(body: unknown, status = 200) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    if (!ELEVENLABS_API_KEY) return json({ error: "ELEVENLABS_API_KEY not configured" }, 500);
     if (!ELEVENLABS_AGENT_ID) return json({ error: "ELEVENLABS_AGENT_ID not configured" }, 500);
 
     const { token } = await req.json();
@@ -65,16 +73,30 @@ Do NOT lecture. Do NOT answer questions about salary or offer details — polite
 
     const firstMessage = `Hi ${candidateName}! I'm an AI interviewer with ${companyName}, here to chat with you about the ${jobTitle} position. This should take about five to ten minutes — ready to get started?`;
 
-    const tokenRes = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/token?agent_id=${ELEVENLABS_AGENT_ID}`,
-      { headers: { "xi-api-key": ELEVENLABS_API_KEY } },
-    );
-    if (!tokenRes.ok) {
-      const txt = await tokenRes.text();
-      console.error("ElevenLabs token error", tokenRes.status, txt);
-      return json({ error: "Failed to get ElevenLabs token", details: txt }, 502);
+    let conversationToken: string | null = null;
+    let tokenMode: "private" | "public_agent_fallback" = "private";
+
+    if (ELEVENLABS_API_KEY) {
+      const tokenRes = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversation/token?agent_id=${ELEVENLABS_AGENT_ID}`,
+        { headers: { "xi-api-key": ELEVENLABS_API_KEY } },
+      );
+      if (tokenRes.ok) {
+        const tokenPayload = await tokenRes.json();
+        conversationToken = tokenPayload?.token ?? null;
+      } else {
+        const txt = await tokenRes.text();
+        const detail = parseElevenLabsError(txt);
+        console.error("ElevenLabs token error", tokenRes.status, txt);
+        if (detail?.code === "unauthorized" && detail?.status === "missing_permissions") {
+          tokenMode = "public_agent_fallback";
+        } else {
+          return json({ error: detail?.message || "Failed to get ElevenLabs conversation token" }, 502);
+        }
+      }
+    } else {
+      tokenMode = "public_agent_fallback";
     }
-    const { token: conversationToken } = await tokenRes.json();
 
     await admin
       .from("interview_sessions")
@@ -84,6 +106,7 @@ Do NOT lecture. Do NOT answer questions about salary or offer details — polite
     return json({
       conversationToken,
       agentId: ELEVENLABS_AGENT_ID,
+      tokenMode,
       overrides: {
         agent: {
           prompt: { prompt: systemPrompt },
