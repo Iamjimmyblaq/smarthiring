@@ -102,7 +102,20 @@ Do NOT lecture. Do NOT answer questions about salary or offer details — polite
             const signedTxt = await signedUrlRes.text();
             const signedDetail = parseElevenLabsError(signedTxt);
             console.error("ElevenLabs signed URL error", signedUrlRes.status, signedTxt);
-            return json({ error: signedDetail?.message || detail.message || "The AI interview voice key is missing the required ElevenLabs agent permissions." }, 502);
+            return json({
+              fallbackMode: "text_ai",
+              reason: signedDetail?.message || detail.message || "The AI interview voice key is missing the required ElevenLabs agent permissions.",
+              agentId: ELEVENLABS_AGENT_ID,
+              tokenMode: "smart_fallback",
+              overrides: {
+                agent: {
+                  prompt: { prompt: systemPrompt },
+                  firstMessage,
+                  language: "en",
+                },
+              },
+              sessionId: session.id,
+            });
           }
         } else {
           return json({ error: detail?.message || "Failed to get ElevenLabs conversation token" }, 502);

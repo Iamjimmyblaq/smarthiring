@@ -5,8 +5,9 @@ import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff, Loader2, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
+import { Mic, MicOff, Loader2, Sparkles, CheckCircle2, AlertCircle, Send } from "lucide-react";
 import Logo from "@/components/Logo";
 
 type SessionInfo = {
@@ -46,6 +47,10 @@ function InterviewRoomContent() {
   const [starting, setStarting] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [done, setDone] = useState(false);
+  const [textMode, setTextMode] = useState(false);
+  const [answer, setAnswer] = useState("");
+  const [sendingAnswer, setSendingAnswer] = useState(false);
+  const [textComplete, setTextComplete] = useState(false);
   const transcriptRef = useRef<Turn[]>([]);
   const [, force] = useState(0);
 
@@ -93,21 +98,32 @@ function InterviewRoomContent() {
     setStarting(true);
     setError(null);
     try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
       const { data, error } = await supabase.functions.invoke("elevenlabs-token", { body: { token } });
       if (error) throw new Error(await getFunctionErrorMessage(error, "Could not start the AI interview."));
       if (data?.conversationToken) {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
         await conversation.startSession({
           conversationToken: data.conversationToken,
           connectionType: "webrtc",
           overrides: data.overrides,
         });
       } else if (data?.signedUrl) {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
         await conversation.startSession({
           signedUrl: data.signedUrl,
           overrides: data.overrides,
         });
+      } else if (data?.fallbackMode === "text_ai") {
+        const { data: turnData, error: turnError } = await supabase.functions.invoke("ai-interview-turn", {
+          body: { token, transcript: transcriptRef.current },
+        });
+        if (turnError) throw new Error(await getFunctionErrorMessage(turnError, "Could not start the AI interview."));
+        transcriptRef.current = [...transcriptRef.current, { role: "agent", text: turnData?.message || "Hello, let's begin your interview.", ts: Date.now() }];
+        setTextComplete(Boolean(turnData?.complete));
+        setTextMode(true);
+        force((n) => n + 1);
       } else if (data?.agentId) {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
         await conversation.startSession({
           agentId: data.agentId,
           connectionType: "webrtc",
@@ -121,6 +137,31 @@ function InterviewRoomContent() {
       setError(e instanceof Error ? e.message : "Failed to start interview. Check your microphone permissions.");
     } finally {
       setStarting(false);
+    }
+  };
+
+  const sendAnswer = async () => {
+    const text = answer.trim();
+    if (!token || !text || sendingAnswer || textComplete) return;
+    setSendingAnswer(true);
+    setError(null);
+    const nextTranscript = [...transcriptRef.current, { role: "user" as const, text, ts: Date.now() }];
+    transcriptRef.current = nextTranscript;
+    setAnswer("");
+    force((n) => n + 1);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-interview-turn", {
+        body: { token, transcript: nextTranscript },
+      });
+      if (error) throw new Error(await getFunctionErrorMessage(error, "The AI interviewer could not respond."));
+      transcriptRef.current = [...nextTranscript, { role: "agent", text: data?.message || "Thank you. Please continue.", ts: Date.now() }];
+      setTextComplete(Boolean(data?.complete));
+      force((n) => n + 1);
+    } catch (e) {
+      console.error(e);
+      setError(e instanceof Error ? e.message : "The AI interviewer could not respond.");
+    } finally {
+      setSendingAnswer(false);
     }
   };
 
@@ -143,7 +184,7 @@ function InterviewRoomContent() {
   };
 
   const status = conversation.status;
-  const isConnected = status === "connected";
+  const isConnected = status === "connected" || textMode;
   const isSpeaking = conversation.isSpeaking;
 
   return (
@@ -211,7 +252,7 @@ function InterviewRoomContent() {
                 </div>
               )}
 
-              {isConnected && (
+              {isConnected && !textMode && (
                 <div className="space-y-4">
                   <div className="flex flex-col items-center py-8 gap-4">
                     <div className={`relative h-32 w-32 rounded-full flex items-center justify-center bg-gradient-to-br from-accent/30 to-primary/30 ${isSpeaking ? "ring-4 ring-accent/50 animate-pulse" : ""}`}>
@@ -236,6 +277,37 @@ function InterviewRoomContent() {
                   <Button size="lg" variant="destructive" className="w-full gap-2" onClick={stop} disabled={finalizing}>
                     {finalizing ? <><Loader2 className="h-4 w-4 animate-spin" /> Finalizing…</> : <><MicOff className="h-5 w-5" /> End interview</>}
                   </Button>
+                </div>
+              )}
+
+              {textMode && (
+                <div className="space-y-4">
+                  <div className="max-h-96 overflow-y-auto rounded-lg border bg-muted/30 p-3 space-y-3 text-sm">
+                    {transcriptRef.current.map((t, i) => (
+                      <div key={i} className={t.role === "agent" ? "text-foreground" : "text-muted-foreground italic"}>
+                        <span className="font-medium">{t.role === "agent" ? "Interviewer" : "You"}:</span> {t.text}
+                      </div>
+                    ))}
+                    {sendingAnswer && <p className="text-muted-foreground">Interviewer is typing…</p>}
+                  </div>
+
+                  {!textComplete ? (
+                    <div className="space-y-3">
+                      <Textarea
+                        value={answer}
+                        onChange={(e) => setAnswer(e.target.value)}
+                        placeholder="Type your answer here"
+                        rows={4}
+                      />
+                      <Button size="lg" className="w-full gap-2" onClick={sendAnswer} disabled={!answer.trim() || sendingAnswer}>
+                        {sendingAnswer ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending…</> : <><Send className="h-5 w-5" /> Send answer</>}
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button size="lg" className="w-full gap-2" onClick={stop} disabled={finalizing}>
+                      {finalizing ? <><Loader2 className="h-4 w-4 animate-spin" /> Finalizing…</> : <><CheckCircle2 className="h-5 w-5" /> Submit interview</>}
+                    </Button>
+                  )}
                 </div>
               )}
 
