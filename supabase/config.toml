@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.get-interview-session]
 verify_jwt = false
 
+[functions.ai-interview-turn]
+verify_jwt = false
+
 [functions.candidate-stage-notify]
 verify_jwt = false
 
