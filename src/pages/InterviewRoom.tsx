@@ -102,6 +102,11 @@ function InterviewRoomContent() {
           connectionType: "webrtc",
           overrides: data.overrides,
         });
+      } else if (data?.signedUrl) {
+        await conversation.startSession({
+          signedUrl: data.signedUrl,
+          overrides: data.overrides,
+        });
       } else if (data?.agentId) {
         await conversation.startSession({
           agentId: data.agentId,

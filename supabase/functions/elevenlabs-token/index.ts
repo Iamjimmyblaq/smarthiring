@@ -74,7 +74,8 @@ Do NOT lecture. Do NOT answer questions about salary or offer details — polite
     const firstMessage = `Hi ${candidateName}! I'm an AI interviewer with ${companyName}, here to chat with you about the ${jobTitle} position. This should take about five to ten minutes — ready to get started?`;
 
     let conversationToken: string | null = null;
-    let tokenMode: "private" | "public_agent_fallback" = "private";
+    let signedUrl: string | null = null;
+    let tokenMode: "private_webrtc" | "private_websocket" | "public_agent_fallback" = "private_webrtc";
 
     if (ELEVENLABS_API_KEY) {
       const tokenRes = await fetch(
@@ -89,7 +90,20 @@ Do NOT lecture. Do NOT answer questions about salary or offer details — polite
         const detail = parseElevenLabsError(txt);
         console.error("ElevenLabs token error", tokenRes.status, txt);
         if (detail?.code === "unauthorized" && detail?.status === "missing_permissions") {
-          tokenMode = "public_agent_fallback";
+          const signedUrlRes = await fetch(
+            `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${ELEVENLABS_AGENT_ID}`,
+            { headers: { "xi-api-key": ELEVENLABS_API_KEY } },
+          );
+          if (signedUrlRes.ok) {
+            const signedPayload = await signedUrlRes.json();
+            signedUrl = signedPayload?.signed_url ?? null;
+            tokenMode = "private_websocket";
+          } else {
+            const signedTxt = await signedUrlRes.text();
+            const signedDetail = parseElevenLabsError(signedTxt);
+            console.error("ElevenLabs signed URL error", signedUrlRes.status, signedTxt);
+            return json({ error: signedDetail?.message || detail.message || "The AI interview voice key is missing the required ElevenLabs agent permissions." }, 502);
+          }
         } else {
           return json({ error: detail?.message || "Failed to get ElevenLabs conversation token" }, 502);
         }
@@ -105,6 +119,7 @@ Do NOT lecture. Do NOT answer questions about salary or offer details — polite
 
     return json({
       conversationToken,
+      signedUrl,
       agentId: ELEVENLABS_AGENT_ID,
       tokenMode,
       overrides: {
