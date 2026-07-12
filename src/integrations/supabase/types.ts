@@ -148,6 +148,60 @@ export type Database = {
           },
         ]
       }
+      email_deliveries: {
+        Row: {
+          attempts: number
+          context: Json | null
+          created_at: string
+          id: string
+          idempotency_key: string
+          last_error: string | null
+          next_retry_at: string | null
+          provider_status: number | null
+          purpose: string
+          recipient: string
+          sent_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          context?: Json | null
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          last_error?: string | null
+          next_retry_at?: string | null
+          provider_status?: number | null
+          purpose: string
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          context?: Json | null
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          last_error?: string | null
+          next_retry_at?: string | null
+          provider_status?: number | null
+          purpose?: string
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       interview_sessions: {
         Row: {
           agent_id: string | null
@@ -270,6 +324,8 @@ export type Database = {
           company_name: string | null
           created_at: string
           description: string
+          external_id: string | null
+          external_source: string | null
           hr_email: string | null
           id: string
           min_years_experience: number
@@ -284,6 +340,8 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           description?: string
+          external_id?: string | null
+          external_source?: string | null
           hr_email?: string | null
           id?: string
           min_years_experience?: number
@@ -298,6 +356,8 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           description?: string
+          external_id?: string | null
+          external_source?: string | null
           hr_email?: string | null
           id?: string
           min_years_experience?: number
