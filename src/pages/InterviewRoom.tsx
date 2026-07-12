@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff, Loader2, Sparkles, CheckCircle2, AlertCircle, Send } from "lucide-react";
+import { Mic, MicOff, Loader2, Sparkles, CheckCircle2, AlertCircle, Send, Video, ScreenShare } from "lucide-react";
 import Logo from "@/components/Logo";
 
 type SessionInfo = {
@@ -53,6 +53,11 @@ function InterviewRoomContent() {
   const [textComplete, setTextComplete] = useState(false);
   const transcriptRef = useRef<Turn[]>([]);
   const [, force] = useState(0);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
+  const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [avReady, setAvReady] = useState(false);
+  const [screenShareOn, setScreenShareOn] = useState(false);
 
   const conversation = useConversation({
     onMessage: (msg: unknown) => {
@@ -98,17 +103,33 @@ function InterviewRoomContent() {
     setStarting(true);
     setError(null);
     try {
+      // Interactive video interview: require camera+mic and screen share for proctoring.
+      const camStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { width: 640, height: 480 } });
+      cameraStreamRef.current = camStream;
+      if (cameraVideoRef.current) {
+        cameraVideoRef.current.srcObject = camStream;
+        await cameraVideoRef.current.play().catch(() => {});
+      }
+      try {
+        // deno-lint-ignore no-explicit-any
+        const display = await (navigator.mediaDevices as any).getDisplayMedia({ video: true, audio: false });
+        screenStreamRef.current = display;
+        setScreenShareOn(true);
+        display.getVideoTracks()[0]?.addEventListener("ended", () => setScreenShareOn(false));
+      } catch (e) {
+        console.warn("Screen share declined:", e);
+      }
+      setAvReady(true);
+
       const { data, error } = await supabase.functions.invoke("elevenlabs-token", { body: { token } });
       if (error) throw new Error(await getFunctionErrorMessage(error, "Could not start the AI interview."));
       if (data?.conversationToken) {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
         await conversation.startSession({
           conversationToken: data.conversationToken,
           connectionType: "webrtc",
           overrides: data.overrides,
         });
       } else if (data?.signedUrl) {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
         await conversation.startSession({
           signedUrl: data.signedUrl,
           overrides: data.overrides,
@@ -123,7 +144,6 @@ function InterviewRoomContent() {
         setTextMode(true);
         force((n) => n + 1);
       } else if (data?.agentId) {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
         await conversation.startSession({
           agentId: data.agentId,
           connectionType: "webrtc",
@@ -134,7 +154,10 @@ function InterviewRoomContent() {
       }
     } catch (e) {
       console.error(e);
-      setError(e instanceof Error ? e.message : "Failed to start interview. Check your microphone permissions.");
+      setError(e instanceof Error ? e.message : "Failed to start interview. Check your camera, microphone, and screen-share permissions.");
+      cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
+      screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+      cameraStreamRef.current = null; screenStreamRef.current = null; setAvReady(false); setScreenShareOn(false);
     } finally {
       setStarting(false);
     }
@@ -180,8 +203,16 @@ function InterviewRoomContent() {
       setError(e instanceof Error ? e.message : "Could not finalize interview");
     } finally {
       setFinalizing(false);
+      cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
+      screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+      cameraStreamRef.current = null; screenStreamRef.current = null; setAvReady(false); setScreenShareOn(false);
     }
   };
+
+  useEffect(() => () => {
+    cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
+    screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+  }, []);
 
   const status = conversation.status;
   const isConnected = status === "connected" || textMode;
@@ -234,13 +265,14 @@ function InterviewRoomContent() {
                     <p className="text-sm font-medium">Before you start:</p>
                     <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
                       <li>Find a quiet space with a stable internet connection.</li>
-                      <li>Allow microphone access when your browser asks.</li>
-                      <li>Speak naturally — the AI will ask follow-ups.</li>
+                      <li>Allow <strong>camera, microphone and screen sharing</strong> when your browser asks — required for proctoring.</li>
+                      <li>The AI will speak to you in audio; answer naturally.</li>
+                      <li>Keep your face visible; leaving the frame may be flagged.</li>
                       <li>Expect the call to last 5–10 minutes.</li>
                     </ul>
                   </div>
                   <Button size="lg" className="w-full gap-2" onClick={start}>
-                    <Mic className="h-5 w-5" /> Start interview
+                    <Video className="h-5 w-5" /> Start video interview
                   </Button>
                 </>
               )}
@@ -254,6 +286,19 @@ function InterviewRoomContent() {
 
               {isConnected && !textMode && (
                 <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
+                      <video ref={cameraVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                      <Badge className="absolute top-2 left-2 bg-red-600 text-white gap-1"><Video className="h-3 w-3"/>You</Badge>
+                    </div>
+                    <div className="relative aspect-video rounded-lg bg-muted flex items-center justify-center">
+                      {screenShareOn ? (
+                        <Badge className="bg-accent text-accent-foreground gap-1"><ScreenShare className="h-3 w-3"/>Screen shared</Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground text-center px-2">Screen share not active</span>
+                      )}
+                    </div>
+                  </div>
                   <div className="flex flex-col items-center py-8 gap-4">
                     <div className={`relative h-32 w-32 rounded-full flex items-center justify-center bg-gradient-to-br from-accent/30 to-primary/30 ${isSpeaking ? "ring-4 ring-accent/50 animate-pulse" : ""}`}>
                       <Mic className="h-12 w-12 text-accent" />
