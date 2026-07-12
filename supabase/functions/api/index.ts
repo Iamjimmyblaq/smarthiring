@@ -9,7 +9,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SITE_URL = Deno.env.get("SITE_URL") || "https://smarthiring.lovable.app";
 const RESERVED_JOB_FIELDS = new Set(["id", "user_id", "created_at", "updated_at"]);
-const JOB_FIELDS = new Set(["title", "description", "requirements", "required_skills", "min_years_experience", "company_name", "hr_email", "status"]);
+const JOB_FIELDS = new Set(["title", "description", "requirements", "required_skills", "min_years_experience", "company_name", "hr_email", "status", "external_id", "external_source"]);
 const CANDIDATE_FIELDS = new Set(["job_id", "name", "email", "phone", "resume_path", "resume_text", "stage", "status", "processing_status"]);
 
 async function sha256Hex(input: string) {
@@ -51,6 +51,8 @@ function normalizeJobInput(body: Record<string, unknown>) {
       company_name: asText(body.company_name) || null,
       hr_email: asText(body.hr_email) || null,
       status: asText(body.status, "open") || "open",
+      external_id: asText(body.external_id) || null,
+      external_source: asText(body.external_source) || null,
     },
   } as const;
 }
@@ -98,7 +100,26 @@ Deno.serve(async (req) => {
         const body = await req.json().catch(() => ({}));
         const normalized = normalizeJobInput({ ...body });
         if ("error" in normalized) return json({ error: normalized.error }, 400);
-        const { data, error } = await admin.from("jobs").insert({ ...normalized.data, user_id: auth.userId }).select().single();
+        const j = normalized.data;
+        // Dedup by external_id (preferred) or by title+company for same user.
+        if (j.external_id && j.external_source) {
+          const { data: existing } = await admin.from("jobs").select("*")
+            .eq("user_id", auth.userId).eq("external_source", j.external_source).eq("external_id", j.external_id)
+            .maybeSingle();
+          if (existing) {
+            const { data: updated, error: uerr } = await admin.from("jobs").update(j).eq("id", existing.id).select().single();
+            if (uerr) return json({ error: uerr.message }, 400);
+            return json({ data: updated, deduped: true });
+          }
+        } else {
+          const { data: existing } = await admin.from("jobs").select("id")
+            .eq("user_id", auth.userId)
+            .ilike("title", j.title)
+            .eq("company_name", j.company_name)
+            .maybeSingle();
+          if (existing) return json({ data: existing, deduped: true, message: "A job with the same title and company already exists" });
+        }
+        const { data, error } = await admin.from("jobs").insert({ ...j, user_id: auth.userId }).select().single();
         if (error) return json({ error: error.message }, 400);
         return json({ data }, 201);
       }
