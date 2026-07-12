@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendGmail, baseLayout } from "../_shared/gmail.ts";
+import { sendQueuedEmail, baseLayout } from "../_shared/gmail.ts";
 import { emitWebhook } from "../_shared/webhooks.ts";
 
 const cors = {
@@ -32,8 +32,12 @@ Deno.serve(async (req) => {
       const meetingLine = meetingLink ? `\nMeeting link: ${meetingLink}` : "";
       const text = `Hi ${cand.name || "there"},\n\nYour interview for ${jobTitle} at ${company} is scheduled for ${when} (${iv.duration_minutes || 45} min, ${iv.interview_type || "virtual"}).${iv.interviewer ? `\nInterviewer: ${iv.interviewer}` : ""}${meetingLine}\n\nPlease reply to this email if you need to reschedule.\n\nBest,\n${company}`;
       const html = baseLayout(`<h2 style="margin:0 0 12px">Interview scheduled</h2><p>Hi ${cand.name || "there"},</p><p>Your interview for <strong>${jobTitle}</strong> at <strong>${company}</strong> is scheduled for:</p><div style="padding:12px 16px;background:#f4f6fb;border-radius:8px;margin:12px 0"><strong>${when}</strong><br/>${iv.duration_minutes || 45} minutes · ${iv.interview_type || "virtual"}${iv.interviewer ? ` · with ${iv.interviewer}` : ""}</div>${meetingLink ? `<p><a href="${meetingLink}">Join meeting</a></p>` : ""}<p>Reply to this email if you need to reschedule.</p>`);
-      await sendGmail({ to: cand.email, subject: subj, text, html, fromName: rec?.full_name || company, replyTo: hrEmail });
-      await emitWebhook(cand.user_id, "interview.scheduled", { interview_id, candidate_id: cand.id, scheduled_at: iv.scheduled_at });
+      await sendQueuedEmail({
+        userId: cand.user_id, idempotencyKey: `interview:${interview_id}`, purpose: "interview_scheduled",
+        context: { interview_id, candidate_id: cand.id },
+        to: cand.email, subject: subj, text, html, fromName: rec?.full_name || company, replyTo: hrEmail,
+      });
+      await emitWebhook(cand.user_id, "interview.scheduled", { interview_id, candidate_id: cand.id, scheduled_at: iv.scheduled_at, meeting_link: meetingLink });
     }
 
     if (kind === "ai" && session_id) {
@@ -51,7 +55,11 @@ Deno.serve(async (req) => {
       const expiresLine = s.expires_at ? `\nLink expires: ${new Date(s.expires_at).toLocaleString()}` : "";
       const text = `Hi ${cand.name || "there"},\n\n${company} has invited you to complete a short AI-powered interview for the ${jobTitle} role.\n\nStart here: ${link}${expiresLine}\n\nAllow 10–15 minutes in a quiet space with a working microphone. You'll speak with an AI interviewer; your responses are shared with the hiring team.\n\nBest,\n${company}`;
       const html = baseLayout(`<h2 style="margin:0 0 12px">Your AI interview is ready</h2><p>Hi ${cand.name || "there"},</p><p><strong>${company}</strong> has invited you to complete a short AI-powered interview for the <strong>${jobTitle}</strong> role.</p><p style="margin:24px 0"><a href="${link}" style="background:#2563eb;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">Start interview</a></p><p style="color:#555;font-size:14px">Or copy this link: <a href="${link}">${link}</a></p>${s.expires_at ? `<p style="color:#555;font-size:13px">Link expires: ${new Date(s.expires_at).toLocaleString()}</p>` : ""}<p>Allow 10–15 minutes in a quiet space with a working microphone.</p>`);
-      await sendGmail({ to: cand.email, subject: subj, text, html, fromName: rec?.full_name || company, replyTo: hrEmail });
+      await sendQueuedEmail({
+        userId: cand.user_id, idempotencyKey: `ai_session:${session_id}`, purpose: "ai_interview",
+        context: { session_id, candidate_id: cand.id, interview_url: link },
+        to: cand.email, subject: subj, text, html, fromName: rec?.full_name || company, replyTo: hrEmail,
+      });
       await emitWebhook(cand.user_id, "interview.ai_session_created", { session_id, candidate_id: cand.id, interview_url: link });
     }
 
