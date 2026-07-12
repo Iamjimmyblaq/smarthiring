@@ -528,6 +528,7 @@ export type Database = {
           event: string
           id: string
           payload: Json
+          response_body: string | null
           response_code: number | null
           status: string
           user_id: string
@@ -539,6 +540,7 @@ export type Database = {
           event: string
           id?: string
           payload: Json
+          response_body?: string | null
           response_code?: number | null
           status?: string
           user_id: string
@@ -550,6 +552,7 @@ export type Database = {
           event?: string
           id?: string
           payload?: Json
+          response_body?: string | null
           response_code?: number | null
           status?: string
           user_id?: string
