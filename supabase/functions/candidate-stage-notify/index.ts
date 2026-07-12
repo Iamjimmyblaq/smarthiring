@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendGmail, baseLayout } from "../_shared/gmail.ts";
+import { sendQueuedEmail, baseLayout } from "../_shared/gmail.ts";
 import { emitWebhook } from "../_shared/webhooks.ts";
 
 const cors = {
@@ -53,7 +53,15 @@ Deno.serve(async (req) => {
     if (copy && cand.email) {
       const text = copy.body(cand.name || "there", jobTitle, company) + `\n\nBest,\n${company}`;
       const html = baseLayout(`<h2 style="margin:0 0 12px">${copy.subject(jobTitle)}</h2>${text.split("\n").filter(Boolean).map((p) => `<p>${p}</p>`).join("")}`);
-      await sendGmail({ to: cand.email, subject: copy.subject(jobTitle), text, html, fromName, replyTo: hrEmail });
+      await sendQueuedEmail({
+        userId: cand.user_id,
+        idempotencyKey: `stage:${cand.id}:${new_stage}`,
+        purpose: "stage_change",
+        context: { candidate_id: cand.id, job_id: cand.job_id, new_stage },
+        to: cand.email,
+        subject: copy.subject(jobTitle),
+        text, html, fromName, replyTo: hrEmail,
+      });
     }
     return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "Content-Type": "application/json" } });
   } catch (e) {
