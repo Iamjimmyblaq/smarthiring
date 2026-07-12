@@ -24,26 +24,45 @@ export async function emitWebhook(userId: string, event: string, data: Record<st
       .eq("user_id", userId)
       .eq("enabled", true);
     if (!eps?.length) return;
-    const payload = { event, created_at: new Date().toISOString(), data };
+    const eventId = crypto.randomUUID();
+    const payload = { id: eventId, event, created_at: new Date().toISOString(), data };
     const body = JSON.stringify(payload);
     await Promise.all(eps.filter((e) => !e.events?.length || e.events.includes(event)).map(async (ep) => {
       const sig = await hmac(ep.secret, body);
+      // Retry with exponential backoff (200ms, 800ms, 3200ms) on 5xx/network failures.
       let status = "delivered";
       let code: number | null = null;
-      try {
-        const res = await fetch(ep.url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-SmartHire-Event": event, "X-SmartHire-Signature": `sha256=${sig}` },
-          body,
-        });
-        code = res.status;
-        if (!res.ok) status = "failed";
-      } catch (e) {
-        status = "failed";
-        console.error("webhook send error", ep.url, e);
+      let attempts = 0;
+      let respSnippet: string | null = null;
+      for (attempts = 1; attempts <= 3; attempts++) {
+        try {
+          const res = await fetch(ep.url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-SmartHire-Event": event,
+              "X-SmartHire-Event-Id": eventId,
+              "X-SmartHire-Signature": `sha256=${sig}`,
+              "User-Agent": "SmartHire-Webhook/1.0",
+            },
+            body,
+            signal: AbortSignal.timeout(10_000),
+          });
+          code = res.status;
+          respSnippet = (await res.text().catch(() => "")).slice(0, 500);
+          if (res.ok) { status = "delivered"; break; }
+          status = "failed";
+          if (res.status < 500) break; // don't retry 4xx
+        } catch (e) {
+          status = "failed";
+          respSnippet = e instanceof Error ? e.message.slice(0, 500) : String(e).slice(0, 500);
+        }
+        await new Promise((r) => setTimeout(r, 200 * Math.pow(4, attempts - 1)));
       }
       await admin.from("webhook_deliveries").insert({
-        endpoint_id: ep.id, user_id: userId, event, payload, status, response_code: code, attempts: 1,
+        endpoint_id: ep.id, user_id: userId, event, payload,
+        status, response_code: code, attempts,
+        response_body: respSnippet,
       });
     }));
   } catch (e) {
