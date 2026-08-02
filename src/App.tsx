@@ -18,6 +18,9 @@ import Onboarding from "./pages/Onboarding.tsx";
 import InterviewRoom from "./pages/InterviewRoom.tsx";
 import Developers from "./pages/Developers.tsx";
 import ApiDocs from "./pages/ApiDocs.tsx";
+import About from "./pages/About.tsx";
+import FAQ from "./pages/FAQ.tsx";
+import Admin from "./pages/Admin.tsx";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +45,9 @@ const App = () => (
           <Route path="/interview/:token" element={<InterviewRoom />} />
           <Route path="/developers" element={<Developers />} />
           <Route path="/api-docs" element={<ApiDocs />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
