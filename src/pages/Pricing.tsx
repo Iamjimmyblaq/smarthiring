@@ -10,12 +10,37 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+interface Tier {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  price_amount: number;
+  currency: string;
+  billing_period: string;
+  max_jobs: number | null;
+  max_resumes: number | null;
+  max_ai_interviews: number | null;
+  features: string[];
+}
+
+const fmtLimit = (v: number | null, label: string) => (v === null ? `Unlimited ${label}` : `${v.toLocaleString()} ${label}`);
+
 const Pricing = () => {
   const navigate = useNavigate();
   const planState = usePlan();
   const [loading, setLoading] = useState(false);
+  const [tiers, setTiers] = useState<Tier[]>([]);
 
-  useEffect(() => { document.title = "Pricing — SmartHire"; }, []);
+  useEffect(() => {
+    document.title = "Pricing — SmartHire";
+    supabase
+      .from("plan_tiers")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order")
+      .then(({ data }) => setTiers(((data ?? []) as any[]).map((t) => ({ ...t, features: t.features ?? [] })) as Tier[]));
+  }, []);
 
   const handleUpgrade = async () => {
     setLoading(true);
