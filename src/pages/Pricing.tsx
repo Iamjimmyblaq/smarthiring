@@ -88,6 +88,44 @@ const Pricing = () => {
         </div>
 
         <h2 className="sr-only">Plans</h2>
+        {tiers.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {tiers.map((tier) => {
+              const isCurrent = planState.plan === tier.key;
+              const isFree = Number(tier.price_amount) === 0;
+              return (
+                <Card key={tier.id} className={isCurrent ? "border-primary" : ""}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-xl font-semibold leading-none tracking-tight">{tier.name}</h3>
+                      {isCurrent && <span className="text-xs rounded-full bg-secondary px-2 py-0.5">Current</span>}
+                    </div>
+                    <p className="text-3xl font-semibold mt-2">
+                      {tier.currency === "USD" ? "$" : `${tier.currency} `}
+                      {Number(tier.price_amount).toLocaleString()}
+                      <span className="text-base font-normal text-muted-foreground">/{tier.billing_period}</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground">{tier.description}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Feature>{fmtLimit(tier.max_resumes, "resume uploads")}</Feature>
+                    <Feature>{fmtLimit(tier.max_jobs, "active jobs")}</Feature>
+                    <Feature>{fmtLimit(tier.max_ai_interviews, "AI interviews")}</Feature>
+                    {tier.features.map((f) => <Feature key={f}>{f}</Feature>)}
+                    <Button
+                      className="w-full mt-4 gap-2"
+                      variant={isFree ? "outline" : "default"}
+                      disabled={isCurrent || loading}
+                      onClick={() => (isFree ? navigate("/jobs") : handleUpgrade())}
+                    >
+                      {isCurrent ? "Current plan" : isFree ? "Get started" : loading ? "Redirecting…" : <>Choose {tier.name} <Sparkles className="h-4 w-4" /></>}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
         <div className="grid md:grid-cols-2 gap-6">
           <Card className={planState.plan === "free" ? "border-primary" : ""}>
             <CardHeader>
@@ -128,6 +166,7 @@ const Pricing = () => {
             </CardContent>
           </Card>
         </div>
+        )}
 
         <p className="text-center text-sm text-muted-foreground mt-10">
           Questions? <Link to="/jobs" className="underline">Back to dashboard</Link>
