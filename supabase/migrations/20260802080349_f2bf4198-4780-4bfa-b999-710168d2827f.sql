@@ -1,0 +1,1 @@
+update public.interview_sessions set expires_at = now() + interval '2 days', status = 'pending' where token = '423aa9b0a9394cc896c4d1c4bef17ae2';
