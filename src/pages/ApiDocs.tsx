@@ -27,6 +27,55 @@ export default function ApiDocs() {
         </Card>
 
         <Card>
+          <CardHeader><CardTitle>Drop-in SDK — connect your site in 3 lines</CardTitle></CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <p>Paste this snippet into your company's codebase to talk to SmartHire without writing any HTTP code. Keep the API key on your server and proxy browser calls through your backend.</p>
+            <Code>{`<script src="https://smarthiring.lovable.app/smarthire.js"></script>
+<script>
+  const sh = SmartHire.init({ apiKey: "sh_live_..." });
+
+  // Post a job on your careers site → it appears on SmartHire automatically
+  await sh.jobs.create({
+    external_id: "req-2891",
+    external_source: "acme-careers",
+    title: "Senior Engineer",
+    description: "Build product features",
+    required_skills: ["React", "TypeScript"],
+    min_years_experience: 5,
+    company_name: "Acme",
+    hr_email: "hiring@acme.com",
+  });
+</script>`}</Code>
+            <p className="font-medium">Node / Next.js / Deno</p>
+            <Code>{`import SmartHire from "https://smarthiring.lovable.app/smarthire.js";
+
+const sh = SmartHire.init({ apiKey: process.env.SMARTHIRE_API_KEY });
+
+// Mirror your whole careers board in one call (safe to re-run — deduped by external_id)
+await sh.jobs.sync(myJobs.map(j => ({
+  external_id: j.id, external_source: "acme-careers",
+  title: j.title, description: j.body, required_skills: j.skills,
+})));
+
+// Application form submit
+const { data: candidate } = await sh.candidates.apply({
+  job_id: smartHireJobId, name, email, resume_url: uploadedUrl,
+});
+
+// Move a candidate + trigger the status email/webhook
+await sh.candidates.setStage(candidate.id, "interview");
+
+// Live AI video interview link
+const { data: session } = await sh.interviews.createAiSession(candidate.id);
+console.log(session.interview_url);
+
+// Receive events back
+await sh.webhooks.create("https://acme.com/hooks/sh", ["candidate.stage_changed"]);`}</Code>
+            <p className="text-muted-foreground">Available methods: <code>sh.jobs</code> (list/get/create/update/remove/sync), <code>sh.candidates</code> (list/get/apply/setStage), <code>sh.interviews</code> (schedule/createAiSession/getAiSession), <code>sh.webhooks</code> (list/create/remove). Every method returns the same JSON shown below and throws an error carrying <code>status</code> and <code>body</code> on failure.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
           <CardHeader><CardTitle>Jobs — auto-listing on SmartHire</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <p>When a company posts a job on their careers site and calls <code>POST /jobs</code>, the job is inserted into their SmartHire jobs board automatically. Pass <code>external_id</code> + <code>external_source</code> for safe retries — duplicate calls update the same row instead of creating a copy.</p>
