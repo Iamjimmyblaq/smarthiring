@@ -20,6 +20,8 @@ export default function MarketingNav() {
     { to: "/#features", label: "Product" },
     { to: "/demo", label: "Demo" },
     { to: "/pricing", label: "Pricing" },
+    { to: "/about", label: "About" },
+    { to: "/faq", label: "FAQ" },
   ];
 
   return (
