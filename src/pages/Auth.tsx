@@ -21,7 +21,7 @@ const Auth = () => {
   useEffect(() => {
     document.title = "Sign in — SmartHire";
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/jobs", { replace: true });
+      if (data.session) resolveLandingRoute().then((route) => navigate(route, { replace: true }));
     });
   }, [navigate]);
 
@@ -31,7 +31,7 @@ const Auth = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    navigate("/jobs", { replace: true });
+    navigate(await resolveLandingRoute(), { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
