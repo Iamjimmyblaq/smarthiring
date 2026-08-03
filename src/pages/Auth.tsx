@@ -76,7 +76,7 @@ const Auth = () => {
       <h1 className="sr-only">Sign in or Create Account</h1>
 
       {/* Product showcase */}
-      <aside className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-primary/15 via-background to-accent/15 p-10 border-r">
+      <aside className="relative hidden lg:flex flex-col justify-center gap-2 overflow-hidden bg-gradient-to-br from-primary/15 via-background to-accent/15 p-10 border-r">
         <div className="absolute -top-24 -right-24 size-72 rounded-full bg-primary/20 blur-3xl" />
         <div className="relative">
           <Link
@@ -85,7 +85,7 @@ const Auth = () => {
           >
             <ArrowLeft className="h-4 w-4" /> Back to home
           </Link>
-          <h2 className="mt-10 text-4xl font-semibold tracking-tight leading-tight">
+          <h2 className="mt-8 text-4xl font-semibold tracking-tight leading-tight">
             Every interview,<br />intelligently run.
           </h2>
           <p className="mt-4 text-muted-foreground max-w-md">
