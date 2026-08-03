@@ -14,10 +14,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, FileSpreadsheet, FileText, Users } from "lucide-react";
+import { Bot, Download, FileSpreadsheet, FileText, Users, Video } from "lucide-react";
 import { toast } from "sonner";
 import { STAGES, type StageKey } from "@/lib/lifecycle";
 import type { Tables } from "@/integrations/supabase/types";
+import { createAiInterview } from "@/lib/ai-interview";
+import aiRoom from "@/assets/ai-interview-room.jpg";
 import {
   exportAllStagesExcel,
   exportAllStagesPdf,
@@ -111,6 +113,38 @@ export default function Pipeline() {
           </DropdownMenu>
         </div>
 
+        {/* AI interview showcase */}
+        <section className="mb-8 grid gap-6 rounded-2xl border bg-gradient-to-br from-accent/10 via-background to-primary/5 p-6 shadow-sm lg:grid-cols-2 lg:items-center">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+              <Bot className="h-3.5 w-3.5" /> AI Video Interview
+            </span>
+            <h2 className="mt-4 text-2xl font-semibold tracking-tight">
+              Let the AI interviewer run the first round.
+            </h2>
+            <p className="mt-2 text-muted-foreground">
+              Send a proctored video interview link to anyone in the pipeline. The AI asks role-specific
+              questions on camera, watches for malpractice, then scores and emails the report back to you.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button asChild variant="outline" className="gap-2">
+                <Link to="/interviews"><Video className="h-4 w-4" /> Manage AI sessions</Link>
+              </Button>
+              <span className="inline-flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-xs text-muted-foreground">
+                Use the <Bot className="h-3.5 w-3.5 text-primary" /> button on any candidate card
+              </span>
+            </div>
+          </div>
+          <img
+            src={aiRoom}
+            alt="AI video interview room with candidate camera, audio waveform and live scoring panel"
+            width={1280}
+            height={896}
+            loading="lazy"
+            className="w-full rounded-xl border object-cover shadow-md"
+          />
+        </section>
+
         {loading ? (
           <p className="text-muted-foreground">Loading…</p>
         ) : candidates.length === 0 ? (
@@ -171,9 +205,21 @@ export default function Pipeline() {
                             <Link to={`/jobs/${c.job_id}`} className="font-medium text-sm hover:underline truncate">
                               {c.name ?? "Unnamed"}
                             </Link>
-                            {c.overall_score != null && (
-                              <Badge variant="outline" className="text-xs">{c.overall_score}</Badge>
-                            )}
+                            <div className="flex items-center gap-1 shrink-0">
+                              {c.overall_score != null && (
+                                <Badge variant="outline" className="text-xs">{c.overall_score}</Badge>
+                              )}
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 text-primary"
+                                title="Start AI video interview"
+                                aria-label={`Start AI video interview for ${c.name ?? "candidate"}`}
+                                onClick={() => createAiInterview(c, c.jobs?.title)}
+                              >
+                                <Bot className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </div>
                           {c.jobs?.title && (
                             <p className="text-xs text-muted-foreground truncate">{c.jobs.title}</p>
