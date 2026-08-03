@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,28 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 export default function AppHeader() {
   const navigate = useNavigate();
   const { isAdmin } = useIsAdmin();
+
+  // Track engagement: last activity + approximate location (from browser locale/timezone).
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) return;
+      let location: string | null = null;
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const region = new Intl.Locale(navigator.language).maximize().region;
+        const country = region
+          ? new Intl.DisplayNames([navigator.language], { type: "region" }).of(region)
+          : null;
+        location = [tz, country].filter(Boolean).join(" · ") || null;
+      } catch { /* locale APIs unavailable */ }
+      await supabase
+        .from("profiles")
+        .update({ last_active_at: new Date().toISOString(), location })
+        .eq("id", data.user.id);
+    })();
+  }, []);
+
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate("/auth", { replace: true });
