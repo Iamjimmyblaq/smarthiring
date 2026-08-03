@@ -7,7 +7,9 @@ import {
   ArrowRight, Sparkles, Upload, Brain, ListChecks, Zap, Target, Filter,
   ShieldCheck, BarChart3, Inbox, Clock, CheckCircle2,
   Users, CalendarCheck, FileSignature, UserCheck,
+  Bot, Video, Mic, MonitorPlay, Eye,
 } from "lucide-react";
+import aiRoom from "@/assets/ai-interview-room.jpg";
 
 const Index = () => {
   useEffect(() => {
@@ -178,7 +180,7 @@ const Index = () => {
             {[
               { icon: Inbox, label: "Sourced", desc: "AI-ranked applicants" },
               { icon: Filter, label: "Screening", desc: "Auto-shortlist top fits" },
-              { icon: CalendarCheck, label: "Interview", desc: "Schedule & rate" },
+              { icon: CalendarCheck, label: "Interview", desc: "AI video round & rating" },
               { icon: FileSignature, label: "Offer", desc: "Salary, dates, status" },
               { icon: UserCheck, label: "Hired", desc: "Onboarding checklist" },
             ].map((s, i) => (
@@ -189,6 +191,67 @@ const Index = () => {
                 <p className="mt-1 text-xs text-muted-foreground">{s.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI VIDEO INTERVIEW */}
+      <section id="ai-interview" className="py-28 border-t border-white/5 bg-gradient-to-b from-transparent via-brand-2/[0.05] to-transparent">
+        <div className="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+          <div className="relative order-2 lg:order-1">
+            <img
+              src={aiRoom}
+              alt="AI video interview room showing the candidate camera, live audio waveform and AI scoring panel"
+              width={1280}
+              height={896}
+              loading="lazy"
+              className="w-full rounded-2xl border border-white/10 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
+            />
+            <div className="absolute -bottom-6 -right-4 rounded-xl border border-brand/30 bg-card/90 backdrop-blur-xl p-4 shadow-[var(--shadow-brand)]">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">AI verdict</div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-2xl font-semibold text-foreground tabular-nums">88</span>
+                <span className="text-xs text-emerald-400">Advance to offer</span>
+              </div>
+            </div>
+          </div>
+          <div className="order-1 lg:order-2">
+            <SectionLabel>AI Video Interview</SectionLabel>
+            <h2 className="mt-3 text-4xl md:text-5xl font-semibold tracking-tight text-foreground">
+              An AI interviewer that actually sits in the room.
+            </h2>
+            <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
+              Send one link. The candidate joins with camera, microphone and screen share on, the AI asks
+              role-specific questions out loud, monitors body movement for malpractice, then scores the
+              session and emails the full report to you and the candidate.
+            </p>
+            <div className="mt-8 grid sm:grid-cols-2 gap-4">
+              {[
+                { icon: Video, t: "Live video round" },
+                { icon: Mic, t: "Natural voice Q&A" },
+                { icon: MonitorPlay, t: "Screen share capture" },
+                { icon: Eye, t: "Proctoring & integrity checks" },
+              ].map((f) => (
+                <span key={f.t} className="inline-flex items-center gap-3 text-sm text-foreground/90">
+                  <span className="size-9 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center text-brand shrink-0">
+                    <f.icon className="h-4 w-4" />
+                  </span>
+                  {f.t}
+                </span>
+              ))}
+            </div>
+            <div className="mt-9 flex flex-wrap gap-4">
+              <Link to="/auth">
+                <Button size="lg" className="rounded-xl bg-brand text-white hover:bg-brand/90 gap-2 px-7">
+                  <Bot className="h-4 w-4" /> Run an AI interview
+                </Button>
+              </Link>
+              <Link to="/demo">
+                <Button size="lg" variant="outline" className="rounded-xl border-white/15 bg-white/5 text-foreground hover:bg-white/10 px-7">
+                  See it in action
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

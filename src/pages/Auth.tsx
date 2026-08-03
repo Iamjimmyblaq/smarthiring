@@ -9,8 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Sparkles } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Bot, Sparkles, Users } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
+import hrDesk from "@/assets/hr-interview-desk.jpg";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -62,7 +64,7 @@ const Auth = () => {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-background px-4">
+    <main className="min-h-screen grid lg:grid-cols-2 bg-background">
       <Helmet>
         <title>Sign in — SmartHire</title>
         <meta name="description" content="Sign in to SmartHire or create a free account to start ranking candidates with AI in seconds." />
@@ -72,7 +74,65 @@ const Auth = () => {
         <meta property="og:url" content="https://smarthiring.lovable.app/auth" />
       </Helmet>
       <h1 className="sr-only">Sign in or Create Account</h1>
+
+      {/* Product showcase */}
+      <aside className="relative hidden lg:flex flex-col justify-center gap-2 overflow-hidden bg-gradient-to-br from-primary/15 via-background to-accent/15 p-10 border-r">
+        <div className="absolute -top-24 -right-24 size-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="relative">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to home
+          </Link>
+          <h2 className="mt-8 text-4xl font-semibold tracking-tight leading-tight">
+            Every interview,<br />intelligently run.
+          </h2>
+          <p className="mt-4 text-muted-foreground max-w-md">
+            Screen, rank, interview and hire from one pipeline — with an AI interviewer that meets your candidates on video.
+          </p>
+        </div>
+        <div className="relative my-8">
+          <img
+            src={hrDesk}
+            alt="Recruiter reviewing a candidate resume across the desk during an interview"
+            width={1024}
+            height={1024}
+            loading="lazy"
+            className="w-full rounded-2xl border shadow-lg object-cover max-h-[340px]"
+          />
+          <div className="absolute -bottom-5 left-5 flex items-center gap-2 rounded-xl border bg-card/90 backdrop-blur px-4 py-3 shadow-lg">
+            <Bot className="h-5 w-5 text-primary" />
+            <div className="text-xs">
+              <p className="font-semibold">AI interviewer live</p>
+              <p className="text-muted-foreground">Video · audio · proctored</p>
+            </div>
+          </div>
+        </div>
+        <ul className="relative space-y-3 text-sm">
+          {[
+            { icon: Sparkles, text: "AI resume scoring with explainable results" },
+            { icon: Users, text: "5-stage pipeline from sourced to hired" },
+            { icon: BadgeCheck, text: "Automatic candidate status emails" },
+          ].map((f) => (
+            <li key={f.text} className="flex items-center gap-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <f.icon className="h-4 w-4" />
+              </span>
+              {f.text}
+            </li>
+          ))}
+        </ul>
+      </aside>
+
+      {/* Auth form */}
+      <div className="flex items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md shadow-sm">
+        <div className="px-6 pt-6 lg:hidden">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" /> Back to home
+          </Link>
+        </div>
         <CardHeader className="space-y-2 text-center">
           <div className="mx-auto h-10 w-10 rounded-md bg-primary flex items-center justify-center">
             <Sparkles className="h-5 w-5 text-primary-foreground" />
@@ -127,6 +187,7 @@ const Auth = () => {
           <Button variant="outline" className="w-full" onClick={handleGoogle}>Continue with Google</Button>
         </CardContent>
       </Card>
+      </div>
     </main>
   );
 };
