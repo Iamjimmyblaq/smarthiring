@@ -144,7 +144,7 @@ ${resumeText}`;
     const args = JSON.parse(toolCall.function.arguments);
 
     const update = {
-      name: candidate.name || args.candidate_name || null,
+      name: args.candidate_name || candidate.name || null,
       email: candidate.email || args.candidate_email || null,
       overall_score: args.overall_score,
       skills_score: args.skills_score,
