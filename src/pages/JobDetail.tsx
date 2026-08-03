@@ -101,7 +101,7 @@ const JobDetail = () => {
       const { data: ins, error: insErr } = await supabase.from("candidates").insert({
         job_id: id,
         user_id: userId,
-        name: meta.name ?? file.name.replace(/\.[^.]+$/, ""),
+        name: meta.name ?? null,
         email: meta.email ?? null,
         resume_path: path,
         resume_text: text.slice(0, 50000),
