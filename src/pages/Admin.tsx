@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, Plus, Save, ShieldCheck, Trash2, Users } from "lucide-react";
+import { Download, Loader2, Plus, Save, ShieldCheck, Trash2, Users } from "lucide-react";
 
 interface Tier {
   id: string;
@@ -37,6 +37,24 @@ const ROLES: AppRole[] = ["member", "recruiter", "admin", "super_admin"];
 const numOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
 const limitText = (v: number | null) => (v === null ? "" : String(v));
 
+interface UserRow {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  company_name: string | null;
+  location: string | null;
+  last_active_at: string | null;
+  created_at: string | null;
+  plan: string;
+  jobs: number;
+  resumes: number;
+  aiInterviews: number;
+  roles: string[];
+}
+
+const fmtDate = (v: string | null) =>
+  v ? new Date(v).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—";
+
 export default function Admin() {
   const navigate = useNavigate();
   const { isAdmin, isSuperAdmin, loading: roleLoading } = useIsAdmin();
@@ -45,6 +63,11 @@ export default function Admin() {
   const [members, setMembers] = useState<any[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [roleRows, setRoleRows] = useState<any[]>([]);
+  const [planRows, setPlanRows] = useState<any[]>([]);
+  const [jobRows, setJobRows] = useState<any[]>([]);
+  const [candidateRows, setCandidateRows] = useState<any[]>([]);
+  const [sessionRows, setSessionRows] = useState<any[]>([]);
+  const [userSearch, setUserSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [teamOpen, setTeamOpen] = useState(false);
@@ -70,18 +93,30 @@ export default function Admin() {
 
   const load = async () => {
     setLoading(true);
-    const [t, tm, mem, prof, roles] = await Promise.all([
+    const [t, tm, mem, prof, roles, plans, jobs, cands, sessions] = await Promise.all([
       supabase.from("plan_tiers").select("*").order("sort_order"),
       supabase.from("teams").select("*").order("created_at", { ascending: false }),
       supabase.from("team_members").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id, email, full_name").order("created_at", { ascending: false }).limit(200),
+      supabase
+        .from("profiles")
+        .select("id, email, full_name, company_name, location, last_active_at, created_at")
+        .order("created_at", { ascending: false })
+        .limit(500),
       supabase.from("user_roles").select("*"),
+      supabase.from("user_plans").select("user_id, plan, current_period_end"),
+      supabase.from("jobs").select("user_id"),
+      supabase.from("candidates").select("user_id"),
+      supabase.from("interview_sessions").select("user_id"),
     ]);
     setTiers(((t.data ?? []) as any[]).map((x) => ({ ...x, features: x.features ?? [] })) as Tier[]);
     setTeams(tm.data ?? []);
     setMembers(mem.data ?? []);
     setProfiles(prof.data ?? []);
     setRoleRows(roles.data ?? []);
+    setPlanRows(plans.data ?? []);
+    setJobRows(jobs.data ?? []);
+    setCandidateRows(cands.data ?? []);
+    setSessionRows(sessions.data ?? []);
     setLoading(false);
   };
 
@@ -175,6 +210,58 @@ export default function Admin() {
     return map;
   }, [roleRows]);
 
+  const countBy = (rows: any[]) => {
+    const map: Record<string, number> = {};
+    rows.forEach((r) => { map[r.user_id] = (map[r.user_id] ?? 0) + 1; });
+    return map;
+  };
+
+  const users: UserRow[] = useMemo(() => {
+    const plans = Object.fromEntries(planRows.map((p) => [p.user_id, p.plan]));
+    const jobs = countBy(jobRows);
+    const resumes = countBy(candidateRows);
+    const sessions = countBy(sessionRows);
+    return profiles.map((p) => ({
+      id: p.id,
+      email: p.email ?? null,
+      full_name: p.full_name ?? null,
+      company_name: p.company_name ?? null,
+      location: p.location ?? null,
+      last_active_at: p.last_active_at ?? null,
+      created_at: p.created_at ?? null,
+      plan: plans[p.id] ?? "free",
+      jobs: jobs[p.id] ?? 0,
+      resumes: resumes[p.id] ?? 0,
+      aiInterviews: sessions[p.id] ?? 0,
+      roles: rolesByUser[p.id] ?? [],
+    }));
+  }, [profiles, planRows, jobRows, candidateRows, sessionRows, rolesByUser]);
+
+  const filteredUsers = useMemo(() => {
+    const q = userSearch.trim().toLowerCase();
+    if (!q) return users;
+    return users.filter((u) =>
+      [u.email, u.full_name, u.company_name, u.location, u.plan].some((v) => (v ?? "").toLowerCase().includes(q)),
+    );
+  }, [users, userSearch]);
+
+  const exportUsers = () => {
+    const header = ["Name", "Email", "Company", "Plan", "Roles", "Jobs", "Resumes scanned", "AI interviews", "Location", "Joined", "Last active"];
+    const rows = filteredUsers.map((u) => [
+      u.full_name ?? "", u.email ?? "", u.company_name ?? "", u.plan, u.roles.join(" "),
+      u.jobs, u.resumes, u.aiInterviews, u.location ?? "", fmtDate(u.created_at), fmtDate(u.last_active_at),
+    ]);
+    const csv = [header, ...rows]
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `smarthire-users-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (roleLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -215,6 +302,7 @@ export default function Admin() {
           <TabsList>
             <TabsTrigger value="plans">Subscriptions</TabsTrigger>
             <TabsTrigger value="teams">Teams &amp; roles</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
           <TabsContent value="plans" className="space-y-4 pt-4">
@@ -348,8 +436,90 @@ export default function Admin() {
               </Card>
             ))}
           </TabsContent>
+
+          <TabsContent value="users" className="space-y-4 pt-4">
+            <div className="flex flex-wrap justify-between items-center gap-3">
+              <p className="text-sm text-muted-foreground">
+                {filteredUsers.length} user{filteredUsers.length === 1 ? "" : "s"} · engagement, subscription and usage across the platform.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-56"
+                  placeholder="Search name, company, plan…"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  aria-label="Search users"
+                />
+                <Button size="sm" variant="outline" className="gap-2" onClick={exportUsers}>
+                  <Download className="h-4 w-4" /> Export CSV
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: "Total users", value: users.length },
+                { label: "Paid subscribers", value: users.filter((u) => u.plan !== "free").length },
+                { label: "Resumes scanned", value: users.reduce((s, u) => s + u.resumes, 0) },
+                { label: "AI interviews", value: users.reduce((s, u) => s + u.aiInterviews, 0) },
+              ].map((s) => (
+                <Card key={s.label}>
+                  <CardContent className="pt-6">
+                    <p className="text-2xl font-semibold">{s.value}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card>
+              <CardContent className="p-0 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 text-muted-foreground">
+                    <tr className="text-left">
+                      <th className="p-3 font-medium">User</th>
+                      <th className="p-3 font-medium">Company</th>
+                      <th className="p-3 font-medium">Plan</th>
+                      <th className="p-3 font-medium">Roles</th>
+                      <th className="p-3 font-medium text-right">Jobs</th>
+                      <th className="p-3 font-medium text-right">Resumes</th>
+                      <th className="p-3 font-medium text-right">AI interviews</th>
+                      <th className="p-3 font-medium">Location</th>
+                      <th className="p-3 font-medium">Joined</th>
+                      <th className="p-3 font-medium">Last active</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.length === 0 && (
+                      <tr><td colSpan={10} className="p-6 text-center text-muted-foreground">No users match this search.</td></tr>
+                    )}
+                    {filteredUsers.map((u) => (
+                      <tr key={u.id} className="border-t">
+                        <td className="p-3">
+                          <p className="font-medium">{u.full_name || "—"}</p>
+                          <p className="text-xs text-muted-foreground">{u.email || "—"}</p>
+                        </td>
+                        <td className="p-3">{u.company_name || "—"}</td>
+                        <td className="p-3">
+                          <Badge variant={u.plan === "free" ? "outline" : "default"}>{u.plan}</Badge>
+                        </td>
+                        <td className="p-3 text-xs">{u.roles.length ? u.roles.join(", ").replace(/_/g, " ") : "member"}</td>
+                        <td className="p-3 text-right tabular-nums">{u.jobs}</td>
+                        <td className="p-3 text-right tabular-nums">{u.resumes}</td>
+                        <td className="p-3 text-right tabular-nums">{u.aiInterviews}</td>
+                        <td className="p-3 text-xs">{u.location || "—"}</td>
+                        <td className="p-3 text-xs">{fmtDate(u.created_at)}</td>
+                        <td className="p-3 text-xs">{fmtDate(u.last_active_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
+
 
       <Dialog open={teamOpen} onOpenChange={setTeamOpen}>
         <DialogContent>
