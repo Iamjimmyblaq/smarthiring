@@ -436,6 +436,87 @@ export default function Admin() {
               </Card>
             ))}
           </TabsContent>
+
+          <TabsContent value="users" className="space-y-4 pt-4">
+            <div className="flex flex-wrap justify-between items-center gap-3">
+              <p className="text-sm text-muted-foreground">
+                {filteredUsers.length} user{filteredUsers.length === 1 ? "" : "s"} · engagement, subscription and usage across the platform.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-56"
+                  placeholder="Search name, company, plan…"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  aria-label="Search users"
+                />
+                <Button size="sm" variant="outline" className="gap-2" onClick={exportUsers}>
+                  <Download className="h-4 w-4" /> Export CSV
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: "Total users", value: users.length },
+                { label: "Paid subscribers", value: users.filter((u) => u.plan !== "free").length },
+                { label: "Resumes scanned", value: users.reduce((s, u) => s + u.resumes, 0) },
+                { label: "AI interviews", value: users.reduce((s, u) => s + u.aiInterviews, 0) },
+              ].map((s) => (
+                <Card key={s.label}>
+                  <CardContent className="pt-6">
+                    <p className="text-2xl font-semibold">{s.value}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card>
+              <CardContent className="p-0 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 text-muted-foreground">
+                    <tr className="text-left">
+                      <th className="p-3 font-medium">User</th>
+                      <th className="p-3 font-medium">Company</th>
+                      <th className="p-3 font-medium">Plan</th>
+                      <th className="p-3 font-medium">Roles</th>
+                      <th className="p-3 font-medium text-right">Jobs</th>
+                      <th className="p-3 font-medium text-right">Resumes</th>
+                      <th className="p-3 font-medium text-right">AI interviews</th>
+                      <th className="p-3 font-medium">Location</th>
+                      <th className="p-3 font-medium">Joined</th>
+                      <th className="p-3 font-medium">Last active</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.length === 0 && (
+                      <tr><td colSpan={10} className="p-6 text-center text-muted-foreground">No users match this search.</td></tr>
+                    )}
+                    {filteredUsers.map((u) => (
+                      <tr key={u.id} className="border-t">
+                        <td className="p-3">
+                          <p className="font-medium">{u.full_name || "—"}</p>
+                          <p className="text-xs text-muted-foreground">{u.email || "—"}</p>
+                        </td>
+                        <td className="p-3">{u.company_name || "—"}</td>
+                        <td className="p-3">
+                          <Badge variant={u.plan === "free" ? "outline" : "default"}>{u.plan}</Badge>
+                        </td>
+                        <td className="p-3 text-xs">{u.roles.length ? u.roles.join(", ").replace(/_/g, " ") : "member"}</td>
+                        <td className="p-3 text-right tabular-nums">{u.jobs}</td>
+                        <td className="p-3 text-right tabular-nums">{u.resumes}</td>
+                        <td className="p-3 text-right tabular-nums">{u.aiInterviews}</td>
+                        <td className="p-3 text-xs">{u.location || "—"}</td>
+                        <td className="p-3 text-xs">{fmtDate(u.created_at)}</td>
+                        <td className="p-3 text-xs">{fmtDate(u.last_active_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
 
