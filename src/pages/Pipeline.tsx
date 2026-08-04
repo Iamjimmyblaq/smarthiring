@@ -15,6 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Bot, Download, FileSpreadsheet, FileText, Users, Video } from "lucide-react";
+import { AlertTriangle, Loader2, RefreshCw } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { normalizeParseStatus, parseProgress, retryAllFailed, retryResumeParse } from "@/lib/resume-parsing";
 import { toast } from "sonner";
 import { STAGES, type StageKey } from "@/lib/lifecycle";
 import type { Tables } from "@/integrations/supabase/types";
@@ -53,6 +56,18 @@ export default function Pipeline() {
     else setCandidates((data ?? []) as Candidate[]);
     setLoading(false);
   };
+
+  // Live parsing updates so the pipeline reflects scan progress without a refresh.
+  useEffect(() => {
+    const channel = supabase
+      .channel("pipeline-candidates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "candidates" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const progress = parseProgress(candidates);
 
   const moveStage = async (id: string, stage: StageKey) => {
     const prev = candidates;
