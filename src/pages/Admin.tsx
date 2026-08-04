@@ -347,10 +347,11 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="plans">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="plans">Subscriptions</TabsTrigger>
             <TabsTrigger value="teams">Teams &amp; roles</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="coupons">Coupons</TabsTrigger>
           </TabsList>
 
           <TabsContent value="plans" className="space-y-4 pt-4">
