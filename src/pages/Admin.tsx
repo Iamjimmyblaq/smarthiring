@@ -484,6 +484,8 @@ export default function Admin() {
                 </CardContent>
               </Card>
             ))}
+
+            <RolePermissionsMatrix />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4 pt-4">
