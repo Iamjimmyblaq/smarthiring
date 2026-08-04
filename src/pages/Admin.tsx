@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { useIsAdmin, type AppRole } from "@/hooks/useIsAdmin";
@@ -14,7 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Download, Loader2, Plus, Save, ShieldCheck, Trash2, Users } from "lucide-react";
+import { Ban, Download, Loader2, Plus, Save, ShieldCheck, Trash2, Users } from "lucide-react";
+import RolePermissionsMatrix from "@/components/admin/RolePermissionsMatrix";
+import CouponsTab from "@/components/admin/CouponsTab";
 
 interface Tier {
   id: string;
@@ -45,6 +47,8 @@ interface UserRow {
   location: string | null;
   last_active_at: string | null;
   created_at: string | null;
+  signup_ip: string | null;
+  last_ip: string | null;
   plan: string;
   jobs: number;
   resumes: number;
@@ -68,6 +72,7 @@ export default function Admin() {
   const [candidateRows, setCandidateRows] = useState<any[]>([]);
   const [sessionRows, setSessionRows] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState("");
+  const [blockedIps, setBlockedIps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [teamOpen, setTeamOpen] = useState(false);
@@ -93,13 +98,13 @@ export default function Admin() {
 
   const load = async () => {
     setLoading(true);
-    const [t, tm, mem, prof, roles, plans, jobs, cands, sessions] = await Promise.all([
+    const [t, tm, mem, prof, roles, plans, jobs, cands, sessions, ips] = await Promise.all([
       supabase.from("plan_tiers").select("*").order("sort_order"),
       supabase.from("teams").select("*").order("created_at", { ascending: false }),
       supabase.from("team_members").select("*").order("created_at", { ascending: false }),
       supabase
         .from("profiles")
-        .select("id, email, full_name, company_name, location, last_active_at, created_at")
+        .select("id, email, full_name, company_name, location, last_active_at, created_at, signup_ip, last_ip")
         .order("created_at", { ascending: false })
         .limit(500),
       supabase.from("user_roles").select("*"),
@@ -107,6 +112,7 @@ export default function Admin() {
       supabase.from("jobs").select("user_id"),
       supabase.from("candidates").select("user_id"),
       supabase.from("interview_sessions").select("user_id"),
+      supabase.from("blocked_ips").select("*").order("created_at", { ascending: false }),
     ]);
     setTiers(((t.data ?? []) as any[]).map((x) => ({ ...x, features: x.features ?? [] })) as Tier[]);
     setTeams(tm.data ?? []);
@@ -117,6 +123,7 @@ export default function Admin() {
     setJobRows(jobs.data ?? []);
     setCandidateRows(cands.data ?? []);
     setSessionRows(sessions.data ?? []);
+    setBlockedIps(ips.data ?? []);
     setLoading(false);
   };
 
@@ -229,6 +236,8 @@ export default function Admin() {
       location: p.location ?? null,
       last_active_at: p.last_active_at ?? null,
       created_at: p.created_at ?? null,
+      signup_ip: p.signup_ip ?? null,
+      last_ip: p.last_ip ?? null,
       plan: plans[p.id] ?? "free",
       jobs: jobs[p.id] ?? 0,
       resumes: resumes[p.id] ?? 0,
@@ -241,15 +250,54 @@ export default function Admin() {
     const q = userSearch.trim().toLowerCase();
     if (!q) return users;
     return users.filter((u) =>
-      [u.email, u.full_name, u.company_name, u.location, u.plan].some((v) => (v ?? "").toLowerCase().includes(q)),
+      [u.email, u.full_name, u.company_name, u.location, u.plan, u.signup_ip, u.last_ip].some((v) => (v ?? "").toLowerCase().includes(q)),
     );
   }, [users, userSearch]);
 
+  /** IPs used by more than one account — likely duplicate free-trial signups. */
+  const ipCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    users.forEach((u) => {
+      const ip = u.signup_ip ?? u.last_ip;
+      if (ip) map[ip] = (map[ip] ?? 0) + 1;
+    });
+    return map;
+  }, [users]);
+
+  const blockedSet = useMemo(() => new Set(blockedIps.map((b) => b.ip)), [blockedIps]);
+
+  const blockIp = async (ip: string) => {
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("blocked_ips").insert({
+      ip, reason: "Multiple free-trial accounts", blocked_by: u.user?.id ?? null,
+    });
+    if (error) return toast.error(error.message);
+    toast.success(`${ip} blocked`);
+    load();
+  };
+
+  const unblockIp = async (ip: string) => {
+    const { error } = await supabase.from("blocked_ips").delete().eq("ip", ip);
+    if (error) return toast.error(error.message);
+    load();
+  };
+
+  const deleteUser = async (user: UserRow) => {
+    if (!confirm(`Permanently delete ${user.email ?? "this account"} and all of its data?`)) return;
+    const { data, error } = await supabase.functions.invoke("admin-delete-user", { body: { user_id: user.id } });
+    if (error || (data as { error?: string })?.error) {
+      return toast.error((data as { error?: string })?.error || "Could not delete this account");
+    }
+    toast.success("Account deleted");
+    load();
+  };
+
   const exportUsers = () => {
-    const header = ["Name", "Email", "Company", "Plan", "Roles", "Jobs", "Resumes scanned", "AI interviews", "Location", "Joined", "Last active"];
+    const header = ["Name", "Email", "Company", "Plan", "Roles", "Jobs", "Resumes scanned", "AI interviews", "Location", "Signup IP", "Last IP", "Joined", "Last active"];
     const rows = filteredUsers.map((u) => [
       u.full_name ?? "", u.email ?? "", u.company_name ?? "", u.plan, u.roles.join(" "),
-      u.jobs, u.resumes, u.aiInterviews, u.location ?? "", fmtDate(u.created_at), fmtDate(u.last_active_at),
+      u.jobs, u.resumes, u.aiInterviews, u.location ?? "", u.signup_ip ?? "", u.last_ip ?? "",
+      fmtDate(u.created_at), fmtDate(u.last_active_at),
     ]);
     const csv = [header, ...rows]
       .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
@@ -299,10 +347,11 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="plans">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="plans">Subscriptions</TabsTrigger>
             <TabsTrigger value="teams">Teams &amp; roles</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="coupons">Coupons</TabsTrigger>
           </TabsList>
 
           <TabsContent value="plans" className="space-y-4 pt-4">
@@ -435,6 +484,8 @@ export default function Admin() {
                 </CardContent>
               </Card>
             ))}
+
+            <RolePermissionsMatrix />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4 pt-4">
@@ -485,18 +536,25 @@ export default function Admin() {
                       <th className="p-3 font-medium text-right">Resumes</th>
                       <th className="p-3 font-medium text-right">AI interviews</th>
                       <th className="p-3 font-medium">Location</th>
+                      <th className="p-3 font-medium">IP</th>
                       <th className="p-3 font-medium">Joined</th>
                       <th className="p-3 font-medium">Last active</th>
+                      <th className="p-3 font-medium text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredUsers.length === 0 && (
-                      <tr><td colSpan={10} className="p-6 text-center text-muted-foreground">No users match this search.</td></tr>
+                      <tr><td colSpan={12} className="p-6 text-center text-muted-foreground">No users match this search.</td></tr>
                     )}
-                    {filteredUsers.map((u) => (
+                    {filteredUsers.map((u) => {
+                      const ip = u.signup_ip ?? u.last_ip;
+                      const dupes = ip ? ipCounts[ip] ?? 0 : 0;
+                      return (
                       <tr key={u.id} className="border-t">
                         <td className="p-3">
-                          <p className="font-medium">{u.full_name || "—"}</p>
+                          <Link to={`/admin/users/${u.id}`} className="font-medium hover:underline">
+                            {u.full_name || u.email || "—"}
+                          </Link>
                           <p className="text-xs text-muted-foreground">{u.email || "—"}</p>
                         </td>
                         <td className="p-3">{u.company_name || "—"}</td>
@@ -508,14 +566,70 @@ export default function Admin() {
                         <td className="p-3 text-right tabular-nums">{u.resumes}</td>
                         <td className="p-3 text-right tabular-nums">{u.aiInterviews}</td>
                         <td className="p-3 text-xs">{u.location || "—"}</td>
+                        <td className="p-3 text-xs">
+                          {ip ? (
+                            <div className="space-y-1">
+                              <span className="font-mono">{ip}</span>
+                              {dupes > 1 && (
+                                <Badge variant="destructive" className="ml-1">{dupes} accounts</Badge>
+                              )}
+                              {blockedSet.has(ip) && <Badge variant="outline" className="ml-1">blocked</Badge>}
+                            </div>
+                          ) : "—"}
+                        </td>
                         <td className="p-3 text-xs">{fmtDate(u.created_at)}</td>
                         <td className="p-3 text-xs">{fmtDate(u.last_active_at)}</td>
+                        <td className="p-3">
+                          <div className="flex items-center justify-end gap-1">
+                            {ip && (
+                              <Button
+                                size="icon" variant="ghost" className="h-7 w-7"
+                                title={blockedSet.has(ip) ? "Unblock IP" : "Block IP"}
+                                aria-label={blockedSet.has(ip) ? `Unblock ${ip}` : `Block ${ip}`}
+                                onClick={() => (blockedSet.has(ip) ? unblockIp(ip) : blockIp(ip))}
+                              >
+                                <Ban className={`h-3.5 w-3.5 ${blockedSet.has(ip) ? "text-destructive" : ""}`} />
+                              </Button>
+                            )}
+                            <Button
+                              size="icon" variant="ghost" className="h-7 w-7"
+                              title="Delete account" aria-label={`Delete ${u.email ?? "user"}`}
+                              onClick={() => deleteUser(u)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </div>
+                        </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2"><Ban className="h-4 w-4" /> Blocked IP addresses</CardTitle>
+                <CardDescription>Blocked IPs cannot sign in or start a new free trial.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {blockedIps.length === 0 && <p className="text-sm text-muted-foreground">No blocked IPs.</p>}
+                {blockedIps.map((b) => (
+                  <div key={b.id} className="flex items-center justify-between rounded-lg border p-3 text-sm">
+                    <div>
+                      <p className="font-mono">{b.ip}</p>
+                      <p className="text-xs text-muted-foreground">{b.reason || "—"} · {fmtDate(b.created_at)}</p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => unblockIp(b.ip)}>Unblock</Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="coupons" className="space-y-4 pt-4">
+            <CouponsTab tiers={tiers.map((t) => ({ key: t.key, name: t.name, price_amount: Number(t.price_amount), currency: t.currency }))} />
           </TabsContent>
         </Tabs>
       </main>

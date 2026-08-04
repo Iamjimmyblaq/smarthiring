@@ -47,6 +47,68 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_ips: {
+        Row: {
+          blocked_by: string | null
+          created_at: string
+          id: string
+          ip: string
+          reason: string | null
+        }
+        Insert: {
+          blocked_by?: string | null
+          created_at?: string
+          id?: string
+          ip: string
+          reason?: string | null
+        }
+        Update: {
+          blocked_by?: string | null
+          created_at?: string
+          id?: string
+          ip?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      candidate_name_edits: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          edited_by: string | null
+          id: string
+          new_name: string
+          old_name: string | null
+          reason: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          edited_by?: string | null
+          id?: string
+          new_name: string
+          old_name?: string | null
+          reason?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          edited_by?: string | null
+          id?: string
+          new_name?: string
+          old_name?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_name_edits_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           created_at: string
@@ -62,6 +124,7 @@ export type Database = {
           matched_skills: string[]
           missing_skills: string[]
           name: string | null
+          name_overridden_at: string | null
           overall_score: number | null
           phone: string | null
           processing_status: string
@@ -92,6 +155,7 @@ export type Database = {
           matched_skills?: string[]
           missing_skills?: string[]
           name?: string | null
+          name_overridden_at?: string | null
           overall_score?: number | null
           phone?: string | null
           processing_status?: string
@@ -122,6 +186,7 @@ export type Database = {
           matched_skills?: string[]
           missing_skills?: string[]
           name?: string | null
+          name_overridden_at?: string | null
           overall_score?: number | null
           phone?: string | null
           processing_status?: string
@@ -147,6 +212,98 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      coupon_redemptions: {
+        Row: {
+          amount_discounted: number | null
+          coupon_id: string
+          created_at: string
+          id: string
+          tier_key: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_discounted?: number | null
+          coupon_id: string
+          created_at?: string
+          id?: string
+          tier_key?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_discounted?: number | null
+          coupon_id?: string
+          created_at?: string
+          id?: string
+          tier_key?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          applies_to_tiers: string[]
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          headline: string | null
+          id: string
+          is_active: boolean
+          max_redemptions: number | null
+          redemption_count: number
+          show_on_home: boolean
+          updated_at: string
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          applies_to_tiers?: string[]
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          headline?: string | null
+          id?: string
+          is_active?: boolean
+          max_redemptions?: number | null
+          redemption_count?: number
+          show_on_home?: boolean
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          applies_to_tiers?: string[]
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          headline?: string | null
+          id?: string
+          is_active?: boolean
+          max_redemptions?: number | null
+          redemption_count?: number
+          show_on_home?: boolean
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: []
       }
       email_deliveries: {
         Row: {
@@ -523,7 +680,9 @@ export type Database = {
           hr_email: string | null
           id: string
           last_active_at: string | null
+          last_ip: string | null
           location: string | null
+          signup_ip: string | null
           updated_at: string
         }
         Insert: {
@@ -534,7 +693,9 @@ export type Database = {
           hr_email?: string | null
           id: string
           last_active_at?: string | null
+          last_ip?: string | null
           location?: string | null
+          signup_ip?: string | null
           updated_at?: string
         }
         Update: {
@@ -545,7 +706,36 @@ export type Database = {
           hr_email?: string | null
           id?: string
           last_active_at?: string | null
+          last_ip?: string | null
           location?: string | null
+          signup_ip?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          allowed: boolean
+          created_at: string
+          id: string
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+        }
+        Insert: {
+          allowed?: boolean
+          created_at?: string
+          id?: string
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Update: {
+          allowed?: boolean
+          created_at?: string
+          id?: string
+          permission?: string
+          role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
         }
         Relationships: []
