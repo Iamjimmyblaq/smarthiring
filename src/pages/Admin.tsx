@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { useIsAdmin, type AppRole } from "@/hooks/useIsAdmin";
@@ -14,7 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Download, Loader2, Plus, Save, ShieldCheck, Trash2, Users } from "lucide-react";
+import { Ban, Download, Loader2, Plus, Save, ShieldCheck, Ticket, Trash2, Users } from "lucide-react";
+import RolePermissionsMatrix from "@/components/admin/RolePermissionsMatrix";
+import CouponsTab from "@/components/admin/CouponsTab";
 
 interface Tier {
   id: string;
@@ -45,6 +47,8 @@ interface UserRow {
   location: string | null;
   last_active_at: string | null;
   created_at: string | null;
+  signup_ip: string | null;
+  last_ip: string | null;
   plan: string;
   jobs: number;
   resumes: number;
