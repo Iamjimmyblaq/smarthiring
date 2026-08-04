@@ -129,6 +129,25 @@ export default function Pipeline() {
         </div>
 
         {/* AI interview showcase */}
+        {progress.total > 0 && (progress.inFlight > 0 || progress.failed > 0) && (
+          <section className="mb-6 rounded-2xl border bg-card p-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                {progress.inFlight > 0 ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <AlertTriangle className="h-4 w-4 text-destructive" />}
+                Resume parsing · {progress.done} parsed
+                {progress.inFlight > 0 && ` · ${progress.inFlight} in progress`}
+                {progress.failed > 0 && ` · ${progress.failed} failed`}
+              </div>
+              {progress.failed > 0 && (
+                <Button size="sm" variant="outline" className="gap-2" onClick={() => retryAllFailed(candidates)}>
+                  <RefreshCw className="h-4 w-4" /> Retry all failed
+                </Button>
+              )}
+            </div>
+            <Progress value={progress.percent} className="mt-3 h-2" />
+          </section>
+        )}
+
         <section className="mb-8 grid gap-6 rounded-2xl border bg-gradient-to-br from-accent/10 via-background to-primary/5 p-6 shadow-sm lg:grid-cols-2 lg:items-center">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
@@ -238,6 +257,28 @@ export default function Pipeline() {
                           </div>
                           {c.jobs?.title && (
                             <p className="text-xs text-muted-foreground truncate">{c.jobs.title}</p>
+                          )}
+                          {normalizeParseStatus(c.processing_status) !== "done" && (
+                            <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/40 px-2 py-1">
+                              {normalizeParseStatus(c.processing_status) === "error" ? (
+                                <>
+                                  <span className="text-[11px] text-destructive truncate" title={c.error_message ?? undefined}>
+                                    Parse failed
+                                  </span>
+                                  <Button
+                                    size="icon" variant="ghost" className="h-5 w-5"
+                                    aria-label={`Retry parsing for ${c.name ?? "candidate"}`}
+                                    onClick={() => retryResumeParse(c.id)}
+                                  >
+                                    <RefreshCw className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              ) : (
+                                <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                  <Loader2 className="h-3 w-3 animate-spin" /> Parsing resume…
+                                </span>
+                              )}
+                            </div>
                           )}
                           <Select
                             value={(c.stage as StageKey) ?? "sourced"}
