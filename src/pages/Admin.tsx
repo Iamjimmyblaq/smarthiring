@@ -255,10 +255,11 @@ export default function Admin() {
   }, [users, userSearch]);
 
   const exportUsers = () => {
-    const header = ["Name", "Email", "Company", "Plan", "Roles", "Jobs", "Resumes scanned", "AI interviews", "Location", "Joined", "Last active"];
+    const header = ["Name", "Email", "Company", "Plan", "Roles", "Jobs", "Resumes scanned", "AI interviews", "Location", "Signup IP", "Last IP", "Joined", "Last active"];
     const rows = filteredUsers.map((u) => [
       u.full_name ?? "", u.email ?? "", u.company_name ?? "", u.plan, u.roles.join(" "),
-      u.jobs, u.resumes, u.aiInterviews, u.location ?? "", fmtDate(u.created_at), fmtDate(u.last_active_at),
+      u.jobs, u.resumes, u.aiInterviews, u.location ?? "", u.signup_ip ?? "", u.last_ip ?? "",
+      fmtDate(u.created_at), fmtDate(u.last_active_at),
     ]);
     const csv = [header, ...rows]
       .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
