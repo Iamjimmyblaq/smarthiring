@@ -72,6 +72,7 @@ export default function Admin() {
   const [candidateRows, setCandidateRows] = useState<any[]>([]);
   const [sessionRows, setSessionRows] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState("");
+  const [blockedIps, setBlockedIps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [teamOpen, setTeamOpen] = useState(false);
@@ -97,13 +98,13 @@ export default function Admin() {
 
   const load = async () => {
     setLoading(true);
-    const [t, tm, mem, prof, roles, plans, jobs, cands, sessions] = await Promise.all([
+    const [t, tm, mem, prof, roles, plans, jobs, cands, sessions, ips] = await Promise.all([
       supabase.from("plan_tiers").select("*").order("sort_order"),
       supabase.from("teams").select("*").order("created_at", { ascending: false }),
       supabase.from("team_members").select("*").order("created_at", { ascending: false }),
       supabase
         .from("profiles")
-        .select("id, email, full_name, company_name, location, last_active_at, created_at")
+        .select("id, email, full_name, company_name, location, last_active_at, created_at, signup_ip, last_ip")
         .order("created_at", { ascending: false })
         .limit(500),
       supabase.from("user_roles").select("*"),
@@ -111,6 +112,7 @@ export default function Admin() {
       supabase.from("jobs").select("user_id"),
       supabase.from("candidates").select("user_id"),
       supabase.from("interview_sessions").select("user_id"),
+      supabase.from("blocked_ips").select("*").order("created_at", { ascending: false }),
     ]);
     setTiers(((t.data ?? []) as any[]).map((x) => ({ ...x, features: x.features ?? [] })) as Tier[]);
     setTeams(tm.data ?? []);
@@ -121,6 +123,7 @@ export default function Admin() {
     setJobRows(jobs.data ?? []);
     setCandidateRows(cands.data ?? []);
     setSessionRows(sessions.data ?? []);
+    setBlockedIps(ips.data ?? []);
     setLoading(false);
   };
 
@@ -233,6 +236,8 @@ export default function Admin() {
       location: p.location ?? null,
       last_active_at: p.last_active_at ?? null,
       created_at: p.created_at ?? null,
+      signup_ip: p.signup_ip ?? null,
+      last_ip: p.last_ip ?? null,
       plan: plans[p.id] ?? "free",
       jobs: jobs[p.id] ?? 0,
       resumes: resumes[p.id] ?? 0,
