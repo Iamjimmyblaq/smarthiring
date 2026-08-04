@@ -250,9 +250,47 @@ export default function Admin() {
     const q = userSearch.trim().toLowerCase();
     if (!q) return users;
     return users.filter((u) =>
-      [u.email, u.full_name, u.company_name, u.location, u.plan].some((v) => (v ?? "").toLowerCase().includes(q)),
+      [u.email, u.full_name, u.company_name, u.location, u.plan, u.signup_ip, u.last_ip].some((v) => (v ?? "").toLowerCase().includes(q)),
     );
   }, [users, userSearch]);
+
+  /** IPs used by more than one account — likely duplicate free-trial signups. */
+  const ipCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    users.forEach((u) => {
+      const ip = u.signup_ip ?? u.last_ip;
+      if (ip) map[ip] = (map[ip] ?? 0) + 1;
+    });
+    return map;
+  }, [users]);
+
+  const blockedSet = useMemo(() => new Set(blockedIps.map((b) => b.ip)), [blockedIps]);
+
+  const blockIp = async (ip: string) => {
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("blocked_ips").insert({
+      ip, reason: "Multiple free-trial accounts", blocked_by: u.user?.id ?? null,
+    });
+    if (error) return toast.error(error.message);
+    toast.success(`${ip} blocked`);
+    load();
+  };
+
+  const unblockIp = async (ip: string) => {
+    const { error } = await supabase.from("blocked_ips").delete().eq("ip", ip);
+    if (error) return toast.error(error.message);
+    load();
+  };
+
+  const deleteUser = async (user: UserRow) => {
+    if (!confirm(`Permanently delete ${user.email ?? "this account"} and all of its data?`)) return;
+    const { data, error } = await supabase.functions.invoke("admin-delete-user", { body: { user_id: user.id } });
+    if (error || (data as { error?: string })?.error) {
+      return toast.error((data as { error?: string })?.error || "Could not delete this account");
+    }
+    toast.success("Account deleted");
+    load();
+  };
 
   const exportUsers = () => {
     const header = ["Name", "Email", "Company", "Plan", "Roles", "Jobs", "Resumes scanned", "AI interviews", "Location", "Signup IP", "Last IP", "Joined", "Last active"];
