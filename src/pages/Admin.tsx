@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Ban, Download, Loader2, Plus, Save, ShieldCheck, Ticket, Trash2, Users } from "lucide-react";
+import { Ban, Download, Loader2, Plus, Save, ShieldCheck, Trash2, Users } from "lucide-react";
 import RolePermissionsMatrix from "@/components/admin/RolePermissionsMatrix";
 import CouponsTab from "@/components/admin/CouponsTab";
 
