@@ -369,6 +369,7 @@ export type Database = {
           expires_at: string
           id: string
           job_id: string
+          proctoring: Json | null
           recommendation: string | null
           scores: Json | null
           sentiment: string | null
@@ -389,6 +390,7 @@ export type Database = {
           expires_at?: string
           id?: string
           job_id: string
+          proctoring?: Json | null
           recommendation?: string | null
           scores?: Json | null
           sentiment?: string | null
@@ -409,6 +411,7 @@ export type Database = {
           expires_at?: string
           id?: string
           job_id?: string
+          proctoring?: Json | null
           recommendation?: string | null
           scores?: Json | null
           sentiment?: string | null
