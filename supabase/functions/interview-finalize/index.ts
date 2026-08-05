@@ -20,14 +20,49 @@ function json(body: unknown, status = 200) {
 
 interface TranscriptTurn { role: "user" | "agent"; text: string; ts?: number }
 
+interface Proctoring {
+  durationSeconds?: number;
+  cameraEnabled?: boolean;
+  screenShared?: boolean;
+  screenShareStops?: number;
+  tabSwitches?: number;
+  windowBlurSeconds?: number;
+  motionSamples?: number;
+  averageMotion?: number;
+  peakMotion?: number;
+  highMotionEvents?: number;
+  awayFromFrameEvents?: number;
+  awayFromFrameSeconds?: number;
+  multipleFacesSuspected?: number;
+  events?: { at: string; type: string; detail?: string }[];
+}
+
+function composureLabel(p: Proctoring | null) {
+  if (!p) return { label: "Not captured", score: null as number | null };
+  let score = 100;
+  score -= Math.min(30, (p.tabSwitches ?? 0) * 6);
+  score -= Math.min(25, (p.awayFromFrameEvents ?? 0) * 5);
+  score -= Math.min(20, (p.highMotionEvents ?? 0) * 2);
+  score -= (p.screenShared === false ? 10 : 0);
+  score -= Math.min(15, (p.screenShareStops ?? 0) * 5);
+  score = Math.max(0, Math.round(score));
+  const label = score >= 85 ? "Excellent — calm and consistently present"
+    : score >= 70 ? "Good — minor distractions detected"
+    : score >= 50 ? "Fair — several attention lapses"
+    : "Poor — significant proctoring flags";
+  return { label, score };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const { token, transcript, conversationId } = await req.json() as {
-      token: string; transcript: TranscriptTurn[]; conversationId?: string;
+    const { token, transcript, conversationId, proctoring } = await req.json() as {
+      token: string; transcript: TranscriptTurn[]; conversationId?: string; proctoring?: Proctoring;
     };
     if (!token) return json({ error: "token required" }, 400);
     const turns = Array.isArray(transcript) ? transcript : [];
+    const proctor: Proctoring | null = proctoring && typeof proctoring === "object" ? proctoring : null;
+    const composure = composureLabel(proctor);
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
     const { data: session, error } = await admin
@@ -140,7 +175,7 @@ ${transcriptText}`;
       status: "completed",
       ended_at: new Date().toISOString(),
       transcript: turns,
-      scores,
+      scores: scores ? { ...scores, composure: composure.score } : (composure.score !== null ? { composure: composure.score } : null),
       summary,
       recommendation,
       sentiment,
