@@ -369,6 +369,7 @@ export type Database = {
           expires_at: string
           id: string
           job_id: string
+          proctoring: Json | null
           recommendation: string | null
           scores: Json | null
           sentiment: string | null
@@ -389,6 +390,7 @@ export type Database = {
           expires_at?: string
           id?: string
           job_id: string
+          proctoring?: Json | null
           recommendation?: string | null
           scores?: Json | null
           sentiment?: string | null
@@ -409,6 +411,7 @@ export type Database = {
           expires_at?: string
           id?: string
           job_id?: string
+          proctoring?: Json | null
           recommendation?: string | null
           scores?: Json | null
           sentiment?: string | null
@@ -614,6 +617,42 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      payment_settings: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          live_mode: boolean
+          provider: string
+          public_key: string | null
+          secret_key: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          id?: string
+          live_mode?: boolean
+          provider: string
+          public_key?: string | null
+          secret_key?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          live_mode?: boolean
+          provider?: string
+          public_key?: string | null
+          secret_key?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }

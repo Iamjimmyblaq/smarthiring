@@ -4,7 +4,8 @@ import { Helmet } from "react-helmet-async";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Check, Sparkles, TicketPercent, Loader2 } from "lucide-react";
 import { usePlan, FREE_JOB_LIMIT, FREE_RESUME_LIMIT } from "@/hooks/usePlan";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -26,11 +27,27 @@ interface Tier {
 
 const fmtLimit = (v: number | null, label: string) => (v === null ? `Unlimited ${label}` : `${v.toLocaleString()} ${label}`);
 
+interface CouponResult {
+  valid: boolean;
+  code?: string;
+  discount?: number;
+  total?: number;
+  reason?: string;
+}
+
+const money = (currency: string, amount: number) =>
+  `${currency === "USD" ? "$" : `${currency} `}${Number(amount).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+
 const Pricing = () => {
   const navigate = useNavigate();
   const planState = usePlan();
   const [loading, setLoading] = useState(false);
   const [tiers, setTiers] = useState<Tier[]>([]);
+  const [couponInput, setCouponInput] = useState("");
+  const [checking, setChecking] = useState(false);
+  /** Validated discount per tier key, so every tier shows its own correct total. */
+  const [couponByTier, setCouponByTier] = useState<Record<string, CouponResult>>({});
+  const [appliedCode, setAppliedCode] = useState("");
 
   useEffect(() => {
     document.title = "Pricing — SmartHire";
@@ -42,13 +59,62 @@ const Pricing = () => {
       .then(({ data }) => setTiers(((data ?? []) as any[]).map((t) => ({ ...t, features: t.features ?? [] })) as Tier[]));
   }, []);
 
-  const handleUpgrade = async () => {
+  const applyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    const paid = tiers.filter((t) => Number(t.price_amount) > 0);
+    if (paid.length === 0) return;
+    setChecking(true);
+    try {
+      const results = await Promise.all(
+        paid.map(async (t) => {
+          const { data, error } = await supabase.functions.invoke("coupon-validate", {
+            body: { code, tier_key: t.key },
+          });
+          if (error) throw error;
+          return [t.key, data as CouponResult] as const;
+        }),
+      );
+      const map = Object.fromEntries(results) as Record<string, CouponResult>;
+      setCouponByTier(map);
+      const anyValid = results.some(([, r]) => r?.valid);
+      if (anyValid) {
+        setAppliedCode(code);
+        const applicable = results.filter(([, r]) => r?.valid).map(([k]) => paid.find((t) => t.key === k)?.name).filter(Boolean);
+        toast.success(`Coupon ${code} applied to ${applicable.join(", ")}`);
+      } else {
+        setAppliedCode("");
+        toast.error(results[0]?.[1]?.reason || "This coupon isn't valid for any plan.");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Could not check that coupon");
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const clearCoupon = () => {
+    setCouponInput("");
+    setAppliedCode("");
+    setCouponByTier({});
+  };
+
+  const handleUpgrade = async (tierKey = "pro") => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("paystack-initialize", {
-        body: { callback_url: `${window.location.origin}/payment/verify` },
+        body: {
+          callback_url: `${window.location.origin}/payment/verify`,
+          tier_key: tierKey,
+          coupon_code: couponByTier[tierKey]?.valid ? appliedCode : undefined,
+        },
       });
       if (error) throw error;
+      if (data?.free) {
+        toast.success("Coupon covered the full price — your plan is active.");
+        navigate("/jobs");
+        return;
+      }
       if (!data?.authorization_url) throw new Error("No checkout URL returned");
       window.location.href = data.authorization_url;
     } catch (e: any) {
@@ -88,11 +154,40 @@ const Pricing = () => {
         </div>
 
         <h2 className="sr-only">Plans</h2>
+        {tiers.some((t) => Number(t.price_amount) > 0) && (
+          <div className="max-w-md mx-auto mb-8">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <TicketPercent className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  placeholder="Have a coupon code?"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => e.key === "Enter" && applyCoupon()}
+                  aria-label="Coupon code"
+                />
+              </div>
+              <Button onClick={applyCoupon} disabled={checking || !couponInput.trim()}>
+                {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+              </Button>
+              {appliedCode && <Button variant="ghost" onClick={clearCoupon}>Clear</Button>}
+            </div>
+            {appliedCode && (
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                <strong>{appliedCode}</strong> applied — discounted totals are shown on eligible plans below.
+              </p>
+            )}
+          </div>
+        )}
         {tiers.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {tiers.map((tier) => {
               const isCurrent = planState.plan === tier.key;
               const isFree = Number(tier.price_amount) === 0;
+              const applied = couponByTier[tier.key];
+              const hasDiscount = Boolean(applied?.valid && (applied.discount ?? 0) > 0);
+              const total = hasDiscount ? Number(applied!.total) : Number(tier.price_amount);
               return (
                 <Card key={tier.id} className={isCurrent ? "border-primary" : ""}>
                   <CardHeader>
@@ -101,10 +196,22 @@ const Pricing = () => {
                       {isCurrent && <span className="text-xs rounded-full bg-secondary px-2 py-0.5">Current</span>}
                     </div>
                     <p className="text-3xl font-semibold mt-2">
-                      {tier.currency === "USD" ? "$" : `${tier.currency} `}
-                      {Number(tier.price_amount).toLocaleString()}
+                      {hasDiscount && (
+                        <span className="text-base font-normal text-muted-foreground line-through mr-2">
+                          {money(tier.currency, Number(tier.price_amount))}
+                        </span>
+                      )}
+                      {money(tier.currency, total)}
                       <span className="text-base font-normal text-muted-foreground">/{tier.billing_period}</span>
                     </p>
+                    {hasDiscount && (
+                      <p className="text-xs font-medium text-accent">
+                        {appliedCode}: you save {money(tier.currency, Number(applied!.discount))}
+                      </p>
+                    )}
+                    {appliedCode && !isFree && !applied?.valid && (
+                      <p className="text-xs text-muted-foreground">Coupon not valid for this plan</p>
+                    )}
                     <p className="text-sm text-muted-foreground">{tier.description}</p>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -116,7 +223,7 @@ const Pricing = () => {
                       className="w-full mt-4 gap-2"
                       variant={isFree ? "outline" : "default"}
                       disabled={isCurrent || loading}
-                      onClick={() => (isFree ? navigate("/jobs") : handleUpgrade())}
+                      onClick={() => (isFree ? navigate("/jobs") : handleUpgrade(tier.key))}
                     >
                       {isCurrent ? "Current plan" : isFree ? "Get started" : loading ? "Redirecting…" : <>Choose {tier.name} <Sparkles className="h-4 w-4" /></>}
                     </Button>
@@ -160,7 +267,7 @@ const Pricing = () => {
               <Feature>Bias reduction mode</Feature>
               <Feature>Bulk actions & exports</Feature>
               <Feature>Priority support</Feature>
-              <Button className="w-full mt-4 gap-2" onClick={handleUpgrade} disabled={planState.plan === "pro" || loading}>
+              <Button className="w-full mt-4 gap-2" onClick={() => handleUpgrade("pro")} disabled={planState.plan === "pro" || loading}>
                 {planState.plan === "pro" ? "Current plan" : loading ? "Redirecting…" : <>Upgrade to Pro <Sparkles className="h-4 w-4" /></>}
               </Button>
             </CardContent>

@@ -23,6 +23,40 @@ type SessionInfo = {
 
 type Turn = { role: "user" | "agent"; text: string; ts: number };
 
+type ProctorEvent = { at: string; type: string; detail?: string };
+
+interface ProctorState {
+  startedAt: number;
+  motionSamples: number;
+  motionTotal: number;
+  peakMotion: number;
+  highMotionEvents: number;
+  awayFromFrameEvents: number;
+  awayFromFrameSeconds: number;
+  awaySince: number | null;
+  tabSwitches: number;
+  windowBlurSeconds: number;
+  blurSince: number | null;
+  screenShareStops: number;
+  events: ProctorEvent[];
+}
+
+const newProctorState = (): ProctorState => ({
+  startedAt: Date.now(),
+  motionSamples: 0,
+  motionTotal: 0,
+  peakMotion: 0,
+  highMotionEvents: 0,
+  awayFromFrameEvents: 0,
+  awayFromFrameSeconds: 0,
+  awaySince: null,
+  tabSwitches: 0,
+  windowBlurSeconds: 0,
+  blurSince: null,
+  screenShareStops: 0,
+  events: [],
+});
+
 async function getFunctionErrorMessage(error: unknown, fallback: string) {
   if (error instanceof FunctionsHttpError) {
     const details = await error.context.json().catch(() => null) as { error?: string } | null;
@@ -58,6 +92,105 @@ function InterviewRoomContent() {
   const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
   const [avReady, setAvReady] = useState(false);
   const [screenShareOn, setScreenShareOn] = useState(false);
+  const proctorRef = useRef<ProctorState | null>(null);
+  const motionTimerRef = useRef<number | null>(null);
+  const lastFrameRef = useRef<Uint8ClampedArray | null>(null);
+  const analysisCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const logEvent = (type: string, detail?: string) => {
+    const p = proctorRef.current;
+    if (!p) return;
+    if (p.events.length < 100) p.events.push({ at: new Date().toISOString(), type, detail });
+  };
+
+  /** Samples the webcam every second and measures frame-to-frame movement. */
+  const startProctoring = () => {
+    proctorRef.current = newProctorState();
+    const canvas = analysisCanvasRef.current ?? document.createElement("canvas");
+    analysisCanvasRef.current = canvas;
+    canvas.width = 64;
+    canvas.height = 48;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+    motionTimerRef.current = window.setInterval(() => {
+      const p = proctorRef.current;
+      const video = cameraVideoRef.current;
+      if (!p || !ctx || !video || video.readyState < 2) return;
+      try {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const frame = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let brightness = 0;
+        for (let i = 0; i < frame.length; i += 4) brightness += (frame[i] + frame[i + 1] + frame[i + 2]) / 3;
+        brightness /= frame.length / 4;
+
+        const prev = lastFrameRef.current;
+        if (prev) {
+          let diff = 0;
+          for (let i = 0; i < frame.length; i += 4) diff += Math.abs(frame[i] - prev[i]);
+          const motion = diff / (frame.length / 4);
+          p.motionSamples += 1;
+          p.motionTotal += motion;
+          if (motion > p.peakMotion) p.peakMotion = motion;
+          if (motion > 28) {
+            p.highMotionEvents += 1;
+            logEvent("high_movement", `motion score ${Math.round(motion)}`);
+          }
+        }
+        lastFrameRef.current = frame.slice(0) as unknown as Uint8ClampedArray;
+
+        const away = brightness < 18;
+        if (away && p.awaySince === null) {
+          p.awaySince = Date.now();
+          p.awayFromFrameEvents += 1;
+          logEvent("left_frame", "camera view dark or obstructed");
+        } else if (!away && p.awaySince !== null) {
+          p.awayFromFrameSeconds += (Date.now() - p.awaySince) / 1000;
+          p.awaySince = null;
+        }
+      } catch { /* frame not readable yet */ }
+    }, 1000);
+  };
+
+  const stopProctoring = (): Record<string, unknown> | null => {
+    if (motionTimerRef.current) { clearInterval(motionTimerRef.current); motionTimerRef.current = null; }
+    const p = proctorRef.current;
+    if (!p) return null;
+    if (p.awaySince !== null) { p.awayFromFrameSeconds += (Date.now() - p.awaySince) / 1000; p.awaySince = null; }
+    if (p.blurSince !== null) { p.windowBlurSeconds += (Date.now() - p.blurSince) / 1000; p.blurSince = null; }
+    return {
+      durationSeconds: (Date.now() - p.startedAt) / 1000,
+      cameraEnabled: Boolean(cameraStreamRef.current),
+      screenShared: screenShareOn || p.screenShareStops > 0,
+      screenShareStops: p.screenShareStops,
+      tabSwitches: p.tabSwitches,
+      windowBlurSeconds: p.windowBlurSeconds,
+      motionSamples: p.motionSamples,
+      averageMotion: p.motionSamples ? p.motionTotal / p.motionSamples : 0,
+      peakMotion: p.peakMotion,
+      highMotionEvents: p.highMotionEvents,
+      awayFromFrameEvents: p.awayFromFrameEvents,
+      awayFromFrameSeconds: p.awayFromFrameSeconds,
+      events: p.events,
+    };
+  };
+
+  // Attention tracking: tab/window switches while the interview is live.
+  useEffect(() => {
+    const onVisibility = () => {
+      const p = proctorRef.current;
+      if (!p) return;
+      if (document.hidden) {
+        p.tabSwitches += 1;
+        p.blurSince = Date.now();
+        logEvent("tab_switch", "candidate left the interview tab");
+      } else if (p.blurSince !== null) {
+        p.windowBlurSeconds += (Date.now() - p.blurSince) / 1000;
+        p.blurSince = null;
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   const conversation = useConversation({
     onMessage: (msg: unknown) => {
@@ -115,11 +248,18 @@ function InterviewRoomContent() {
         const display = await (navigator.mediaDevices as any).getDisplayMedia({ video: true, audio: false });
         screenStreamRef.current = display;
         setScreenShareOn(true);
-        display.getVideoTracks()[0]?.addEventListener("ended", () => setScreenShareOn(false));
+        display.getVideoTracks()[0]?.addEventListener("ended", () => {
+          setScreenShareOn(false);
+          if (proctorRef.current) {
+            proctorRef.current.screenShareStops += 1;
+            logEvent("screen_share_stopped", "candidate stopped sharing their screen");
+          }
+        });
       } catch (e) {
         console.warn("Screen share declined:", e);
       }
       setAvReady(true);
+      startProctoring();
 
       const { data, error } = await supabase.functions.invoke("elevenlabs-token", { body: { token } });
       if (error) throw new Error(await getFunctionErrorMessage(error, "Could not start the AI interview."));
@@ -190,11 +330,12 @@ function InterviewRoomContent() {
 
   const stop = async () => {
     setFinalizing(true);
+    const proctoring = stopProctoring();
     try {
       await conversation.endSession();
       const conversationId = conversation.getId?.();
       const { error } = await supabase.functions.invoke("interview-finalize", {
-        body: { token, transcript: transcriptRef.current, conversationId },
+        body: { token, transcript: transcriptRef.current, conversationId, proctoring },
       });
       if (error) throw error;
       setDone(true);
@@ -203,16 +344,31 @@ function InterviewRoomContent() {
       setError(e instanceof Error ? e.message : "Could not finalize interview");
     } finally {
       setFinalizing(false);
+      // Hard stop every capture device: camera, mic and screen share.
       cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
       screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+      if (cameraVideoRef.current) cameraVideoRef.current.srcObject = null;
       cameraStreamRef.current = null; screenStreamRef.current = null; setAvReady(false); setScreenShareOn(false);
+      setTextMode(false);
     }
   };
 
   useEffect(() => () => {
     cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
     screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+    if (motionTimerRef.current) clearInterval(motionTimerRef.current);
   }, []);
+
+  // Once finalized, the link is dead — close the interview window automatically.
+  useEffect(() => {
+    if (!done) return;
+    const t = window.setTimeout(() => {
+      window.close();
+      // If the browser blocks window.close() (tab wasn't script-opened), the
+      // confirmation screen stays up with a manual close prompt.
+    }, 6000);
+    return () => clearTimeout(t);
+  }, [done]);
 
   const status = conversation.status;
   const isConnected = status === "connected" || textMode;
@@ -242,9 +398,14 @@ function InterviewRoomContent() {
               <CheckCircle2 className="h-12 w-12 mx-auto text-accent" />
               <h1 className="text-2xl font-semibold">Thank you, {info?.candidate_name}!</h1>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Your interview has been recorded and sent to the recruiter at {info?.company_name || "the company"}.
-                You'll hear back by email about next steps.
+                Your camera, microphone and screen sharing have been switched off. Your interview
+                report has been sent to the recruiter at {info?.company_name || "the company"} and
+                you'll hear back by email about next steps.
               </p>
+              <p className="text-xs text-muted-foreground">
+                This interview link is now closed and can no longer be used. This window will close automatically.
+              </p>
+              <Button variant="outline" size="sm" onClick={() => window.close()}>Close window</Button>
             </CardContent>
           </Card>
         ) : info ? (

@@ -10,6 +10,7 @@ import {
   Bot, Video, Mic, MonitorPlay, Eye,
 } from "lucide-react";
 import aiRoom from "@/assets/ai-interview-room.jpg";
+import HomeCouponBanner from "@/components/HomeCouponBanner";
 
 const Index = () => {
   useEffect(() => {
@@ -38,8 +39,12 @@ const Index = () => {
       </Helmet>
       <MarketingNav />
 
+      <div className="pt-24">
+        <HomeCouponBanner />
+      </div>
+
       {/* HERO */}
-      <section className="relative pt-32 pb-24 overflow-hidden">
+      <section className="relative pt-8 pb-24 overflow-hidden">
         <div className="absolute top-0 right-0 -translate-y-1/3 translate-x-1/4 size-[800px] rounded-full bg-brand/15 blur-[140px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/4 size-[600px] rounded-full bg-brand-2/15 blur-[120px] pointer-events-none" />
 
