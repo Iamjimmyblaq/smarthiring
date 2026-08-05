@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 import Logo from "@/components/Logo";
+import BackButton from "@/components/BackButton";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 export default function AppHeader() {
@@ -47,9 +48,12 @@ export default function AppHeader() {
   return (
     <header className="border-b bg-card/60 backdrop-blur sticky top-0 z-10">
       <div className="container mx-auto flex items-center justify-between py-4 gap-6">
-        <Link to="/jobs" className="shrink-0">
-          <Logo size={28} wordmarkClassName="text-foreground" />
-        </Link>
+        <div className="flex items-center gap-2 shrink-0">
+          <BackButton fallback="/" />
+          <Link to="/jobs">
+            <Logo size={28} wordmarkClassName="text-foreground" />
+          </Link>
+        </div>
         <nav className="hidden md:flex items-center gap-1 text-sm flex-1">
           {navItems.map((i) => (
             <NavLink
@@ -65,9 +69,14 @@ export default function AppHeader() {
             </NavLink>
           ))}
         </nav>
-        <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
-          <LogOut className="h-4 w-4" /> Sign out
-        </Button>
+        <div className="flex items-center gap-1 shrink-0">
+          <Button variant="ghost" size="sm" asChild className="gap-2">
+            <Link to="/"><HomeIcon className="h-4 w-4" /><span className="hidden sm:inline">Home</span></Link>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
+            <LogOut className="h-4 w-4" /><span className="hidden sm:inline">Sign out</span>
+          </Button>
+        </div>
       </div>
     </header>
   );
