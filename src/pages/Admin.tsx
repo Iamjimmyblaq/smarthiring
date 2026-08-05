@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { Ban, Download, Loader2, Plus, Save, ShieldCheck, Trash2, Users } from "lucide-react";
 import RolePermissionsMatrix from "@/components/admin/RolePermissionsMatrix";
 import CouponsTab from "@/components/admin/CouponsTab";
+import PaymentSettingsTab from "@/components/admin/PaymentSettingsTab";
 
 interface Tier {
   id: string;
@@ -352,6 +353,7 @@ export default function Admin() {
             <TabsTrigger value="teams">Teams &amp; roles</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="coupons">Coupons</TabsTrigger>
+            <TabsTrigger value="payments">Payments</TabsTrigger>
           </TabsList>
 
           <TabsContent value="plans" className="space-y-4 pt-4">
