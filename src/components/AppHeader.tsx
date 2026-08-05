@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut } from "lucide-react";
+import { Home as HomeIcon, LogOut } from "lucide-react";
 import Logo from "@/components/Logo";
 import BackButton from "@/components/BackButton";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
