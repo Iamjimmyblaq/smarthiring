@@ -78,7 +78,6 @@ Deno.serve(async (req) => {
         await admin.from("coupon_redemptions").insert({
           coupon_id: couponId, user_id: user.id, tier_key: tierKey, amount_discounted: discount,
         });
-        await admin.rpc.bind?.(null);
         const { data: c } = await admin.from("coupons").select("redemption_count").eq("id", couponId).maybeSingle();
         await admin.from("coupons").update({ redemption_count: (c?.redemption_count ?? 0) + 1 }).eq("id", couponId);
       }
