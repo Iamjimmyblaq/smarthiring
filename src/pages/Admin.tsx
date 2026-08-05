@@ -633,6 +633,10 @@ export default function Admin() {
           <TabsContent value="coupons" className="space-y-4 pt-4">
             <CouponsTab tiers={tiers.map((t) => ({ key: t.key, name: t.name, price_amount: Number(t.price_amount), currency: t.currency }))} />
           </TabsContent>
+
+          <TabsContent value="payments" className="space-y-4 pt-4">
+            <PaymentSettingsTab />
+          </TabsContent>
         </Tabs>
       </main>
 
