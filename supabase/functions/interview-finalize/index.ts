@@ -180,6 +180,7 @@ ${transcriptText}`;
       recommendation,
       sentiment,
       conversation_id: conversationId ?? null,
+      proctoring: proctor,
     }).eq("id", session.id);
 
     // Append AI-generated insights to candidate strengths/gaps for recruiter visibility
@@ -218,8 +219,25 @@ ${transcriptText}`;
         const subj = `AI interview report: ${candidate?.name || "Candidate"} — ${jobTitle}`;
         const strengthsHtml = strengths.length ? `<ul>${strengths.map((s) => `<li>${s}</li>`).join("")}</ul>` : "<p><em>None captured</em></p>";
         const gapsHtml = gaps.length ? `<ul>${gaps.map((g) => `<li>${g}</li>`).join("")}</ul>` : "<p><em>None captured</em></p>";
-        const text = `AI interview complete for ${candidate?.name || "candidate"} (${candidate?.email || "no email"}) — ${jobTitle}.\n\n${scoreLine}\n\nSummary: ${summary || "n/a"}\n\nStrengths: ${strengths.join("; ") || "n/a"}\nGaps: ${gaps.join("; ") || "n/a"}\n\nView the full transcript in SmartHire → Interviews → AI Sessions.`;
-        const html = `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;padding:24px;color:#222"><h2 style="margin:0 0 8px">AI interview report</h2><p style="color:#666;margin:0 0 20px">${candidate?.name || "Candidate"} · ${jobTitle}</p>${overall !== null ? `<div style="padding:12px 16px;background:#f4f6fb;border-radius:8px;margin-bottom:16px"><strong>Overall:</strong> ${overall}/100 &nbsp;·&nbsp; <strong>Recommendation:</strong> ${recLabel}${scores ? ` &nbsp;·&nbsp; Comm ${scores.communication} · Tech ${scores.technical} · Confidence ${scores.confidence}` : ""}</div>` : ""}<h3>Summary</h3><p>${summary || "<em>No summary generated</em>"}</p><h3>Strengths</h3>${strengthsHtml}<h3>Gaps</h3>${gapsHtml}<p style="color:#777;font-size:13px;margin-top:28px">Open the full transcript in SmartHire → Interviews → AI Sessions.</p></div>`;
+        const mins = proctor?.durationSeconds ? Math.max(1, Math.round(proctor.durationSeconds / 60)) : null;
+        const proctorRows: [string, string][] = proctor ? [
+          ["Composure", `${composure.label}${composure.score !== null ? ` (${composure.score}/100)` : ""}`],
+          ["Interview length", mins ? `${mins} min` : "n/a"],
+          ["Camera", proctor.cameraEnabled ? "On for the full session" : "Not enabled"],
+          ["Screen sharing", proctor.screenShared ? `Active${proctor.screenShareStops ? ` · stopped ${proctor.screenShareStops}x` : ""}` : "Not shared"],
+          ["Camera movement", `avg ${Math.round(proctor.averageMotion ?? 0)} · peak ${Math.round(proctor.peakMotion ?? 0)} · ${proctor.highMotionEvents ?? 0} high-movement events`],
+          ["Left camera frame", `${proctor.awayFromFrameEvents ?? 0} time(s)${proctor.awayFromFrameSeconds ? ` · ~${Math.round(proctor.awayFromFrameSeconds)}s total` : ""}`],
+          ["Tab / window switches", `${proctor.tabSwitches ?? 0}${proctor.windowBlurSeconds ? ` · ~${Math.round(proctor.windowBlurSeconds)}s off-screen` : ""}`],
+        ] : [];
+        const proctorHtml = proctor
+          ? `<h3>Proctoring report</h3><table style="width:100%;border-collapse:collapse;font-size:14px">${proctorRows.map(([k, v]) => `<tr><td style="padding:6px 0;color:#666;width:46%">${k}</td><td style="padding:6px 0"><strong>${v}</strong></td></tr>`).join("")}</table>${(proctor.events ?? []).length ? `<h4 style="margin:16px 0 6px">Flagged moments</h4><ul>${(proctor.events ?? []).slice(0, 25).map((ev) => `<li>${new Date(ev.at).toLocaleTimeString()} — ${ev.type}${ev.detail ? `: ${ev.detail}` : ""}</li>`).join("")}</ul>` : ""}`
+          : "<h3>Proctoring report</h3><p><em>No proctoring data captured for this session.</em></p>";
+        const transcriptHtml = turns.length
+          ? `<h3>Candidate responses</h3>${turns.map((t) => `<p style="margin:6px 0"><strong>${t.role === "agent" ? "Interviewer" : candidate?.name || "Candidate"}:</strong> ${String(t.text).replace(/</g, "&lt;")}</p>`).join("")}`
+          : "";
+        const proctorText = proctorRows.map(([k, v]) => `${k}: ${v}`).join("\n");
+        const text = `AI interview complete for ${candidate?.name || "candidate"} (${candidate?.email || "no email"}) — ${jobTitle}.\n\n${scoreLine}\n\nSummary: ${summary || "n/a"}\n\nStrengths: ${strengths.join("; ") || "n/a"}\nGaps: ${gaps.join("; ") || "n/a"}\n\nPROCTORING REPORT\n${proctorText || "No proctoring data captured."}\n\nRESPONSES\n${transcriptText || "n/a"}`;
+        const html = `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;padding:24px;color:#222"><h2 style="margin:0 0 8px">AI interview report</h2><p style="color:#666;margin:0 0 20px">${candidate?.name || "Candidate"} · ${jobTitle}</p>${overall !== null ? `<div style="padding:12px 16px;background:#f4f6fb;border-radius:8px;margin-bottom:16px"><strong>Overall:</strong> ${overall}/100 &nbsp;·&nbsp; <strong>Recommendation:</strong> ${recLabel}${scores ? ` &nbsp;·&nbsp; Comm ${scores.communication} · Tech ${scores.technical} · Confidence ${scores.confidence}` : ""}${composure.score !== null ? ` &nbsp;·&nbsp; Composure ${composure.score}` : ""}</div>` : ""}<h3>Summary</h3><p>${summary || "<em>No summary generated</em>"}</p><h3>Strengths</h3>${strengthsHtml}<h3>Gaps</h3>${gapsHtml}${proctorHtml}${transcriptHtml}<p style="color:#777;font-size:13px;margin-top:28px">Open the full transcript in SmartHire → Interviews → AI Sessions.</p></div>`;
         await sendGmail({ to: recruiterEmail, subject: subj, html, text, replyTo: candidate?.email || undefined });
       }
     } catch (e) {
