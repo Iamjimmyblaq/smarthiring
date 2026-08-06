@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { Ban, Download, Loader2, Plus, Save, ShieldCheck, Trash2, Users } from "lucide-react";
 import RolePermissionsMatrix from "@/components/admin/RolePermissionsMatrix";
 import CouponsTab from "@/components/admin/CouponsTab";
+import CouponAuditLog from "@/components/admin/CouponAuditLog";
 import PaymentSettingsTab from "@/components/admin/PaymentSettingsTab";
 
 interface Tier {
