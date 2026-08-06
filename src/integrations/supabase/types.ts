@@ -216,25 +216,43 @@ export type Database = {
       coupon_redemptions: {
         Row: {
           amount_discounted: number | null
+          code: string | null
+          confirmed_via: string
           coupon_id: string
           created_at: string
+          currency: string
+          final_amount: number | null
           id: string
+          original_amount: number | null
+          payment_reference: string | null
           tier_key: string | null
           user_id: string
         }
         Insert: {
           amount_discounted?: number | null
+          code?: string | null
+          confirmed_via?: string
           coupon_id: string
           created_at?: string
+          currency?: string
+          final_amount?: number | null
           id?: string
+          original_amount?: number | null
+          payment_reference?: string | null
           tier_key?: string | null
           user_id: string
         }
         Update: {
           amount_discounted?: number | null
+          code?: string | null
+          confirmed_via?: string
           coupon_id?: string
           created_at?: string
+          currency?: string
+          final_amount?: number | null
           id?: string
+          original_amount?: number | null
+          payment_reference?: string | null
           tier_key?: string | null
           user_id?: string
         }
