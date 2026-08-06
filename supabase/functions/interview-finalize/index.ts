@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { baseLayout, sendGmail } from "../_shared/gmail.ts";
+import { baseLayout, sendQueuedEmail } from "../_shared/gmail.ts";
 import { emitWebhook } from "../_shared/webhooks.ts";
 
 const corsHeaders = {
