@@ -419,6 +419,20 @@ function InterviewRoomContent() {
             <p className="font-medium">{error}</p>
             <p className="text-sm text-muted-foreground">Please contact the recruiter for a fresh link.</p>
           </CardContent></Card>
+        ) : finalizeFailed ? (
+          <Card className="border-destructive/40">
+            <CardContent className="py-12 text-center space-y-4">
+              <AlertCircle className="h-10 w-10 mx-auto text-destructive" />
+              <h1 className="text-xl font-semibold">Submission failed</h1>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">{error}</p>
+              <p className="text-xs text-muted-foreground">
+                Your camera, microphone and screen sharing are already off. Retrying only re-sends the report.
+              </p>
+              <Button onClick={() => finalize()} disabled={finalizing} className="gap-2">
+                {finalizing ? <><Loader2 className="h-4 w-4 animate-spin" /> Retrying…</> : <>Retry submission</>}
+              </Button>
+            </CardContent>
+          </Card>
         ) : done ? (
           <Card className="border-accent/40 bg-accent/5">
             <CardContent className="py-14 text-center space-y-3">
@@ -432,6 +446,9 @@ function InterviewRoomContent() {
               <p className="text-xs text-muted-foreground">
                 This interview link is now closed and can no longer be used. This window will close automatically.
               </p>
+              {reportWarning && (
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">{reportWarning}</p>
+              )}
               <Button variant="outline" size="sm" onClick={() => window.close()}>Close window</Button>
             </CardContent>
           </Card>
