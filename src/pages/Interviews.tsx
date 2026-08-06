@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Calendar, Trash2, Mail, Star, Sparkles, Copy, FileText, Loader2 } from "lucide-react";
+import { Plus, Calendar, Trash2, Mail, Star, Sparkles, Copy, FileText, Loader2, Download } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { generateDecisionEmail, openInMailClient } from "@/lib/recruitment-emails";
+import { downloadProctoringPdf, proctoringRows, type ProctoringData } from "@/lib/proctoring-report";
 
 type Interview = Tables<"interviews">;
 type AiSession = Tables<"interview_sessions">;
@@ -191,6 +192,21 @@ export default function Interviews() {
     const { error } = await supabase.from("interview_sessions").delete().eq("id", id);
     if (error) return toast.error(error.message);
     setAiSessions((x) => x.filter((s) => s.id !== id));
+  };
+
+  const downloadReport = (s: AiSession) => {
+    downloadProctoringPdf({
+      candidateName: candName(s.candidate_id),
+      jobTitle: jobs.find((j) => j.id === s.job_id)?.title ?? "Role",
+      completedAt: s.ended_at ?? s.created_at,
+      scores: (s.scores ?? {}) as Record<string, number>,
+      sentiment: s.sentiment,
+      recommendation: s.recommendation,
+      summary: s.summary,
+      proctoring: (s.proctoring ?? null) as ProctoringData | null,
+      transcript: (s.transcript ?? []) as { role: string; text: string }[],
+    });
+    toast.success("Proctoring report downloaded");
   };
 
   return (
@@ -421,6 +437,11 @@ export default function Interviews() {
                             <FileText className="h-3.5 w-3.5" /> View report
                           </Button>
                         )}
+                        {s.status === "completed" && (
+                          <Button size="sm" variant="outline" className="gap-1" onClick={() => downloadReport(s)}>
+                            <Download className="h-3.5 w-3.5" /> PDF
+                          </Button>
+                        )}
                         <Button variant="ghost" size="icon" onClick={() => deleteAiSession(s.id)}>
                           <Trash2 className="h-4 w-4 text-muted-foreground" />
                         </Button>
@@ -442,8 +463,14 @@ export default function Interviews() {
             {reportOpen && (() => {
               const scores = (reportOpen.scores ?? {}) as Record<string, number>;
               const transcript = (reportOpen.transcript ?? []) as Array<{ role: string; text: string }>;
+              const proctor = (reportOpen.proctoring ?? null) as ProctoringData | null;
               return (
                 <div className="space-y-4">
+                  <div className="flex justify-end">
+                    <Button size="sm" variant="outline" className="gap-1" onClick={() => downloadReport(reportOpen)}>
+                      <Download className="h-3.5 w-3.5" /> Download PDF
+                    </Button>
+                  </div>
                   <div className="grid grid-cols-4 gap-2 text-center">
                     {["overall", "communication", "confidence", "technical"].map((k) => (
                       <div key={k} className="rounded-lg border p-3">
@@ -451,6 +478,27 @@ export default function Interviews() {
                         <p className="text-2xl font-semibold">{scores[k] ?? "—"}</p>
                       </div>
                     ))}
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Proctoring report</p>
+                    <div className="rounded-lg border divide-y text-sm">
+                      {proctoringRows(proctor).map(([k, v]) => (
+                        <div key={k} className="flex justify-between gap-4 px-3 py-2">
+                          <span className="text-muted-foreground">{k}</span>
+                          <span className="font-medium text-right">{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {(proctor?.events ?? []).length > 0 && (
+                      <div className="mt-2 rounded-lg border bg-muted/30 p-3 max-h-40 overflow-y-auto text-xs space-y-1">
+                        {(proctor?.events ?? []).slice(0, 40).map((ev, i) => (
+                          <div key={i}>
+                            <span className="text-muted-foreground">{new Date(ev.at).toLocaleTimeString()}</span> — {ev.type}
+                            {ev.detail ? `: ${ev.detail}` : ""}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="outline">Sentiment: {reportOpen.sentiment ?? "—"}</Badge>

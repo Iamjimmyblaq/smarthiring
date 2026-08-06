@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { getPaystackConfig } from "../_shared/paystack.ts";
+import { provisionPaidPlan } from "../_shared/provision.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -56,54 +57,21 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Resolve the tier the customer actually paid for.
+    // Resolve the tier the customer actually paid for. The Paystack webhook is
+    // the primary source of truth; this path is the fallback for the redirect.
     const tierKey: string = meta.tier_key || meta.plan || "pro";
-    const { data: tier } = await admin
-      .from("plan_tiers")
-      .select("key, name, billing_period")
-      .eq("key", tierKey)
-      .maybeSingle();
+    const result = await provisionPaidPlan(admin, {
+      userId: user.id,
+      tierKey,
+      reference,
+      customerCode: data.data?.customer?.customer_code ?? null,
+      currency: data.data?.currency ?? null,
+      amountPaidMajor: Number(data.data?.amount ?? 0) / 100,
+      metadata: meta,
+      confirmedVia: "verify",
+    });
 
-    const periodEnd = new Date();
-    if ((tier?.billing_period || "month").startsWith("year")) periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-    else periodEnd.setMonth(periodEnd.getMonth() + 1);
-
-    const { error: upErr } = await admin
-      .from("user_plans")
-      .upsert(
-        {
-          user_id: user.id,
-          plan: tier?.key || tierKey,
-          current_period_end: periodEnd.toISOString(),
-          stripe_customer_id: data.data?.customer?.customer_code ?? null,
-          stripe_subscription_id: reference,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id" },
-      );
-    if (upErr) return json({ error: upErr.message }, 500);
-
-    // Record the coupon redemption once per successful reference.
-    if (meta.coupon_id) {
-      const { data: existing } = await admin
-        .from("coupon_redemptions")
-        .select("id")
-        .eq("coupon_id", meta.coupon_id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (!existing) {
-        await admin.from("coupon_redemptions").insert({
-          coupon_id: meta.coupon_id,
-          user_id: user.id,
-          tier_key: tierKey,
-          amount_discounted: Number(meta.discount) || 0,
-        });
-        const { data: c } = await admin.from("coupons").select("redemption_count").eq("id", meta.coupon_id).maybeSingle();
-        await admin.from("coupons").update({ redemption_count: (c?.redemption_count ?? 0) + 1 }).eq("id", meta.coupon_id);
-      }
-    }
-
-    return json({ success: true, plan: tier?.key || tierKey, plan_name: tier?.name || tierKey });
+    return json({ success: true, plan: result.plan, plan_name: result.plan_name });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }

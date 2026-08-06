@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { Ban, Download, Loader2, Plus, Save, ShieldCheck, Trash2, Users } from "lucide-react";
 import RolePermissionsMatrix from "@/components/admin/RolePermissionsMatrix";
 import CouponsTab from "@/components/admin/CouponsTab";
+import CouponAuditLog from "@/components/admin/CouponAuditLog";
 import PaymentSettingsTab from "@/components/admin/PaymentSettingsTab";
 
 interface Tier {
@@ -632,6 +633,7 @@ export default function Admin() {
 
           <TabsContent value="coupons" className="space-y-4 pt-4">
             <CouponsTab tiers={tiers.map((t) => ({ key: t.key, name: t.name, price_amount: Number(t.price_amount), currency: t.currency }))} />
+            <CouponAuditLog />
           </TabsContent>
 
           <TabsContent value="payments" className="space-y-4 pt-4">

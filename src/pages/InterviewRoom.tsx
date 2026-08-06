@@ -81,6 +81,8 @@ function InterviewRoomContent() {
   const [starting, setStarting] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [done, setDone] = useState(false);
+  const [finalizeFailed, setFinalizeFailed] = useState(false);
+  const [reportWarning, setReportWarning] = useState<string | null>(null);
   const [textMode, setTextMode] = useState(false);
   const [answer, setAnswer] = useState("");
   const [sendingAnswer, setSendingAnswer] = useState(false);
@@ -328,29 +330,54 @@ function InterviewRoomContent() {
     }
   };
 
-  const stop = async () => {
+  const proctoringRef = useRef<Record<string, unknown> | null>(null);
+
+  const releaseDevices = () => {
+    cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
+    screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+    if (cameraVideoRef.current) cameraVideoRef.current.srcObject = null;
+    cameraStreamRef.current = null; screenStreamRef.current = null;
+    setAvReady(false); setScreenShareOn(false); setTextMode(false);
+  };
+
+  /** Finalize with up to 3 attempts and exponential backoff before surfacing a retry button. */
+  const finalize = async (attempts = 3) => {
     setFinalizing(true);
-    const proctoring = stopProctoring();
-    try {
-      await conversation.endSession();
-      const conversationId = conversation.getId?.();
-      const { error } = await supabase.functions.invoke("interview-finalize", {
-        body: { token, transcript: transcriptRef.current, conversationId, proctoring },
-      });
-      if (error) throw error;
-      setDone(true);
-    } catch (e) {
-      console.error(e);
-      setError(e instanceof Error ? e.message : "Could not finalize interview");
-    } finally {
-      setFinalizing(false);
-      // Hard stop every capture device: camera, mic and screen share.
-      cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
-      screenStreamRef.current?.getTracks().forEach((t) => t.stop());
-      if (cameraVideoRef.current) cameraVideoRef.current.srcObject = null;
-      cameraStreamRef.current = null; screenStreamRef.current = null; setAvReady(false); setScreenShareOn(false);
-      setTextMode(false);
+    setError(null);
+    let lastError: unknown = null;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const conversationId = conversation.getId?.();
+        const { data, error } = await supabase.functions.invoke("interview-finalize", {
+          body: { token, transcript: transcriptRef.current, conversationId, proctoring: proctoringRef.current },
+        });
+        if (error) throw error;
+        setReportWarning(data?.reportEmailed === false ? (data?.reportEmailError || "The recruiter report email could not be delivered yet — it has been queued for automatic retry.") : null);
+        setFinalizeFailed(false);
+        setDone(true);
+        setFinalizing(false);
+        return;
+      } catch (e) {
+        lastError = e;
+        console.error("finalize attempt failed", i + 1, e);
+        if (i < attempts - 1) await new Promise((r) => setTimeout(r, 1500 * Math.pow(2, i)));
+      }
     }
+    setFinalizeFailed(true);
+    setError(
+      lastError instanceof Error
+        ? `We could not submit your interview report (${lastError.message}). Your answers are safe — press retry.`
+        : "We could not submit your interview report. Your answers are safe — press retry.",
+    );
+    setFinalizing(false);
+  };
+
+  const stop = async () => {
+    proctoringRef.current = proctoringRef.current ?? stopProctoring();
+    try { await conversation.endSession(); } catch (e) { console.error("endSession failed", e); }
+    // Hard stop every capture device: camera, mic and screen share.
+    releaseDevices();
+    await finalize();
   };
 
   useEffect(() => () => {
@@ -392,6 +419,20 @@ function InterviewRoomContent() {
             <p className="font-medium">{error}</p>
             <p className="text-sm text-muted-foreground">Please contact the recruiter for a fresh link.</p>
           </CardContent></Card>
+        ) : finalizeFailed ? (
+          <Card className="border-destructive/40">
+            <CardContent className="py-12 text-center space-y-4">
+              <AlertCircle className="h-10 w-10 mx-auto text-destructive" />
+              <h1 className="text-xl font-semibold">Submission failed</h1>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">{error}</p>
+              <p className="text-xs text-muted-foreground">
+                Your camera, microphone and screen sharing are already off. Retrying only re-sends the report.
+              </p>
+              <Button onClick={() => finalize()} disabled={finalizing} className="gap-2">
+                {finalizing ? <><Loader2 className="h-4 w-4 animate-spin" /> Retrying…</> : <>Retry submission</>}
+              </Button>
+            </CardContent>
+          </Card>
         ) : done ? (
           <Card className="border-accent/40 bg-accent/5">
             <CardContent className="py-14 text-center space-y-3">
@@ -405,6 +446,9 @@ function InterviewRoomContent() {
               <p className="text-xs text-muted-foreground">
                 This interview link is now closed and can no longer be used. This window will close automatically.
               </p>
+              {reportWarning && (
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">{reportWarning}</p>
+              )}
               <Button variant="outline" size="sm" onClick={() => window.close()}>Close window</Button>
             </CardContent>
           </Card>

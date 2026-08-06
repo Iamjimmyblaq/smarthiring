@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { baseLayout, sendGmail } from "../_shared/gmail.ts";
+import { baseLayout, sendQueuedEmail } from "../_shared/gmail.ts";
 import { emitWebhook } from "../_shared/webhooks.ts";
 
 const corsHeaders = {
@@ -197,7 +197,10 @@ ${transcriptText}`;
       }).eq("id", session.candidate_id);
     }
 
-    // Send notification emails via Gmail
+    // Send notification emails via Gmail — queued + idempotent so a retry from the
+    // interview room never double-sends, and failures land in the admin email log.
+    let recruiterEmailOk = false;
+    let recruiterEmailError: string | null = null;
     try {
       const companyName = job?.company_name || recruiter?.company_name || "the hiring team";
       const jobTitle = job?.title || "the role";
@@ -211,7 +214,13 @@ ${transcriptText}`;
         const subj = `Your interview for ${jobTitle} is complete`;
         const text = `Hi ${candidate.name || "there"},\n\nThanks for completing your AI interview for the ${jobTitle} role at ${companyName}. Your responses have been shared with the hiring team, and they'll be in touch about next steps.\n\nBest,\n${companyName} via SmartHire`;
         const html = baseLayout(`<h2 style="margin:0 0 12px">Interview complete</h2><p>Hi ${candidate.name || "there"},</p><p>Thanks for completing your AI interview for <strong>${jobTitle}</strong> at <strong>${companyName}</strong>. Your responses have been shared with the hiring team, and they'll be in touch about next steps.</p>`);
-        await sendGmail({ to: candidate.email, subject: subj, html, text, fromName: companyName, replyTo: recruiterEmail });
+        await sendQueuedEmail({
+          userId: session.user_id,
+          idempotencyKey: `ai_interview_done_candidate:${session.id}`,
+          purpose: "ai_interview_complete_candidate",
+          context: { session_id: session.id, candidate_id: session.candidate_id },
+          to: candidate.email, subject: subj, html, text, fromName: companyName, replyTo: recruiterEmail,
+        });
       }
 
       // Recruiter email
@@ -238,10 +247,21 @@ ${transcriptText}`;
         const proctorText = proctorRows.map(([k, v]) => `${k}: ${v}`).join("\n");
         const text = `AI interview complete for ${candidate?.name || "candidate"} (${candidate?.email || "no email"}) — ${jobTitle}.\n\n${scoreLine}\n\nSummary: ${summary || "n/a"}\n\nStrengths: ${strengths.join("; ") || "n/a"}\nGaps: ${gaps.join("; ") || "n/a"}\n\nPROCTORING REPORT\n${proctorText || "No proctoring data captured."}\n\nRESPONSES\n${transcriptText || "n/a"}`;
         const html = `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;padding:24px;color:#222"><h2 style="margin:0 0 8px">AI interview report</h2><p style="color:#666;margin:0 0 20px">${candidate?.name || "Candidate"} · ${jobTitle}</p>${overall !== null ? `<div style="padding:12px 16px;background:#f4f6fb;border-radius:8px;margin-bottom:16px"><strong>Overall:</strong> ${overall}/100 &nbsp;·&nbsp; <strong>Recommendation:</strong> ${recLabel}${scores ? ` &nbsp;·&nbsp; Comm ${scores.communication} · Tech ${scores.technical} · Confidence ${scores.confidence}` : ""}${composure.score !== null ? ` &nbsp;·&nbsp; Composure ${composure.score}` : ""}</div>` : ""}<h3>Summary</h3><p>${summary || "<em>No summary generated</em>"}</p><h3>Strengths</h3>${strengthsHtml}<h3>Gaps</h3>${gapsHtml}${proctorHtml}${transcriptHtml}<p style="color:#777;font-size:13px;margin-top:28px">Open the full transcript in SmartHire → Interviews → AI Sessions.</p></div>`;
-        await sendGmail({ to: recruiterEmail, subject: subj, html, text, replyTo: candidate?.email || undefined });
+        const res = await sendQueuedEmail({
+          userId: session.user_id,
+          idempotencyKey: `ai_interview_report:${session.id}`,
+          purpose: "ai_interview_report",
+          context: { session_id: session.id, candidate_id: session.candidate_id, job_id: session.job_id },
+          to: recruiterEmail, subject: subj, html, text, replyTo: candidate?.email || undefined,
+        });
+        recruiterEmailOk = Boolean(res?.ok);
+        if (!res?.ok) recruiterEmailError = String((res as { error?: unknown; reason?: unknown })?.error ?? (res as { reason?: unknown })?.reason ?? "Email provider rejected the report");
+      } else {
+        recruiterEmailError = "No recruiter or HR email is set for this job.";
       }
     } catch (e) {
       console.error("Notification email error", e);
+      recruiterEmailError = e instanceof Error ? e.message : "Unknown email error";
     }
 
     try {
@@ -251,7 +271,7 @@ ${transcriptText}`;
       });
     } catch (e) { console.error("webhook error", e); }
 
-    return json({ ok: true, recommendation, summary, scores });
+    return json({ ok: true, recommendation, summary, scores, reportEmailed: recruiterEmailOk, reportEmailError: recruiterEmailError });
   } catch (e) {
     console.error("interview-finalize error", e);
     return json({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
