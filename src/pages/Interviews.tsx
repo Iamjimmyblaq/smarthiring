@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Calendar, Trash2, Mail, Star, Sparkles, Copy, FileText, Loader2 } from "lucide-react";
+import { Plus, Calendar, Trash2, Mail, Star, Sparkles, Copy, FileText, Loader2, Download } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { generateDecisionEmail, openInMailClient } from "@/lib/recruitment-emails";
+import { downloadProctoringPdf, proctoringRows, type ProctoringData } from "@/lib/proctoring-report";
 
 type Interview = Tables<"interviews">;
 type AiSession = Tables<"interview_sessions">;
