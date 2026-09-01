@@ -797,6 +797,192 @@ export type Database = {
         }
         Relationships: []
       }
+      skill_test_assignments: {
+        Row: {
+          answers: Json
+          candidate_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          integrity_flags: Json
+          job_id: string | null
+          max_score: number | null
+          percentage: number | null
+          plagiarism_score: number | null
+          proctoring: Json | null
+          score: number | null
+          started_at: string | null
+          status: string
+          submitted_at: string | null
+          test_id: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          candidate_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          integrity_flags?: Json
+          job_id?: string | null
+          max_score?: number | null
+          percentage?: number | null
+          plagiarism_score?: number | null
+          proctoring?: Json | null
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          test_id: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          candidate_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          integrity_flags?: Json
+          job_id?: string | null
+          max_score?: number | null
+          percentage?: number | null
+          plagiarism_score?: number | null
+          proctoring?: Json | null
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          test_id?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_test_assignments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_test_assignments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_test_assignments_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "skill_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skill_test_questions: {
+        Row: {
+          correct_option: number | null
+          created_at: string
+          explanation: string | null
+          id: string
+          options: Json
+          points: number
+          position: number
+          prompt: string
+          question_type: string
+          test_id: string
+        }
+        Insert: {
+          correct_option?: number | null
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: Json
+          points?: number
+          position?: number
+          prompt: string
+          question_type?: string
+          test_id: string
+        }
+        Update: {
+          correct_option?: number | null
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: Json
+          points?: number
+          position?: number
+          prompt?: string
+          question_type?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_test_questions_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "skill_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skill_tests: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          difficulty: string
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          proctored: boolean
+          question_count: number
+          skill_area: string
+          slug: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          proctored?: boolean
+          question_count?: number
+          skill_area: string
+          slug: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          proctored?: boolean
+          question_count?: number
+          skill_area?: string
+          slug?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           created_at: string
