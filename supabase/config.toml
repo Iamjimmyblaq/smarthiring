@@ -23,3 +23,9 @@ verify_jwt = false
 
 [functions.paystack-webhook]
 verify_jwt = false
+
+[functions.skill-test-session]
+verify_jwt = false
+
+[functions.skill-test-submit]
+verify_jwt = false
