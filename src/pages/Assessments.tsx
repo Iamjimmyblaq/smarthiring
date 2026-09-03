@@ -23,7 +23,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   language: "Language proficiency",
   cognitive: "Cognitive ability",
   situational: "Situational judgement",
-  role: "Role-specific",
+  role_specific: "Role-specific",
 };
 
 export default function Assessments() {
