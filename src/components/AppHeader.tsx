@@ -40,6 +40,7 @@ export default function AppHeader() {
     { to: "/jobs", label: "Jobs" },
     { to: "/pipeline", label: "Pipeline" },
     { to: "/interviews", label: "Interviews" },
+    { to: "/assessments", label: "Assessments" },
     { to: "/offers", label: "Offers" },
     { to: "/onboarding", label: "Onboarding" },
     { to: "/developers", label: "Developers" },

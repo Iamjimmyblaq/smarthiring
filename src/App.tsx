@@ -13,6 +13,8 @@ import PaymentVerify from "./pages/PaymentVerify.tsx";
 import Demo from "./pages/Demo.tsx";
 import Pipeline from "./pages/Pipeline.tsx";
 import Interviews from "./pages/Interviews.tsx";
+import Assessments from "./pages/Assessments.tsx";
+import AssessmentRoom from "./pages/AssessmentRoom.tsx";
 import Offers from "./pages/Offers.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import InterviewRoom from "./pages/InterviewRoom.tsx";
@@ -38,6 +40,8 @@ const App = () => (
           <Route path="/jobs/:id" element={<JobDetail />} />
           <Route path="/pipeline" element={<Pipeline />} />
           <Route path="/interviews" element={<Interviews />} />
+          <Route path="/assessments" element={<Assessments />} />
+          <Route path="/assessment/:token" element={<AssessmentRoom />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/pricing" element={<Pricing />} />
