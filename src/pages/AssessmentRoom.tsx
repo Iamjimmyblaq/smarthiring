@@ -178,7 +178,18 @@ export default function AssessmentRoom() {
 
   useEffect(() => () => releaseCamera(), []);
 
+  // The <video> element only mounts once the test screen renders, so (re)attach the
+  // webcam stream whenever it becomes available — otherwise the preview stays black.
+  useEffect(() => {
+    const el = videoRef.current;
+    const stream = streamRef.current;
+    if (!el || !stream || el.srcObject === stream) return;
+    el.srcObject = stream;
+    el.play().catch(() => undefined);
+  }, [started, cameraOn, result]);
+
   const startTest = async () => {
+
     setStarting(true);
     setError(null);
     try {
