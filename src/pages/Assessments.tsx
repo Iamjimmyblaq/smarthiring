@@ -11,7 +11,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Copy, Loader2, Search, Send, ShieldCheck, Clock, Sparkles } from "lucide-react";
+import { Copy, Loader2, Search, Send, ShieldCheck, Clock, Sparkles, Download } from "lucide-react";
+import { downloadAssessmentPdf, downloadAssessmentsBulkPdf, type AssessmentReportInput } from "@/lib/assessment-report";
+
 import type { Tables } from "@/integrations/supabase/types";
 
 type SkillTest = Tables<"skill_tests">;
