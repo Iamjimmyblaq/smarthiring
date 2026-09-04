@@ -330,7 +330,20 @@ export default function AssessmentRoom() {
           <div className="space-y-4">
             <Card>
               <CardContent className="py-4 flex items-center gap-4">
-                <video ref={videoRef} muted playsInline className="w-28 rounded-md border bg-muted aspect-video object-cover" />
+                <div className="relative shrink-0">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-36 rounded-md border bg-muted aspect-video object-cover"
+                  />
+                  <span className="absolute bottom-1 left-1 flex items-center gap-1 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium">
+                    <span className={`h-1.5 w-1.5 rounded-full ${cameraOn ? "bg-destructive animate-pulse" : "bg-muted-foreground"}`} />
+                    {cameraOn ? "Recording" : "Camera off"}
+                  </span>
+                </div>
+
                 <canvas ref={canvasRef} className="hidden" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{test?.title}</p>
