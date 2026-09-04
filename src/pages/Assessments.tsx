@@ -11,7 +11,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Copy, Loader2, Search, Send, ShieldCheck, Clock, Sparkles } from "lucide-react";
+import { Copy, Loader2, Search, Send, ShieldCheck, Clock, Sparkles, Download } from "lucide-react";
+import { downloadAssessmentPdf, downloadAssessmentsBulkPdf, type AssessmentReportInput } from "@/lib/assessment-report";
+
 import type { Tables } from "@/integrations/supabase/types";
 
 type SkillTest = Tables<"skill_tests">;
@@ -108,6 +110,36 @@ export default function Assessments() {
   const testById = (id: string) => tests.find((t) => t.id === id);
   const candidateById = (id: string) => candidates.find((c) => c.id === id);
 
+  const toReportInput = (a: Assignment): AssessmentReportInput => {
+    const t = testById(a.test_id);
+    const c = candidateById(a.candidate_id);
+    return {
+      candidateName: c?.name || c?.email || "Candidate",
+      candidateEmail: c?.email ?? null,
+      testTitle: t?.title ?? "Assessment",
+      skillArea: t?.skill_area ?? null,
+      difficulty: t?.difficulty ?? null,
+      status: a.status,
+      submittedAt: a.submitted_at,
+      score: a.score,
+      maxScore: a.max_score,
+      percentage: a.percentage,
+      plagiarismScore: a.plagiarism_score,
+      integrityFlags: (a.integrity_flags ?? {}) as Record<string, unknown>,
+      proctoring: (a.proctoring ?? null) as Record<string, unknown> | null,
+      answers: Array.isArray(a.answers) ? (a.answers as AssessmentReportInput["answers"]) : [],
+    };
+  };
+
+  const submittedAssignments = assignments.filter((a) => a.status === "submitted");
+
+  const downloadAll = () => {
+    if (submittedAssignments.length === 0) return toast.error("No submitted assessments to download yet.");
+    downloadAssessmentsBulkPdf(submittedAssignments.map(toReportInput), "smarthire-assessments");
+    toast.success(`Downloaded ${submittedAssignments.length} result(s)`);
+  };
+
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -199,11 +231,19 @@ export default function Assessments() {
           </TabsContent>
 
           <TabsContent value="results" className="space-y-3 pt-4">
+            {assignments.length > 0 && (
+              <div className="flex justify-end">
+                <Button variant="outline" size="sm" className="gap-2" onClick={downloadAll}>
+                  <Download className="h-4 w-4" /> Download all results (PDF) · {submittedAssignments.length}
+                </Button>
+              </div>
+            )}
             {assignments.length === 0 ? (
               <Card><CardContent className="py-16 text-center text-muted-foreground">
                 No assessments sent yet. Invite a candidate from the test library.
               </CardContent></Card>
             ) : (
+
               assignments.map((a) => {
                 const t = testById(a.test_id);
                 const c = candidateById(a.candidate_id);
