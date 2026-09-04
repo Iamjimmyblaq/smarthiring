@@ -231,11 +231,19 @@ export default function Assessments() {
           </TabsContent>
 
           <TabsContent value="results" className="space-y-3 pt-4">
+            {assignments.length > 0 && (
+              <div className="flex justify-end">
+                <Button variant="outline" size="sm" className="gap-2" onClick={downloadAll}>
+                  <Download className="h-4 w-4" /> Download all results (PDF) · {submittedAssignments.length}
+                </Button>
+              </div>
+            )}
             {assignments.length === 0 ? (
               <Card><CardContent className="py-16 text-center text-muted-foreground">
                 No assessments sent yet. Invite a candidate from the test library.
               </CardContent></Card>
             ) : (
+
               assignments.map((a) => {
                 const t = testById(a.test_id);
                 const c = candidateById(a.candidate_id);
