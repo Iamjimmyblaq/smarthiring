@@ -110,6 +110,36 @@ export default function Assessments() {
   const testById = (id: string) => tests.find((t) => t.id === id);
   const candidateById = (id: string) => candidates.find((c) => c.id === id);
 
+  const toReportInput = (a: Assignment): AssessmentReportInput => {
+    const t = testById(a.test_id);
+    const c = candidateById(a.candidate_id);
+    return {
+      candidateName: c?.name || c?.email || "Candidate",
+      candidateEmail: c?.email ?? null,
+      testTitle: t?.title ?? "Assessment",
+      skillArea: t?.skill_area ?? null,
+      difficulty: t?.difficulty ?? null,
+      status: a.status,
+      submittedAt: a.submitted_at,
+      score: a.score,
+      maxScore: a.max_score,
+      percentage: a.percentage,
+      plagiarismScore: a.plagiarism_score,
+      integrityFlags: (a.integrity_flags ?? {}) as Record<string, unknown>,
+      proctoring: (a.proctoring ?? null) as Record<string, unknown> | null,
+      answers: Array.isArray(a.answers) ? (a.answers as AssessmentReportInput["answers"]) : [],
+    };
+  };
+
+  const submittedAssignments = assignments.filter((a) => a.status === "submitted");
+
+  const downloadAll = () => {
+    if (submittedAssignments.length === 0) return toast.error("No submitted assessments to download yet.");
+    downloadAssessmentsBulkPdf(submittedAssignments.map(toReportInput), "smarthire-assessments");
+    toast.success(`Downloaded ${submittedAssignments.length} result(s)`);
+  };
+
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
