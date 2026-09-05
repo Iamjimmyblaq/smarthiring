@@ -43,7 +43,7 @@ export default function AdminUserDetail() {
       supabase.from("jobs").select("id, title, status, created_at").eq("user_id", id).order("created_at", { ascending: false }),
       supabase.from("candidates").select("id, name, email, overall_score, processing_status, stage, created_at, name_overridden_at, job_id")
         .eq("user_id", id).order("created_at", { ascending: false }).limit(200),
-      supabase.from("interview_sessions").select("id, status, recommendation, created_at").eq("user_id", id)
+      supabase.from("interview_sessions").select("id, status, recommendation, created_at, candidate_id").eq("user_id", id)
         .order("created_at", { ascending: false }).limit(50),
     ]);
     setProfile(p.data);
@@ -123,6 +123,22 @@ export default function AdminUserDetail() {
     );
   }
 
+  const sessionFor = (candidateId: string) =>
+    sessions.filter((s) => s.candidate_id === candidateId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0] ?? null;
+
+  const interviewBadge = (candidateId: string) => {
+    const s = sessionFor(candidateId);
+    if (!s) return { label: "not invited", variant: "outline" as const, live: false };
+    if (s.status === "completed") return { label: "completed", variant: "default" as const, live: false };
+    if (s.status === "live") return { label: "live now", variant: "secondary" as const, live: true };
+    return { label: "pending", variant: "outline" as const, live: false };
+  };
+
+  const liveCount = sessions.filter((s) => s.status === "live").length;
+  const completedCount = sessions.filter((s) => s.status === "completed").length;
+  const pendingCount = sessions.length - liveCount - completedCount;
+
   const scanned = candidates.length;
   const failed = candidates.filter((c) => c.processing_status === "error").length;
   const hired = candidates.filter((c) => c.stage === "hired").length;
@@ -175,7 +191,7 @@ export default function AdminUserDetail() {
           {[
             { label: "Jobs created", value: jobs.length },
             { label: "Resumes scanned", value: scanned },
-            { label: "AI interviews", value: sessions.length },
+            { label: `AI interviews (${completedCount} done · ${liveCount} live · ${pendingCount} pending)`, value: sessions.length },
             { label: "Hired", value: hired },
           ].map((s) => (
             <Card key={s.label}><CardContent className="pt-6">
@@ -247,6 +263,7 @@ export default function AdminUserDetail() {
                   <th className="p-3 font-medium">Candidate</th>
                   <th className="p-3 font-medium">Stage</th>
                   <th className="p-3 font-medium">Parse</th>
+                  <th className="p-3 font-medium">AI interview</th>
                   <th className="p-3 font-medium text-right">Score</th>
                   <th className="p-3 font-medium">Scanned</th>
                   <th className="p-3 font-medium" />
@@ -254,7 +271,7 @@ export default function AdminUserDetail() {
               </thead>
               <tbody>
                 {candidates.length === 0 && (
-                  <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No resumes scanned yet.</td></tr>
+                  <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No resumes scanned yet.</td></tr>
                 )}
                 {candidates.map((c) => (
                   <tr key={c.id} className="border-t">
@@ -269,6 +286,17 @@ export default function AdminUserDetail() {
                       <Badge variant={c.processing_status === "error" ? "destructive" : "outline"}>
                         {c.processing_status ?? "pending"}
                       </Badge>
+                    </td>
+                    <td className="p-3 text-xs">
+                      {(() => {
+                        const b = interviewBadge(c.id);
+                        return (
+                          <Badge variant={b.variant} className="gap-1 capitalize">
+                            {b.live && <span className="h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />}
+                            {b.label}
+                          </Badge>
+                        );
+                      })()}
                     </td>
                     <td className="p-3 text-right tabular-nums">{c.overall_score ?? "—"}</td>
                     <td className="p-3 text-xs">{fmt(c.created_at)}</td>

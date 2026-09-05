@@ -261,7 +261,9 @@ function InterviewRoomContent() {
         console.warn("Screen share declined:", e);
       }
       setAvReady(true);
+      startedRef.current = true;
       startProctoring();
+
 
       const { data, error } = await supabase.functions.invoke("elevenlabs-token", { body: { token } });
       if (error) throw new Error(await getFunctionErrorMessage(error, "Could not start the AI interview."));
@@ -331,6 +333,8 @@ function InterviewRoomContent() {
   };
 
   const proctoringRef = useRef<Record<string, unknown> | null>(null);
+  const doneRef = useRef(false);
+  const startedRef = useRef(false);
 
   const releaseDevices = () => {
     cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
@@ -354,6 +358,7 @@ function InterviewRoomContent() {
         if (error) throw error;
         setReportWarning(data?.reportEmailed === false ? (data?.reportEmailError || "The recruiter report email could not be delivered yet — it has been queued for automatic retry.") : null);
         setFinalizeFailed(false);
+        doneRef.current = true;
         setDone(true);
         setFinalizing(false);
         return;
@@ -385,6 +390,33 @@ function InterviewRoomContent() {
     screenStreamRef.current?.getTracks().forEach((t) => t.stop());
     if (motionTimerRef.current) clearInterval(motionTimerRef.current);
   }, []);
+
+  // Safety net: if the candidate closes or reloads the tab without pressing
+  // "End interview", still submit the transcript so HR always gets the report.
+  useEffect(() => {
+    const handler = () => {
+      if (doneRef.current || !startedRef.current) return;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/interview-finalize`;
+      const body = JSON.stringify({
+        token,
+        transcript: transcriptRef.current,
+        proctoring: proctoringRef.current ?? stopProctoring(),
+        abandoned: true,
+      });
+      try {
+        fetch(url, {
+          method: "POST",
+          keepalive: true,
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+      } catch { /* best effort */ }
+    };
+    window.addEventListener("pagehide", handler);
+    return () => window.removeEventListener("pagehide", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
 
   // Once finalized, the link is dead — close the interview window automatically.
   useEffect(() => {

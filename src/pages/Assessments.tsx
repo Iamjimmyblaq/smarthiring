@@ -268,6 +268,14 @@ export default function Assessments() {
                           {a.plagiarism_score !== null ? ` (${a.plagiarism_score})` : ""}
                         </Badge>
                       )}
+                      {a.status === "submitted" && (
+                        <Button
+                          size="sm" variant="outline" className="gap-2"
+                          onClick={() => downloadAssessmentPdf(toReportInput(a))}
+                        >
+                          <Download className="h-4 w-4" /> PDF
+                        </Button>
+                      )}
                       <Button
                         size="sm" variant="ghost" className="gap-2"
                         onClick={() => {
@@ -277,6 +285,7 @@ export default function Assessments() {
                       >
                         <Copy className="h-4 w-4" /> Link
                       </Button>
+
                     </CardContent>
                   </Card>
                 );
