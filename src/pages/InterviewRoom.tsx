@@ -331,6 +331,8 @@ function InterviewRoomContent() {
   };
 
   const proctoringRef = useRef<Record<string, unknown> | null>(null);
+  const doneRef = useRef(false);
+  const startedRef = useRef(false);
 
   const releaseDevices = () => {
     cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
@@ -354,6 +356,7 @@ function InterviewRoomContent() {
         if (error) throw error;
         setReportWarning(data?.reportEmailed === false ? (data?.reportEmailError || "The recruiter report email could not be delivered yet — it has been queued for automatic retry.") : null);
         setFinalizeFailed(false);
+        doneRef.current = true;
         setDone(true);
         setFinalizing(false);
         return;
