@@ -261,7 +261,9 @@ function InterviewRoomContent() {
         console.warn("Screen share declined:", e);
       }
       setAvReady(true);
+      startedRef.current = true;
       startProctoring();
+
 
       const { data, error } = await supabase.functions.invoke("elevenlabs-token", { body: { token } });
       if (error) throw new Error(await getFunctionErrorMessage(error, "Could not start the AI interview."));
