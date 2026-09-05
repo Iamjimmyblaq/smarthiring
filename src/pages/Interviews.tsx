@@ -432,6 +432,17 @@ export default function Interviews() {
                             <Copy className="h-3.5 w-3.5" /> Copy link
                           </Button>
                         )}
+                        {s.status !== "completed" && (
+                          <Button
+                            size="sm" variant="outline" className="gap-1"
+                            disabled={emailingReport === s.id}
+                            onClick={() => emailReportNow(s)}
+                          >
+                            {emailingReport === s.id
+                              ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending…</>
+                              : <><Mail className="h-3.5 w-3.5" /> Email report</>}
+                          </Button>
+                        )}
                         {s.status === "completed" && (
                           <Button size="sm" variant="outline" className="gap-1" onClick={() => setReportOpen(s)}>
                             <FileText className="h-3.5 w-3.5" /> View report
@@ -442,6 +453,7 @@ export default function Interviews() {
                             <Download className="h-3.5 w-3.5" /> PDF
                           </Button>
                         )}
+
                         <Button variant="ghost" size="icon" onClick={() => deleteAiSession(s.id)}>
                           <Trash2 className="h-4 w-4 text-muted-foreground" />
                         </Button>
