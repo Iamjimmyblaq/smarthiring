@@ -28,6 +28,7 @@ export default function Interviews() {
   const [items, setItems] = useState<Interview[]>([]);
   const [aiSessions, setAiSessions] = useState<AiSession[]>([]);
   const [reportOpen, setReportOpen] = useState<AiSession | null>(null);
+  const [emailingReport, setEmailingReport] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [jobs, setJobs] = useState<JobLite[]>([]);
   const [profile, setProfile] = useState<ProfileLite | null>(null);
@@ -175,6 +176,22 @@ export default function Interviews() {
   };
 
   const candName = (id: string) => candidates.find((c) => c.id === id)?.name ?? "Candidate";
+
+  /** Recruiter fallback: finalize a stalled session and email the HR report now. */
+  const emailReportNow = async (s: AiSession) => {
+    setEmailingReport(s.id);
+    const { data, error } = await supabase.functions.invoke("interview-finalize", {
+      body: { token: s.token, transcript: (s.transcript as unknown as { role: string; text: string }[]) ?? [] },
+    });
+    setEmailingReport(null);
+    if (error) return toast.error("Could not send the report. Please try again.");
+    if (data?.reportEmailed === false) {
+      toast.error(data?.reportEmailError || "The report could not be delivered — check the HR email on this job.");
+    } else {
+      toast.success("Interview report emailed to your HR inbox.");
+    }
+    load();
+  };
 
   const copyLink = async (token: string) => {
     // Always share the public production URL — preview origins require auth and
