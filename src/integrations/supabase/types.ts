@@ -685,6 +685,7 @@ export type Database = {
           is_active: boolean
           key: string
           max_ai_interviews: number | null
+          max_assessments: number | null
           max_jobs: number | null
           max_resumes: number | null
           name: string
@@ -702,6 +703,7 @@ export type Database = {
           is_active?: boolean
           key: string
           max_ai_interviews?: number | null
+          max_assessments?: number | null
           max_jobs?: number | null
           max_resumes?: number | null
           name: string
@@ -719,6 +721,7 @@ export type Database = {
           is_active?: boolean
           key?: string
           max_ai_interviews?: number | null
+          max_assessments?: number | null
           max_jobs?: number | null
           max_resumes?: number | null
           name?: string
@@ -936,11 +939,13 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          created_by: string | null
           description: string | null
           difficulty: string
           duration_minutes: number
           id: string
           is_active: boolean
+          is_custom: boolean
           proctored: boolean
           question_count: number
           skill_area: string
@@ -952,11 +957,13 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string
+          created_by?: string | null
           description?: string | null
           difficulty?: string
           duration_minutes?: number
           id?: string
           is_active?: boolean
+          is_custom?: boolean
           proctored?: boolean
           question_count?: number
           skill_area: string
@@ -968,11 +975,13 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          created_by?: string | null
           description?: string | null
           difficulty?: string
           duration_minutes?: number
           id?: string
           is_active?: boolean
+          is_custom?: boolean
           proctored?: boolean
           question_count?: number
           skill_area?: string
@@ -1204,6 +1213,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      plan_limit: {
+        Args: { _limit: string; _user_id: string }
+        Returns: number
       }
     }
     Enums: {
