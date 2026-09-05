@@ -386,6 +386,33 @@ function InterviewRoomContent() {
     if (motionTimerRef.current) clearInterval(motionTimerRef.current);
   }, []);
 
+  // Safety net: if the candidate closes or reloads the tab without pressing
+  // "End interview", still submit the transcript so HR always gets the report.
+  useEffect(() => {
+    const handler = () => {
+      if (doneRef.current || !startedRef.current) return;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/interview-finalize`;
+      const body = JSON.stringify({
+        token,
+        transcript: transcriptRef.current,
+        proctoring: proctoringRef.current ?? stopProctoring(),
+        abandoned: true,
+      });
+      try {
+        fetch(url, {
+          method: "POST",
+          keepalive: true,
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+      } catch { /* best effort */ }
+    };
+    window.addEventListener("pagehide", handler);
+    return () => window.removeEventListener("pagehide", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+
   // Once finalized, the link is dead — close the interview window automatically.
   useEffect(() => {
     if (!done) return;
