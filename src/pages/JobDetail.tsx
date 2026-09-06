@@ -126,15 +126,15 @@ const JobDetail = () => {
   const queueFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     let arr = Array.from(files);
-    if (planState.plan === "free") {
+    if (planState.limits.resumes !== null) {
       const remaining = planState.remainingResumes;
       if (remaining <= 0) {
-        toast.error(`Free plan limit reached (${FREE_RESUME_LIMIT} resumes). Upgrade to upload more.`);
+        toast.error(`${planState.tierName} plan limit reached (${planState.limits.resumes} resumes). Upgrade to upload more.`);
         navigate("/pricing");
         return;
       }
       if (arr.length > remaining) {
-        toast.warning(`Free plan limit: only the first ${remaining} of ${arr.length} files will be processed.`);
+        toast.warning(`${planState.tierName} plan limit: only the first ${remaining} of ${arr.length} files will be processed.`);
         arr = arr.slice(0, remaining);
       }
     }
@@ -293,9 +293,9 @@ const JobDetail = () => {
               <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
               <p className="mt-3 font-medium">Drop resumes here or click to upload</p>
               <p className="text-sm text-muted-foreground mt-1">PDF, DOCX, or TXT — bulk upload supported</p>
-              {planState.plan === "free" && (
+              {planState.limits.resumes !== null && (
                 <p className="text-xs text-muted-foreground mt-2">
-                  Free plan: {planState.remainingResumes} of {FREE_RESUME_LIMIT} resumes remaining ·{" "}
+                  {planState.tierName} plan: {planState.remainingResumes} of {planState.limits.resumes} resumes remaining ·{" "}
                   <Link to="/pricing" className="text-accent underline">Upgrade</Link>
                 </p>
               )}
