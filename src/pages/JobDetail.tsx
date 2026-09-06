@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { extractResumeText, quickExtractMeta } from "@/lib/resume-parser";
 import type { Tables } from "@/integrations/supabase/types";
-import { usePlan, FREE_RESUME_LIMIT } from "@/hooks/usePlan";
+import { usePlan } from "@/hooks/usePlan";
 
 type Candidate = Tables<"candidates">;
 type Job = Tables<"jobs">;

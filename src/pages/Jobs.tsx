@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Briefcase, Trash2, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import { usePlan, FREE_JOB_LIMIT, FREE_RESUME_LIMIT } from "@/hooks/usePlan";
+import { usePlan } from "@/hooks/usePlan";
 
 type Job = Tables<"jobs"> & { candidate_count?: number };
 
