@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Briefcase, Trash2, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import { usePlan, FREE_JOB_LIMIT, FREE_RESUME_LIMIT } from "@/hooks/usePlan";
+import { usePlan } from "@/hooks/usePlan";
 
 type Job = Tables<"jobs"> & { candidate_count?: number };
 
@@ -61,7 +61,7 @@ const Jobs = () => {
   const createJob = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!planState.canCreateJob) {
-      toast.error(`Free plan limited to ${FREE_JOB_LIMIT} job. Upgrade to create more.`);
+      toast.error(`Your ${planState.tierName} plan allows ${planState.limits.jobs} job(s). Upgrade to create more.`);
       navigate("/pricing");
       return;
     }
@@ -119,7 +119,7 @@ const Jobs = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {planState.plan === "free" && (
+            {planState.limits.jobs !== null && (
               <Link to="/pricing">
                 <Button variant="outline" className="gap-2"><Sparkles className="h-4 w-4" /> Upgrade</Button>
               </Link>
@@ -174,15 +174,20 @@ const Jobs = () => {
           </div>
         </div>
 
-        {planState.plan === "free" && !planState.loading && (
+        {!planState.loading && (
           <Card className="mb-6 border-dashed">
             <CardContent className="py-4 flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm">
-                <span className="font-medium">Free plan</span>
-                <span className="text-muted-foreground"> · {planState.jobCount}/{FREE_JOB_LIMIT} job · {planState.resumeCount}/{FREE_RESUME_LIMIT} resumes used</span>
+                <span className="font-medium">{planState.tierName} plan</span>
+                <span className="text-muted-foreground">
+                  {" · "}{planState.jobCount}/{planState.limits.jobs ?? "∞"} jobs
+                  {" · "}{planState.resumeCount}/{planState.limits.resumes ?? "∞"} resumes
+                  {" · "}{planState.assessmentCount}/{planState.limits.assessments ?? "∞"} assessments
+                  {" · "}{planState.aiInterviewCount}/{planState.limits.aiInterviews ?? "∞"} AI interviews used
+                </span>
               </div>
               <Link to="/pricing">
-                <Button size="sm" variant="outline" className="gap-2"><Sparkles className="h-4 w-4" /> Upgrade to Pro</Button>
+                <Button size="sm" variant="outline" className="gap-2"><Sparkles className="h-4 w-4" /> Change plan</Button>
               </Link>
             </CardContent>
           </Card>
