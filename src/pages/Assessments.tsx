@@ -11,7 +11,11 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Copy, Loader2, Search, Send, ShieldCheck, Clock, Sparkles, Download } from "lucide-react";
+import { Copy, Loader2, Search, Send, ShieldCheck, Clock, Sparkles, Download, Wand2, Trash2 } from "lucide-react";
+import TestBuilderDialog from "@/components/assessments/TestBuilderDialog";
+import { usePlan } from "@/hooks/usePlan";
+import { Link } from "react-router-dom";
+import { Progress } from "@/components/ui/progress";
 import { downloadAssessmentPdf, downloadAssessmentsBulkPdf, type AssessmentReportInput } from "@/lib/assessment-report";
 
 import type { Tables } from "@/integrations/supabase/types";
@@ -41,6 +45,9 @@ export default function Assessments() {
   const [candidateId, setCandidateId] = useState("");
   const [sending, setSending] = useState(false);
   const [visible, setVisible] = useState(24);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [scope, setScope] = useState("all");
+  const plan = usePlan();
 
   useEffect(() => {
     document.title = "Skills assessments — SmartHire";
@@ -67,6 +74,8 @@ export default function Assessments() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return tests.filter((t) => {
+      if (scope === "custom" && !t.is_custom) return false;
+      if (scope === "library" && t.is_custom) return false;
       if (category !== "all" && t.category !== category) return false;
       if (difficulty !== "all" && t.difficulty !== difficulty) return false;
       if (!q) return true;
@@ -76,7 +85,7 @@ export default function Assessments() {
         (t.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
       );
     });
-  }, [tests, query, category, difficulty]);
+  }, [tests, query, category, difficulty, scope]);
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -86,6 +95,11 @@ export default function Assessments() {
 
   const send = async () => {
     if (!assignTest || !candidateId) return;
+    if (!plan.canSendAssessment) {
+      toast.error(`Your ${plan.tierName} plan includes ${plan.limits.assessments} assessment(s). Upgrade to send more.`);
+      navigate("/pricing");
+      return;
+    }
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("skill-test-assign", {
@@ -100,11 +114,20 @@ export default function Assessments() {
       setAssignTest(null);
       setCandidateId("");
       load();
+      plan.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not create the assessment");
     } finally {
       setSending(false);
     }
+  };
+
+  const deleteCustomTest = async (t: SkillTest) => {
+    if (!confirm(`Delete "${t.title}"? Candidates already invited keep their link.`)) return;
+    const { error } = await supabase.from("skill_tests").delete().eq("id", t.id);
+    if (error) return toast.error(error.message);
+    toast.success("Custom assessment deleted");
+    load();
   };
 
   const testById = (id: string) => tests.find((t) => t.id === id);
@@ -144,13 +167,46 @@ export default function Assessments() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="container mx-auto py-8 space-y-6">
-        <div>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
           <h1 className="text-3xl font-bold tracking-tight">Skills assessments</h1>
           <p className="text-muted-foreground">
             {tests.length}+ validated tests across coding, language, cognitive ability, situational judgement and
-            role-specific competencies — each webcam proctored with plagiarism detection.
+            role-specific competencies — each webcam proctored with plagiarism detection. L&amp;D teams can also
+            build their own tailored tests.
           </p>
+          </div>
+          <Button className="gap-2" onClick={() => setBuilderOpen(true)}>
+            <Wand2 className="h-4 w-4" /> Build your own test
+          </Button>
         </div>
+
+        {!plan.loading && (
+          <Card>
+            <CardContent className="py-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="min-w-[240px] flex-1">
+                <p className="text-sm font-medium">
+                  {plan.tierName} plan · {plan.assessmentCount}
+                  {plan.limits.assessments === null ? " assessments sent (unlimited)" : ` of ${plan.limits.assessments} assessments used`}
+                </p>
+                {plan.limits.assessments !== null && (
+                  <Progress
+                    className="mt-2 h-2"
+                    value={Math.min(100, (plan.assessmentCount / Math.max(1, plan.limits.assessments)) * 100)}
+                  />
+                )}
+              </div>
+              {plan.limits.assessments !== null && (
+                <Link to="/pricing">
+                  <Button size="sm" variant={plan.canSendAssessment ? "outline" : "default"} className="gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    {plan.canSendAssessment ? "Change plan" : "Limit reached — upgrade"}
+                  </Button>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="library">
           <TabsList>
@@ -178,6 +234,14 @@ export default function Assessments() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={scope} onValueChange={(v) => { setScope(v); setVisible(24); }}>
+                <SelectTrigger className="w-[190px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All tests</SelectItem>
+                  <SelectItem value="library">SmartHire library</SelectItem>
+                  <SelectItem value="custom">My custom tests ({tests.filter((t) => t.is_custom).length})</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={difficulty} onValueChange={(v) => { setDifficulty(v); setVisible(24); }}>
                 <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -201,7 +265,10 @@ export default function Assessments() {
                     <Card key={t.id} className="flex flex-col hover:shadow-md transition-shadow">
                       <CardContent className="p-5 flex flex-col gap-3 flex-1">
                         <div className="flex items-start justify-between gap-2">
-                          <Badge variant="secondary" className="capitalize">{CATEGORY_LABELS[t.category] ?? t.category}</Badge>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <Badge variant="secondary" className="capitalize">{CATEGORY_LABELS[t.category] ?? t.category}</Badge>
+                            {t.is_custom && <Badge className="gap-1"><Wand2 className="h-3 w-3" /> Custom</Badge>}
+                          </div>
                           {t.proctored && <ShieldCheck className="h-4 w-4 text-accent shrink-0" />}
                         </div>
                         <div className="flex-1">
@@ -214,9 +281,16 @@ export default function Assessments() {
                           <span>{t.question_count} questions</span>
                           <span className="capitalize">{t.difficulty}</span>
                         </div>
-                        <Button size="sm" className="gap-2" onClick={() => setAssignTest(t)}>
-                          <Send className="h-4 w-4" /> Invite candidate
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button size="sm" className="gap-2 flex-1" onClick={() => setAssignTest(t)}>
+                            <Send className="h-4 w-4" /> Invite candidate
+                          </Button>
+                          {t.is_custom && (
+                            <Button size="icon" variant="ghost" aria-label={`Delete ${t.title}`} onClick={() => deleteCustomTest(t)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -294,6 +368,8 @@ export default function Assessments() {
           </TabsContent>
         </Tabs>
       </main>
+
+      <TestBuilderDialog open={builderOpen} onOpenChange={setBuilderOpen} onCreated={load} />
 
       <Dialog open={!!assignTest} onOpenChange={(o) => !o && setAssignTest(null)}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
