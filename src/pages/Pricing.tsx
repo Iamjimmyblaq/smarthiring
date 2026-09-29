@@ -26,7 +26,7 @@ interface Tier {
   features: string[];
 }
 
-const fmtLimit = (v: number | null, label: string) => (v === null ? `Unlimited ${label}` : `${v.toLocaleString()} ${label}`);
+const fmtLimit = (v: number | null, label: string) => (v === null ? `Unlimited ${label}` : `${v.toLocaleString("en-US")} ${label}`);
 
 interface CouponResult {
   valid: boolean;
@@ -37,7 +37,7 @@ interface CouponResult {
 }
 
 const money = (currency: string, amount: number) =>
-  `${currency === "USD" ? "$" : `${currency} `}${Number(amount).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+  `${currency === "USD" ? "$" : `${currency} `}${Number(amount).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 
 const Pricing = () => {
   const navigate = useNavigate();
