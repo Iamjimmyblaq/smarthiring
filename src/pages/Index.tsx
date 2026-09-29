@@ -15,7 +15,7 @@ import HomeCouponBanner from "@/components/HomeCouponBanner";
 
 const Index = () => {
   useEffect(() => {
-    document.title = "Talenval — Hire Smarter, Not Harder";
+    document.title = "Talenval — AI Talent Evaluation & Hiring";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute("content", "AI-powered resume screening that ranks every applicant in seconds and cuts screening time by 70%.");
     document.documentElement.classList.add("theme-marketing");
@@ -29,13 +29,13 @@ const Index = () => {
   return (
     <main className="theme-marketing min-h-screen">
       <Helmet>
-        <title>Talenval — Hire Smarter, Not Harder</title>
+        <title>Talenval — AI Talent Evaluation & Hiring</title>
         <meta name="description" content="AI-powered resume screening that ranks every applicant in seconds. Cut screening time by 70% and shortlist the right people faster." />
         <link rel="canonical" href="https://smarthiring.lovable.app/" />
-        <meta property="og:title" content="Talenval — Hire Smarter, Not Harder" />
+        <meta property="og:title" content="Talenval — AI Talent Evaluation & Hiring" />
         <meta property="og:description" content="AI-powered resume screening that ranks every applicant in seconds." />
         <meta property="og:url" content="https://smarthiring.lovable.app/" />
-        <meta name="twitter:title" content="Talenval — Hire Smarter, Not Harder" />
+        <meta name="twitter:title" content="Talenval — AI Talent Evaluation & Hiring" />
         <meta name="twitter:description" content="AI-powered resume screening that ranks every applicant in seconds." />
       </Helmet>
       <MarketingNav />
