@@ -8,6 +8,7 @@ import {
   ShieldCheck, BarChart3, Inbox, Clock, CheckCircle2,
   Users, CalendarCheck, FileSignature, UserCheck,
   Bot, Video, Mic, MonitorPlay, Eye,
+  ClipboardCheck, Wand2, FileCheck2, Camera,
 } from "lucide-react";
 import aiRoom from "@/assets/ai-interview-room.jpg";
 import HomeCouponBanner from "@/components/HomeCouponBanner";
@@ -257,6 +258,49 @@ const Index = () => {
                 </Button>
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SKILLS ASSESSMENTS */}
+      <section id="assessments" className="py-28 border-t border-white/5">
+        <div className="max-w-6xl mx-auto px-6">
+          <SectionLabel>Skills Assessments</SectionLabel>
+          <h2 className="mt-3 text-4xl md:text-5xl font-semibold tracking-tight text-foreground max-w-3xl">
+            Prove the skill before the offer — or build the test yourself.
+          </h2>
+          <p className="mt-6 text-lg text-muted-foreground max-w-3xl leading-relaxed">
+            Send any of 490+ validated tests — coding, language proficiency, cognitive ability, situational
+            judgement, role-specific and oilfield competencies. Learning &amp; development teams can also author
+            their own tailored assessments in minutes, with their own questions, scoring and time limit.
+          </p>
+          <div className="mt-14 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: ClipboardCheck, title: "490+ validated tests", desc: "Every major category, each mapped to a skill area and difficulty level." },
+              { icon: Wand2, title: "Build your own", desc: "L&D specialists create company-specific tests with custom questions and points." },
+              { icon: Camera, title: "Webcam proctored", desc: "Live camera monitoring, paste blocking and integrity flags on every attempt." },
+              { icon: FileCheck2, title: "Scored PDF reports", desc: "Results with plagiarism checks emailed to HR and downloadable in bulk." },
+            ].map((f) => (
+              <div key={f.title} className="rounded-2xl border border-white/10 bg-card p-6 hover:border-brand/40 transition-colors">
+                <div className="size-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-5 text-base font-semibold text-foreground">{f.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 flex flex-wrap gap-4">
+            <Link to="/auth">
+              <Button size="lg" className="rounded-xl bg-brand text-white hover:bg-brand/90 gap-2 px-7">
+                <ClipboardCheck className="h-4 w-4" /> Start assessing candidates
+              </Button>
+            </Link>
+            <Link to="/pricing">
+              <Button size="lg" variant="outline" className="rounded-xl border-white/15 bg-white/5 text-foreground hover:bg-white/10 px-7">
+                See assessment allowances
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

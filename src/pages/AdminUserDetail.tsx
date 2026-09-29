@@ -28,6 +28,7 @@ export default function AdminUserDetail() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [candidates, setCandidates] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [sharedIpUsers, setSharedIpUsers] = useState<any[]>([]);
   const [blocked, setBlocked] = useState(false);
   const [working, setWorking] = useState(false);
@@ -35,7 +36,7 @@ export default function AdminUserDetail() {
   const load = useCallback(async () => {
     if (!id) return;
     setLoading(true);
-    const [p, pl, r, tm, j, c, s] = await Promise.all([
+    const [p, pl, r, tm, j, c, s, at] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
       supabase.from("user_plans").select("*").eq("user_id", id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", id),
@@ -45,6 +46,8 @@ export default function AdminUserDetail() {
         .eq("user_id", id).order("created_at", { ascending: false }).limit(200),
       supabase.from("interview_sessions").select("id, status, recommendation, created_at, candidate_id").eq("user_id", id)
         .order("created_at", { ascending: false }).limit(50),
+      supabase.from("skill_test_assignments").select("id, status, percentage, created_at, submitted_at, candidate_id, test_id")
+        .eq("user_id", id).order("created_at", { ascending: false }).limit(200),
     ]);
     setProfile(p.data);
     setPlan(pl.data);
@@ -53,6 +56,7 @@ export default function AdminUserDetail() {
     setJobs(j.data ?? []);
     setCandidates(c.data ?? []);
     setSessions(s.data ?? []);
+    setAssignments(at.data ?? []);
 
     const ip = p.data?.signup_ip ?? p.data?.last_ip ?? null;
     if (ip) {
@@ -139,6 +143,19 @@ export default function AdminUserDetail() {
   const completedCount = sessions.filter((s) => s.status === "completed").length;
   const pendingCount = sessions.length - liveCount - completedCount;
 
+  const assessmentsDone = assignments.filter((a) => a.status === "submitted").length;
+  const assessmentsPending = assignments.length - assessmentsDone;
+
+  const assessmentBadge = (candidateId: string) => {
+    const rows = assignments.filter((a) => a.candidate_id === candidateId);
+    if (rows.length === 0) return { label: "none", variant: "outline" as const };
+    if (rows.some((a) => a.status === "submitted")) {
+      const best = rows.find((a) => a.status === "submitted");
+      return { label: `completed${best?.percentage !== null && best?.percentage !== undefined ? ` · ${best.percentage}%` : ""}`, variant: "default" as const };
+    }
+    return { label: "pending", variant: "secondary" as const };
+  };
+
   const scanned = candidates.length;
   const failed = candidates.filter((c) => c.processing_status === "error").length;
   const hired = candidates.filter((c) => c.stage === "hired").length;
@@ -192,6 +209,7 @@ export default function AdminUserDetail() {
             { label: "Jobs created", value: jobs.length },
             { label: "Resumes scanned", value: scanned },
             { label: `AI interviews (${completedCount} done · ${liveCount} live · ${pendingCount} pending)`, value: sessions.length },
+            { label: `Assessments (${assessmentsDone} completed · ${assessmentsPending} pending)`, value: assignments.length },
             { label: "Hired", value: hired },
           ].map((s) => (
             <Card key={s.label}><CardContent className="pt-6">
@@ -264,6 +282,7 @@ export default function AdminUserDetail() {
                   <th className="p-3 font-medium">Stage</th>
                   <th className="p-3 font-medium">Parse</th>
                   <th className="p-3 font-medium">AI interview</th>
+                  <th className="p-3 font-medium">Assessment</th>
                   <th className="p-3 font-medium text-right">Score</th>
                   <th className="p-3 font-medium">Scanned</th>
                   <th className="p-3 font-medium" />
@@ -271,7 +290,7 @@ export default function AdminUserDetail() {
               </thead>
               <tbody>
                 {candidates.length === 0 && (
-                  <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No resumes scanned yet.</td></tr>
+                  <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">No resumes scanned yet.</td></tr>
                 )}
                 {candidates.map((c) => (
                   <tr key={c.id} className="border-t">
@@ -296,6 +315,12 @@ export default function AdminUserDetail() {
                             {b.label}
                           </Badge>
                         );
+                      })()}
+                    </td>
+                    <td className="p-3 text-xs">
+                      {(() => {
+                        const b = assessmentBadge(c.id);
+                        return <Badge variant={b.variant} className="capitalize">{b.label}</Badge>;
                       })()}
                     </td>
                     <td className="p-3 text-right tabular-nums">{c.overall_score ?? "—"}</td>
