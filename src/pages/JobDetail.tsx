@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -360,7 +360,7 @@ const JobDetail = () => {
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-muted-foreground">#{i + 1}</span>
-                    <span className={`text-xs font-semibold rounded px-1.5 py-0.5 ${scoreColor(c.overall_score)}`}>{c.overall_score}</span>
+                    <span className={`text-xs font-semibold rounded-sm px-1.5 py-0.5 ${scoreColor(c.overall_score)}`}>{c.overall_score}</span>
                   </div>
                   <p className="font-medium text-sm truncate">{c.name ?? "Unnamed"}</p>
                   <p className="text-xs text-muted-foreground truncate">
@@ -384,7 +384,7 @@ const JobDetail = () => {
         </div>
 
         {selected.size > 0 && (
-          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border bg-card px-3 py-2 sticky top-[68px] z-10 shadow-sm">
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border bg-card px-3 py-2 sticky top-[68px] z-10 shadow-xs">
             <span className="text-sm font-medium">{selected.size} selected</span>
             <div className="flex-1" />
             <Button size="sm" onClick={() => bulkSetStatus("shortlisted")} className="gap-1">

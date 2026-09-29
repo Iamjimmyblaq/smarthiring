@@ -1,0 +1,28 @@
+{
+  "customizations": [
+    { "token": "--background/--foreground (Talenval ivory/navy light palette)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--card / --card-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--popover / --popover-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--primary / --primary-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--secondary / --secondary-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--muted / --muted-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--accent / --accent-foreground (emerald)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--destructive / --destructive-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--warning / --warning-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--success / --success-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--border / --input / --ring", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--radius: 0.75rem", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--gradient-hero", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--gradient-accent", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--shadow-soft", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--shadow-glow", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--brand / --brand-foreground / --brand-2", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--gradient-brand / --gradient-brand-soft / --shadow-brand", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--sidebar-* (8 tokens)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": ".theme-marketing scope (obsidian marketing palette)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": ".dark palette overrides", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "color utilities brand/brand-2/success/warning (tailwind.config.ts extend.colors)", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "accordion-down/accordion-up keyframes + animations", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" },
+    { "token": "container (center, 2rem padding, 1400px 2xl)", "source": "tailwind.config.ts", "reappliedIn": "src/styles.css" }
+  ]
+}

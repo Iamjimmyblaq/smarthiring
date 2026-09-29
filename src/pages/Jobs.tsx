@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -108,7 +108,7 @@ const Jobs = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="container mx-auto py-10">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-gradient-to-br from-primary/5 via-background to-accent/10 p-6 shadow-sm">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-gradient-to-br from-primary/5 via-background to-accent/10 p-6 shadow-xs">
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-md">
               <Briefcase className="h-6 w-6" />

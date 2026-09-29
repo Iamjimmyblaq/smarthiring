@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -99,7 +99,7 @@ export default function Developers() {
           <h1 className="text-3xl font-semibold tracking-tight">Developers</h1>
           <p className="text-muted-foreground mt-1">API keys and webhooks for integrating Talenval with your systems.</p>
           <p className="text-sm text-muted-foreground mt-2">
-            Base URL: <code className="bg-muted px-2 py-1 rounded">{API_BASE}</code> ·{" "}
+            Base URL: <code className="bg-muted px-2 py-1 rounded-sm">{API_BASE}</code> ·{" "}
             <a href="/api-docs" className="underline">Read the API docs →</a>
           </p>
         </div>

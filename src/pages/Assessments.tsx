@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Copy, Loader2, Search, Send, ShieldCheck, Clock, Sparkles, Download, Wand2, Trash2 } from "lucide-react";
 import TestBuilderDialog from "@/components/assessments/TestBuilderDialog";
 import { usePlan } from "@/hooks/usePlan";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Progress } from "@/components/ui/progress";
 import { downloadAssessmentPdf, downloadAssessmentsBulkPdf, type AssessmentReportInput } from "@/lib/assessment-report";
 

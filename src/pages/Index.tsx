@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import MarketingNav from "@/components/marketing/MarketingNav";
@@ -366,7 +366,7 @@ const Index = () => {
       <footer className="border-t border-white/5 py-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <div className="size-6 rounded bg-gradient-to-br from-brand to-brand-2" />
+            <div className="size-6 rounded-sm bg-gradient-to-br from-brand to-brand-2" />
             <span className="font-medium text-foreground">Talenval</span>
           </div>
           <p>© {new Date().getFullYear()} Talenval. All rights reserved.</p>
@@ -435,14 +435,14 @@ function HeroMockup() {
         </div>
         <div className="mt-3 flex items-end gap-1 h-8">
           {[40, 60, 35, 90, 55, 70, 45].map((h, i) => (
-            <div key={i} className="flex-1 bg-brand/40 rounded-sm" style={{ height: `${h}%` }} />
+            <div key={i} className="flex-1 bg-brand/40 rounded-xs" style={{ height: `${h}%` }} />
           ))}
         </div>
       </div>
 
       <div className="absolute top-10 -right-4 -z-10 rounded-2xl border border-white/10 bg-card/40 p-5 w-72 opacity-50">
-        <div className="h-3 w-32 bg-white/10 rounded mb-3" />
-        <div className="h-2 w-44 bg-white/5 rounded" />
+        <div className="h-3 w-32 bg-white/10 rounded-sm mb-3" />
+        <div className="h-2 w-44 bg-white/5 rounded-sm" />
       </div>
     </div>
   );
