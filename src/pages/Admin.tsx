@@ -31,6 +31,7 @@ interface Tier {
   max_jobs: number | null;
   max_resumes: number | null;
   max_ai_interviews: number | null;
+  max_assessments: number | null;
   features: string[];
   is_active: boolean;
   sort_order: number;
@@ -55,6 +56,9 @@ interface UserRow {
   jobs: number;
   resumes: number;
   aiInterviews: number;
+  assessments: number;
+  assessmentsCompleted: number;
+  assessmentsPending: number;
   roles: string[];
 }
 
@@ -73,6 +77,7 @@ export default function Admin() {
   const [jobRows, setJobRows] = useState<any[]>([]);
   const [candidateRows, setCandidateRows] = useState<any[]>([]);
   const [sessionRows, setSessionRows] = useState<any[]>([]);
+  const [assignmentRows, setAssignmentRows] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [blockedIps, setBlockedIps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,7 +105,7 @@ export default function Admin() {
 
   const load = async () => {
     setLoading(true);
-    const [t, tm, mem, prof, roles, plans, jobs, cands, sessions, ips] = await Promise.all([
+    const [t, tm, mem, prof, roles, plans, jobs, cands, sessions, ips, assigns] = await Promise.all([
       supabase.from("plan_tiers").select("*").order("sort_order"),
       supabase.from("teams").select("*").order("created_at", { ascending: false }),
       supabase.from("team_members").select("*").order("created_at", { ascending: false }),
@@ -115,6 +120,7 @@ export default function Admin() {
       supabase.from("candidates").select("user_id"),
       supabase.from("interview_sessions").select("user_id"),
       supabase.from("blocked_ips").select("*").order("created_at", { ascending: false }),
+      supabase.from("skill_test_assignments").select("user_id, status"),
     ]);
     setTiers(((t.data ?? []) as any[]).map((x) => ({ ...x, features: x.features ?? [] })) as Tier[]);
     setTeams(tm.data ?? []);
@@ -126,6 +132,7 @@ export default function Admin() {
     setCandidateRows(cands.data ?? []);
     setSessionRows(sessions.data ?? []);
     setBlockedIps(ips.data ?? []);
+    setAssignmentRows(assigns.data ?? []);
     setLoading(false);
   };
 
@@ -143,6 +150,7 @@ export default function Admin() {
       max_jobs: tier.max_jobs,
       max_resumes: tier.max_resumes,
       max_ai_interviews: tier.max_ai_interviews,
+      max_assessments: tier.max_assessments,
       features: tier.features,
       is_active: tier.is_active,
       sort_order: tier.sort_order,
@@ -230,6 +238,9 @@ export default function Admin() {
     const jobs = countBy(jobRows);
     const resumes = countBy(candidateRows);
     const sessions = countBy(sessionRows);
+    const assessments = countBy(assignmentRows);
+    const assessmentsDone = countBy(assignmentRows.filter((a) => a.status === "submitted"));
+    const assessmentsOpen = countBy(assignmentRows.filter((a) => a.status !== "submitted"));
     return profiles.map((p) => ({
       id: p.id,
       email: p.email ?? null,
@@ -244,9 +255,12 @@ export default function Admin() {
       jobs: jobs[p.id] ?? 0,
       resumes: resumes[p.id] ?? 0,
       aiInterviews: sessions[p.id] ?? 0,
+      assessments: assessments[p.id] ?? 0,
+      assessmentsCompleted: assessmentsDone[p.id] ?? 0,
+      assessmentsPending: assessmentsOpen[p.id] ?? 0,
       roles: rolesByUser[p.id] ?? [],
     }));
-  }, [profiles, planRows, jobRows, candidateRows, sessionRows, rolesByUser]);
+  }, [profiles, planRows, jobRows, candidateRows, sessionRows, assignmentRows, rolesByUser]);
 
   const filteredUsers = useMemo(() => {
     const q = userSearch.trim().toLowerCase();
@@ -295,10 +309,10 @@ export default function Admin() {
   };
 
   const exportUsers = () => {
-    const header = ["Name", "Email", "Company", "Plan", "Roles", "Jobs", "Resumes scanned", "AI interviews", "Location", "Signup IP", "Last IP", "Joined", "Last active"];
+    const header = ["Name", "Email", "Company", "Plan", "Roles", "Jobs", "Resumes scanned", "AI interviews", "Assessments sent", "Assessments completed", "Assessments pending", "Location", "Signup IP", "Last IP", "Joined", "Last active"];
     const rows = filteredUsers.map((u) => [
       u.full_name ?? "", u.email ?? "", u.company_name ?? "", u.plan, u.roles.join(" "),
-      u.jobs, u.resumes, u.aiInterviews, u.location ?? "", u.signup_ip ?? "", u.last_ip ?? "",
+      u.jobs, u.resumes, u.aiInterviews, u.assessments, u.assessmentsCompleted, u.assessmentsPending, u.location ?? "", u.signup_ip ?? "", u.last_ip ?? "",
       fmtDate(u.created_at), fmtDate(u.last_active_at),
     ]);
     const csv = [header, ...rows]
@@ -343,7 +357,7 @@ export default function Admin() {
             <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
               <ShieldCheck className="h-7 w-7" aria-hidden="true" /> Admin console
             </h1>
-            <p className="text-muted-foreground mt-1">Manage subscription tiers, teams and roles.</p>
+            <p className="text-muted-foreground mt-1">Manage subscription tiers, assessment allowances, teams and roles.</p>
           </div>
           {isSuperAdmin && <Badge className="bg-emerald-600 text-white">Super admin</Badge>}
         </div>
@@ -407,6 +421,10 @@ export default function Admin() {
                     <div className="space-y-1.5">
                       <Label>Max AI interviews</Label>
                       <Input type="number" min={0} placeholder="Unlimited" value={limitText(tier.max_ai_interviews)} onChange={(e) => patchTier(tier.id, { max_ai_interviews: numOrNull(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Max assessments</Label>
+                      <Input type="number" min={0} placeholder="Unlimited" value={limitText(tier.max_assessments)} onChange={(e) => patchTier(tier.id, { max_assessments: numOrNull(e.target.value) })} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
@@ -516,6 +534,10 @@ export default function Admin() {
                 { label: "Paid subscribers", value: users.filter((u) => u.plan !== "free").length },
                 { label: "Resumes scanned", value: users.reduce((s, u) => s + u.resumes, 0) },
                 { label: "AI interviews", value: users.reduce((s, u) => s + u.aiInterviews, 0) },
+                {
+                  label: `Assessments (${users.reduce((s, u) => s + u.assessmentsCompleted, 0)} completed · ${users.reduce((s, u) => s + u.assessmentsPending, 0)} pending)`,
+                  value: users.reduce((s, u) => s + u.assessments, 0),
+                },
               ].map((s) => (
                 <Card key={s.label}>
                   <CardContent className="pt-6">
@@ -538,6 +560,7 @@ export default function Admin() {
                       <th className="p-3 font-medium text-right">Jobs</th>
                       <th className="p-3 font-medium text-right">Resumes</th>
                       <th className="p-3 font-medium text-right">AI interviews</th>
+                      <th className="p-3 font-medium text-right">Assessments</th>
                       <th className="p-3 font-medium">Location</th>
                       <th className="p-3 font-medium">IP</th>
                       <th className="p-3 font-medium">Joined</th>
@@ -547,7 +570,7 @@ export default function Admin() {
                   </thead>
                   <tbody>
                     {filteredUsers.length === 0 && (
-                      <tr><td colSpan={12} className="p-6 text-center text-muted-foreground">No users match this search.</td></tr>
+                      <tr><td colSpan={13} className="p-6 text-center text-muted-foreground">No users match this search.</td></tr>
                     )}
                     {filteredUsers.map((u) => {
                       const ip = u.signup_ip ?? u.last_ip;
@@ -568,6 +591,12 @@ export default function Admin() {
                         <td className="p-3 text-right tabular-nums">{u.jobs}</td>
                         <td className="p-3 text-right tabular-nums">{u.resumes}</td>
                         <td className="p-3 text-right tabular-nums">{u.aiInterviews}</td>
+                        <td className="p-3 text-right tabular-nums">
+                          {u.assessments}
+                          <span className="block text-[11px] text-muted-foreground">
+                            {u.assessmentsCompleted} done · {u.assessmentsPending} pending
+                          </span>
+                        </td>
                         <td className="p-3 text-xs">{u.location || "—"}</td>
                         <td className="p-3 text-xs">
                           {ip ? (
