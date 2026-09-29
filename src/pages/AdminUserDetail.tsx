@@ -101,7 +101,7 @@ export default function AdminUserDetail() {
     const { data, error } = await supabase.functions.invoke("admin-delete-user", { body: { user_id: id } });
     setWorking(false);
     if (error || (data as { error?: string })?.error) {
-      return toast.error((data as { error?: string })?.error || "Could not delete this account");
+      { toast.error((data as { error?: string })?.error || "Could not delete this account"); return; }
     }
     toast.success("Account deleted");
     navigate("/admin", { replace: true });

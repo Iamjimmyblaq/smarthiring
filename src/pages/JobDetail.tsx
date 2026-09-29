@@ -188,7 +188,7 @@ const JobDetail = () => {
       .insert({ user_id: u.user.id, job_id: id, candidate_id: cand.id })
       .select("token")
       .single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     const link = `${window.location.origin}/interview/${data.token}`;
     try { await navigator.clipboard.writeText(link); } catch { /* ignore */ }
     const subject = encodeURIComponent(`AI screening interview for ${job?.title ?? "the role"}`);
@@ -207,7 +207,7 @@ const JobDetail = () => {
     if (selected.size === 0) return;
     const ids = Array.from(selected);
     const { error } = await supabase.from("candidates").update({ status }).in("id", ids);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`${ids.length} candidate${ids.length > 1 ? "s" : ""} ${status === "shortlisted" ? "shortlisted" : status === "rejected" ? "rejected" : "updated"}`);
     setSelected(new Set());
   };

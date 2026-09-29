@@ -396,7 +396,7 @@ function InterviewRoomContent() {
   useEffect(() => {
     const handler = () => {
       if (doneRef.current || !startedRef.current) return;
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/interview-finalize`;
+      const url = `${import.meta.env["VITE_SUPABASE_URL"]}/functions/v1/interview-finalize`;
       const body = JSON.stringify({
         token,
         transcript: transcriptRef.current,

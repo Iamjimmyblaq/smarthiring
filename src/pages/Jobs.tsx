@@ -87,7 +87,7 @@ const Jobs = () => {
       .select()
       .single();
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setOpen(false);
     setTitle(""); setDescription(""); setRequirements(""); setSkillsInput(""); setMinYears(0);
     setCompanyName(""); setHrEmail("");
@@ -99,7 +99,7 @@ const Jobs = () => {
   const deleteJob = async (id: string) => {
     if (!confirm("Delete this job and all its candidates?")) return;
     const { error } = await supabase.from("jobs").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setJobs((j) => j.filter((x) => x.id !== id));
     planState.refresh();
   };

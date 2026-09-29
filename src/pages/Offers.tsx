@@ -65,7 +65,7 @@ export default function Offers() {
       status: "draft",
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await supabase.from("candidates").update({ stage: "offer" }).eq("id", cand.id);
     toast.success("Offer created");
     setOpen(false);
@@ -78,7 +78,7 @@ export default function Offers() {
     if (status === "sent") patch.sent_at = new Date().toISOString();
     if (status === "accepted" || status === "declined") patch.responded_at = new Date().toISOString();
     const { error } = await supabase.from("offers").update(patch).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     if (status === "accepted") {
       await supabase.from("candidates").update({ stage: "hired" }).eq("id", candidateId);
     }
@@ -88,7 +88,7 @@ export default function Offers() {
   const remove = async (id: string) => {
     if (!confirm("Delete offer?")) return;
     const { error } = await supabase.from("offers").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setItems((x) => x.filter((i) => i.id !== id));
   };
 

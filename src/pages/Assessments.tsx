@@ -125,7 +125,7 @@ export default function Assessments() {
   const deleteCustomTest = async (t: SkillTest) => {
     if (!confirm(`Delete "${t.title}"? Candidates already invited keep their link.`)) return;
     const { error } = await supabase.from("skill_tests").delete().eq("id", t.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Custom assessment deleted");
     load();
   };
@@ -157,7 +157,7 @@ export default function Assessments() {
   const submittedAssignments = assignments.filter((a) => a.status === "submitted");
 
   const downloadAll = () => {
-    if (submittedAssignments.length === 0) return toast.error("No submitted assessments to download yet.");
+    if (submittedAssignments.length === 0) { toast.error("No submitted assessments to download yet."); return; }
     downloadAssessmentsBulkPdf(submittedAssignments.map(toReportInput), "talenval-assessments");
     toast.success(`Downloaded ${submittedAssignments.length} result(s)`);
   };
