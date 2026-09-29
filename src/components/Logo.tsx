@@ -29,7 +29,7 @@ export default function Logo({
       />
       {withWordmark && (
         <span className={`font-semibold tracking-tight text-[1.05rem] ${wordmarkClassName}`}>
-          Smart<span className="font-bold">Hire</span>
+          Talen<span className="font-bold">val</span>
         </span>
       )}
     </span>
