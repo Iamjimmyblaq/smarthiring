@@ -433,7 +433,7 @@ export default function Admin() {
                   </div>
                   <div className="space-y-1.5">
                     <Label>Features (one per line)</Label>
-                    <Textarea rows={4} value={tier.features.join("\n")} onChange={(e) => patchTier(tier.id, { features: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })} />
+                    <Textarea rows={6} value={tier.features.join("\n")} onChange={(e) => patchTier(tier.id, { features: e.target.value.split("\n") })} />
                   </div>
                   <Button onClick={() => saveTier(tier)} disabled={saving === tier.id} className="gap-2">
                     {saving === tier.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save {tier.name}
