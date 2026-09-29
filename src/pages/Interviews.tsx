@@ -46,7 +46,7 @@ export default function Interviews() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    document.title = "Interviews — SmartHire";
+    document.title = "Interviews — Talenval";
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) navigate("/auth", { replace: true });
       else load();

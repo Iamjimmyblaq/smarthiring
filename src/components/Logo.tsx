@@ -1,4 +1,4 @@
-import logoMark from "@/assets/smarthire-logo.png";
+import logoMark from "@/assets/talenval-logo.png";
 
 interface LogoProps {
   /** Show the wordmark next to the icon */
@@ -20,7 +20,7 @@ export default function Logo({
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <img
         src={logoMark}
-        alt="SmartHire logo"
+        alt="Talenval logo"
         width={size}
         height={size}
         loading="lazy"
@@ -29,7 +29,7 @@ export default function Logo({
       />
       {withWordmark && (
         <span className={`font-semibold tracking-tight text-[1.05rem] ${wordmarkClassName}`}>
-          Smart<span className="font-bold">Hire</span>
+          Talen<span className="font-bold">val</span>
         </span>
       )}
     </span>

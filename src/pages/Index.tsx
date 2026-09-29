@@ -15,7 +15,7 @@ import HomeCouponBanner from "@/components/HomeCouponBanner";
 
 const Index = () => {
   useEffect(() => {
-    document.title = "SmartHire — Hire Smarter, Not Harder";
+    document.title = "Talenval — AI Talent Evaluation & Hiring";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute("content", "AI-powered resume screening that ranks every applicant in seconds and cuts screening time by 70%.");
     document.documentElement.classList.add("theme-marketing");
@@ -29,13 +29,13 @@ const Index = () => {
   return (
     <main className="theme-marketing min-h-screen">
       <Helmet>
-        <title>SmartHire — Hire Smarter, Not Harder</title>
+        <title>Talenval — AI Talent Evaluation & Hiring</title>
         <meta name="description" content="AI-powered resume screening that ranks every applicant in seconds. Cut screening time by 70% and shortlist the right people faster." />
         <link rel="canonical" href="https://smarthiring.lovable.app/" />
-        <meta property="og:title" content="SmartHire — Hire Smarter, Not Harder" />
+        <meta property="og:title" content="Talenval — AI Talent Evaluation & Hiring" />
         <meta property="og:description" content="AI-powered resume screening that ranks every applicant in seconds." />
         <meta property="og:url" content="https://smarthiring.lovable.app/" />
-        <meta name="twitter:title" content="SmartHire — Hire Smarter, Not Harder" />
+        <meta name="twitter:title" content="Talenval — AI Talent Evaluation & Hiring" />
         <meta name="twitter:description" content="AI-powered resume screening that ranks every applicant in seconds." />
       </Helmet>
       <MarketingNav />
@@ -59,7 +59,7 @@ const Index = () => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand to-brand-2">Not Harder.</span>
             </h1>
             <p className="mt-7 text-lg text-muted-foreground max-w-[52ch] leading-relaxed">
-              SmartHire's AI parses, scores and ranks every applicant against your role — cutting screening time by 70% so you spend it on the people worth interviewing.
+              Talenval's AI parses, scores and ranks every applicant against your role — cutting screening time by 70% so you spend it on the people worth interviewing.
             </p>
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <Link to="/auth">
@@ -124,10 +124,10 @@ const Index = () => {
           <div>
             <SectionLabel>The Solution</SectionLabel>
             <h2 className="mt-3 text-4xl md:text-5xl font-semibold tracking-tight text-foreground">
-              SmartHire reads every resume — and explains every score.
+              Talenval reads every resume — and explains every score.
             </h2>
             <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-              Define the role once. Drop in resumes. SmartHire ranks every candidate with explainable AI — matched skills, experience deltas, strengths and gaps — so you can confidently shortlist in minutes, not days.
+              Define the role once. Drop in resumes. Talenval ranks every candidate with explainable AI — matched skills, experience deltas, strengths and gaps — so you can confidently shortlist in minutes, not days.
             </p>
             <div className="mt-8 grid sm:grid-cols-2 gap-4">
               {[
@@ -344,7 +344,7 @@ const Index = () => {
                 Ready to skip the resume pile?
               </h2>
               <p className="mt-5 text-lg text-muted-foreground max-w-xl mx-auto">
-                Try SmartHire free — your first job and 100 resumes are on us.
+                Try Talenval free — your first job and 100 resumes are on us.
               </p>
               <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
                 <Link to="/auth">
@@ -367,9 +367,9 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="size-6 rounded bg-gradient-to-br from-brand to-brand-2" />
-            <span className="font-medium text-foreground">SmartHire</span>
+            <span className="font-medium text-foreground">Talenval</span>
           </div>
-          <p>© {new Date().getFullYear()} SmartHire. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Talenval. All rights reserved.</p>
         </div>
       </footer>
     </main>

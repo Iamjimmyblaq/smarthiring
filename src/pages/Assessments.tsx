@@ -50,7 +50,7 @@ export default function Assessments() {
   const plan = usePlan();
 
   useEffect(() => {
-    document.title = "Skills assessments — SmartHire";
+    document.title = "Skills assessments — Talenval";
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) navigate("/auth", { replace: true });
       else load();
@@ -158,7 +158,7 @@ export default function Assessments() {
 
   const downloadAll = () => {
     if (submittedAssignments.length === 0) return toast.error("No submitted assessments to download yet.");
-    downloadAssessmentsBulkPdf(submittedAssignments.map(toReportInput), "smarthire-assessments");
+    downloadAssessmentsBulkPdf(submittedAssignments.map(toReportInput), "talenval-assessments");
     toast.success(`Downloaded ${submittedAssignments.length} result(s)`);
   };
 
@@ -238,7 +238,7 @@ export default function Assessments() {
                 <SelectTrigger className="w-[190px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All tests</SelectItem>
-                  <SelectItem value="library">SmartHire library</SelectItem>
+                  <SelectItem value="library">Talenval library</SelectItem>
                   <SelectItem value="custom">My custom tests ({tests.filter((t) => t.is_custom).length})</SelectItem>
                 </SelectContent>
               </Select>

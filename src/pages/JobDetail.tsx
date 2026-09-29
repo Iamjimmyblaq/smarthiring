@@ -55,7 +55,7 @@ const JobDetail = () => {
 
   useEffect(() => {
     if (!id) return;
-    document.title = "Candidates — SmartHire";
+    document.title = "Candidates — Talenval";
     loadAll();
     const channel = supabase
       .channel(`candidates-${id}`)

@@ -9,7 +9,7 @@ const values = [
   { icon: Brain, title: "Intelligence first", body: "Every resume, interview and decision is enriched with AI scoring so hiring teams act on evidence, not gut feel." },
   { icon: Zap, title: "Speed without shortcuts", body: "Automated screening, AI video interviews and one-click pipelines cut weeks out of the hiring cycle." },
   { icon: ShieldCheck, title: "Fair and auditable", body: "Structured scoring, transparent criteria and full activity history keep every hiring decision defensible." },
-  { icon: Globe2, title: "Built for everywhere", body: "Global payments, multi-currency pricing and an open API mean SmartHire works for teams on any continent." },
+  { icon: Globe2, title: "Built for everywhere", body: "Global payments, multi-currency pricing and an open API mean Talenval works for teams on any continent." },
 ];
 
 const stats = [
@@ -22,11 +22,11 @@ export default function About() {
   return (
     <main className="min-h-screen bg-background">
       <Helmet>
-        <title>About SmartHire — AI Talent Intelligence Platform</title>
-        <meta name="description" content="SmartHire is an AI-powered talent intelligence platform that screens resumes, runs proctored AI video interviews and manages the full hiring lifecycle." />
+        <title>About Talenval — AI Talent Intelligence Platform</title>
+        <meta name="description" content="Talenval is an AI-powered talent intelligence platform that screens resumes, runs proctored AI video interviews and manages the full hiring lifecycle." />
         <link rel="canonical" href="https://smarthiring.lovable.app/about" />
-        <meta property="og:title" content="About SmartHire" />
-        <meta property="og:description" content="Why SmartHire exists and how AI screening, interviews and pipelines help teams hire better." />
+        <meta property="og:title" content="About Talenval" />
+        <meta property="og:description" content="Why Talenval exists and how AI screening, interviews and pipelines help teams hire better." />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
@@ -37,7 +37,7 @@ export default function About() {
           <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">About us</p>
           <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-tight">Hiring should be intelligent, fast and fair</h1>
           <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-            SmartHire was built for recruiters drowning in resumes and founders who cannot afford a bad hire. We combine
+            Talenval was built for recruiters drowning in resumes and founders who cannot afford a bad hire. We combine
             AI resume scoring, proctored AI video interviews and a complete recruitment pipeline into one operating
             system for talent — so a two-person team can hire like a hundred-person one.
           </p>

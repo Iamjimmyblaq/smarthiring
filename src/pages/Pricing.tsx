@@ -51,7 +51,7 @@ const Pricing = () => {
   const [appliedCode, setAppliedCode] = useState("");
 
   useEffect(() => {
-    document.title = "Pricing — SmartHire";
+    document.title = "Pricing — Talenval";
     supabase
       .from("plan_tiers")
       .select("*")
@@ -127,20 +127,20 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Pricing — SmartHire</title>
-        <meta name="description" content="SmartHire pricing: start free with 1 job and 100 resumes, or upgrade to Pro at $29/mo for unlimited jobs, unlimited resumes and advanced AI insights." />
+        <title>Pricing — Talenval</title>
+        <meta name="description" content="Talenval pricing: start free with 1 job and 100 resumes, or upgrade to Pro at $29/mo for unlimited jobs, unlimited resumes and advanced AI insights." />
         <link rel="canonical" href="https://smarthiring.lovable.app/pricing" />
-        <meta property="og:title" content="Pricing — SmartHire" />
+        <meta property="og:title" content="Pricing — Talenval" />
         <meta property="og:description" content="Free plan for 1 job and 100 resumes. Pro at $29/mo for unlimited hiring." />
         <meta property="og:url" content="https://smarthiring.lovable.app/pricing" />
-        <meta name="twitter:title" content="Pricing — SmartHire" />
+        <meta name="twitter:title" content="Pricing — Talenval" />
         <meta name="twitter:description" content="Free plan for 1 job and 100 resumes. Pro at $29/mo for unlimited hiring." />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Product",
-          "name": "SmartHire Pro",
+          "name": "Talenval Pro",
           "description": "Unlimited jobs, unlimited resumes, advanced AI insights, bias reduction mode, bulk actions and priority support.",
-          "brand": { "@type": "Brand", "name": "SmartHire" },
+          "brand": { "@type": "Brand", "name": "Talenval" },
           "offers": [
             { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "url": "https://smarthiring.lovable.app/pricing" },
             { "@type": "Offer", "name": "Pro", "price": "29", "priceCurrency": "USD", "url": "https://smarthiring.lovable.app/pricing" }

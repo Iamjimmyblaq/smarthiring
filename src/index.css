@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* SmartHire — calm editorial palette: warm ivory + deep navy + emerald accent */
+    /* Talenval — calm editorial palette: warm ivory + deep navy + emerald accent */
     --background: 40 33% 97%;
     --foreground: 222 39% 11%;
 
