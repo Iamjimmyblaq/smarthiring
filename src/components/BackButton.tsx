@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "@/lib/router-compat";
+import { useHydrated } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home } from "lucide-react";
 
@@ -16,7 +17,8 @@ interface BackButtonProps {
 export default function BackButton({ fallback = "/", label = "Back", className }: BackButtonProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const canGoBack = typeof window !== "undefined" && window.history.length > 1 && location.key !== "default";
+  const hydrated = useHydrated();
+  const canGoBack = hydrated && window.history.length > 1 && location.key !== "default";
 
   return (
     <Button
