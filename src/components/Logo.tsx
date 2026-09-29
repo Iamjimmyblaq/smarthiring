@@ -1,4 +1,4 @@
-import logoMark from "@/assets/smarthire-logo.png";
+import logoMark from "@/assets/talenval-logo.png";
 
 interface LogoProps {
   /** Show the wordmark next to the icon */
