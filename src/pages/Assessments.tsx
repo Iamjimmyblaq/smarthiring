@@ -150,7 +150,7 @@ export default function Assessments() {
       plagiarismScore: a.plagiarism_score,
       integrityFlags: (a.integrity_flags ?? {}) as Record<string, unknown>,
       proctoring: (a.proctoring ?? null) as Record<string, unknown> | null,
-      answers: Array.isArray(a.answers) ? (a.answers as AssessmentReportInput["answers"]) : [],
+      answers: Array.isArray(a.answers) ? (a.answers as NonNullable<AssessmentReportInput["answers"]>) : [],
     };
   };
 
@@ -322,7 +322,7 @@ export default function Assessments() {
                 const t = testById(a.test_id);
                 const c = candidateById(a.candidate_id);
                 const flags = (a.integrity_flags ?? {}) as Record<string, unknown>;
-                const verdict = typeof flags.verdict === "string" ? flags.verdict : null;
+                const verdict = typeof flags["verdict"] === "string" ? flags["verdict"] : null;
                 return (
                   <Card key={a.id}>
                     <CardContent className="p-4 flex flex-wrap items-center gap-3">

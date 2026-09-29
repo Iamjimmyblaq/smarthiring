@@ -153,7 +153,7 @@ const JobDetail = () => {
     const workers = Array.from({ length: Math.min(CONCURRENCY, arr.length) }, async () => {
       while (idx < arr.length) {
         const myIdx = idx++;
-        await processFile(arr[myIdx]);
+        await processFile(arr[myIdx]!);
         done++;
         setUploadProgress({ done, total: arr.length });
       }

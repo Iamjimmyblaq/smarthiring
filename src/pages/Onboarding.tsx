@@ -88,7 +88,7 @@ export default function Onboarding() {
     if (error) { toast.error(error.message); return; }
     setTasksByCand((prev) => ({
       ...prev,
-      [t.candidate_id]: prev[t.candidate_id].map((x) => x.id === t.id ? { ...x, completed: next } : x),
+      [t.candidate_id]: (prev[t.candidate_id] ?? []).map((x) => x.id === t.id ? { ...x, completed: next } : x),
     }));
   };
 
@@ -97,7 +97,7 @@ export default function Onboarding() {
     if (error) { toast.error(error.message); return; }
     setTasksByCand((prev) => ({
       ...prev,
-      [t.candidate_id]: prev[t.candidate_id].filter((x) => x.id !== t.id),
+      [t.candidate_id]: (prev[t.candidate_id] ?? []).filter((x) => x.id !== t.id),
     }));
   };
 

@@ -51,7 +51,7 @@ export default function AssessmentRoom() {
   const awaySince = useRef<number | null>(null);
 
   const logEvent = (type: string, detail?: string) => {
-    stats.current.events.push({ at: new Date().toISOString(), type, detail });
+    stats.current.events.push({ at: new Date().toISOString(), type, ...(detail !== undefined ? { detail } : {}) });
   };
 
   useEffect(() => {
@@ -215,8 +215,8 @@ export default function AssessmentRoom() {
           let diff = 0;
           let bright = 0;
           for (let i = 0; i < frame.data.length; i += 16) {
-            diff += Math.abs(frame.data[i] - prev.data[i]);
-            bright += frame.data[i];
+            diff += Math.abs((frame.data[i] ?? 0) - (prev.data[i] ?? 0));
+            bright += frame.data[i] ?? 0;
           }
           const samples = frame.data.length / 16;
           const motion = diff / samples;

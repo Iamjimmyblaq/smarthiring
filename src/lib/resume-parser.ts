@@ -48,7 +48,7 @@ function normalizeName(raw: string): string {
     return cleaned
       .toLowerCase()
       .split(" ")
-      .map((w) => (w.length > 1 ? w[0].toUpperCase() + w.slice(1) : w.toUpperCase()))
+      .map((w) => (w.length > 1 ? w.charAt(0).toUpperCase() + w.slice(1) : w.toUpperCase()))
       .join(" ");
   }
   return cleaned;
@@ -69,6 +69,8 @@ function looksLikeName(line: string): boolean {
  */
 export function quickExtractMeta(text: string): { name?: string; email?: string } {
   const email = text.match(EMAIL_RE)?.[0];
+  const result: { name?: string; email?: string } = {};
+  if (email) result.email = email;
   const lines = text
     .split(/\r?\n/)
     .flatMap((l) => l.split(/\s{4,}/))
@@ -77,19 +79,25 @@ export function quickExtractMeta(text: string): { name?: string; email?: string 
 
   // 1. Explicit "Name: ..." label anywhere near the top.
   for (const line of lines.slice(0, 40)) {
-    const m = line.match(NAME_LABEL);
-    if (m && looksLikeName(m[2].trim())) return { name: normalizeName(m[2].trim()), email };
+    const labeled = line.match(NAME_LABEL)?.[2]?.trim();
+    if (labeled && looksLikeName(labeled)) {
+      result.name = normalizeName(labeled);
+      return result;
+    }
   }
 
   // 2. First name-looking line in the header block.
   for (const line of lines.slice(0, 15)) {
-    if (looksLikeName(line)) return { name: normalizeName(line), email };
+    if (looksLikeName(line)) {
+      result.name = normalizeName(line);
+      return result;
+    }
   }
 
   // 3. Derive from the email local part as a last resort.
   if (email) {
-    const local = email.split("@")[0].replace(/\d+/g, "").replace(/[._-]+/g, " ").trim();
-    if (looksLikeName(local)) return { name: normalizeName(local), email };
+    const local = (email.split("@")[0] ?? "").replace(/\d+/g, "").replace(/[._-]+/g, " ").trim();
+    if (looksLikeName(local)) result.name = normalizeName(local);
   }
-  return { email };
+  return result;
 }
