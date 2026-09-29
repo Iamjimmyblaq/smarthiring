@@ -22,6 +22,7 @@ interface Tier {
   max_jobs: number | null;
   max_resumes: number | null;
   max_ai_interviews: number | null;
+  max_assessments: number | null;
   features: string[];
 }
 
@@ -218,6 +219,8 @@ const Pricing = () => {
                     <Feature>{fmtLimit(tier.max_resumes, "resume uploads")}</Feature>
                     <Feature>{fmtLimit(tier.max_jobs, "active jobs")}</Feature>
                     <Feature>{fmtLimit(tier.max_ai_interviews, "AI interviews")}</Feature>
+                    <Feature>{fmtLimit(tier.max_assessments, "proctored skills assessments")}</Feature>
+                    <Feature>Custom assessment builder for L&amp;D teams</Feature>
                     {tier.features.map((f) => <Feature key={f}>{f}</Feature>)}
                     <Button
                       className="w-full mt-4 gap-2"

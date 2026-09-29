@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, BadgeCheck, Bot, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Bot, ClipboardCheck, Sparkles, Users } from "lucide-react";
 import hrDesk from "@/assets/hr-interview-desk.jpg";
 
 const FEATURES = [
   { icon: Sparkles, text: "AI resume scoring with explainable results" },
   { icon: Users, text: "5-stage pipeline from sourced to hired" },
+  { icon: ClipboardCheck, text: "490+ proctored skills assessments — or build your own" },
   { icon: BadgeCheck, text: "Automatic candidate status emails" },
 ];
 
@@ -28,8 +29,8 @@ export default function AuthShowcase() {
           Every interview,<br className="hidden sm:block" /> intelligently run.
         </h2>
         <p className="mt-3 lg:mt-4 text-sm sm:text-base text-muted-foreground max-w-md">
-          Screen, rank, interview and hire from one pipeline — with an AI interviewer that meets your
-          candidates on video.
+          Screen, rank, test, interview and hire from one pipeline — proctored skills assessments plus an
+          AI interviewer that meets your candidates on video.
         </p>
       </div>
 
