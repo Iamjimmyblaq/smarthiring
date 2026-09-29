@@ -151,7 +151,7 @@ export default function Admin() {
       max_resumes: tier.max_resumes,
       max_ai_interviews: tier.max_ai_interviews,
       max_assessments: tier.max_assessments,
-      features: tier.features,
+      features: tier.features.map((s) => s.trim()).filter(Boolean),
       is_active: tier.is_active,
       sort_order: tier.sort_order,
     }).eq("id", tier.id);
