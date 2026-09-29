@@ -20,7 +20,7 @@ export default function Demo() {
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    document.title = "Live Demo — SmartHire";
+    document.title = "Live Demo — Talenval";
     supabase.auth.getSession().then(({ data }) => {
       setAuthed(!!data.session);
       setAuthChecked(true);
@@ -37,11 +37,11 @@ export default function Demo() {
     return (
       <main className="theme-marketing min-h-screen flex items-center justify-center">
         <Helmet>
-          <title>Live Demo — SmartHire</title>
-          <meta name="description" content="Try SmartHire live: a Frontend Developer role prefilled with 10 sample candidates, ranked instantly with explainable AI scoring." />
+          <title>Live Demo — Talenval</title>
+          <meta name="description" content="Try Talenval live: a Frontend Developer role prefilled with 10 sample candidates, ranked instantly with explainable AI scoring." />
           <link rel="canonical" href="https://smarthiring.lovable.app/demo" />
-          <meta property="og:title" content="Live Demo — SmartHire" />
-          <meta property="og:description" content="Try SmartHire live with a prefilled role and 10 sample candidates ranked instantly." />
+          <meta property="og:title" content="Live Demo — Talenval" />
+          <meta property="og:description" content="Try Talenval live with a prefilled role and 10 sample candidates ranked instantly." />
           <meta property="og:url" content="https://smarthiring.lovable.app/demo" />
         </Helmet>
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -53,11 +53,11 @@ export default function Demo() {
     return (
       <main className="theme-marketing min-h-screen">
         <Helmet>
-          <title>Live Demo — SmartHire</title>
-          <meta name="description" content="Try SmartHire live: a Frontend Developer role prefilled with 10 sample candidates, ranked instantly with explainable AI scoring." />
+          <title>Live Demo — Talenval</title>
+          <meta name="description" content="Try Talenval live: a Frontend Developer role prefilled with 10 sample candidates, ranked instantly with explainable AI scoring." />
           <link rel="canonical" href="https://smarthiring.lovable.app/demo" />
-          <meta property="og:title" content="Live Demo — SmartHire" />
-          <meta property="og:description" content="Try SmartHire live with a prefilled role and 10 sample candidates ranked instantly." />
+          <meta property="og:title" content="Live Demo — Talenval" />
+          <meta property="og:description" content="Try Talenval live with a prefilled role and 10 sample candidates ranked instantly." />
           <meta property="og:url" content="https://smarthiring.lovable.app/demo" />
         </Helmet>
         <MarketingNav />

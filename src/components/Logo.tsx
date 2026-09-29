@@ -20,7 +20,7 @@ export default function Logo({
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <img
         src={logoMark}
-        alt="SmartHire logo"
+        alt="Talenval logo"
         width={size}
         height={size}
         loading="lazy"

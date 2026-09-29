@@ -13,8 +13,8 @@ export default function ApiDocs() {
       <AppHeader />
       <main className="container mx-auto py-8 max-w-4xl space-y-6">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">SmartHire API</h1>
-          <p className="text-muted-foreground mt-2">Integrate SmartHire into your careers site, ATS, or backend. Jobs created through the API appear in your SmartHire jobs board automatically.</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Talenval API</h1>
+          <p className="text-muted-foreground mt-2">Integrate Talenval into your careers site, ATS, or backend. Jobs created through the API appear in your Talenval jobs board automatically.</p>
         </div>
 
         <Card>
@@ -29,12 +29,12 @@ export default function ApiDocs() {
         <Card>
           <CardHeader><CardTitle>Drop-in SDK — connect your site in 3 lines</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <p>Paste this snippet into your company's codebase to talk to SmartHire without writing any HTTP code. Keep the API key on your server and proxy browser calls through your backend.</p>
-            <Code>{`<script src="https://smarthiring.lovable.app/smarthire.js"></script>
+            <p>Paste this snippet into your company's codebase to talk to Talenval without writing any HTTP code. Keep the API key on your server and proxy browser calls through your backend.</p>
+            <Code>{`<script src="https://smarthiring.lovable.app/talenval.js"></script>
 <script>
-  const sh = SmartHire.init({ apiKey: "sh_live_..." });
+  const sh = Talenval.init({ apiKey: "sh_live_..." });
 
-  // Post a job on your careers site → it appears on SmartHire automatically
+  // Post a job on your careers site → it appears on Talenval automatically
   await sh.jobs.create({
     external_id: "req-2891",
     external_source: "acme-careers",
@@ -47,9 +47,9 @@ export default function ApiDocs() {
   });
 </script>`}</Code>
             <p className="font-medium">Node / Next.js / Deno</p>
-            <Code>{`import SmartHire from "https://smarthiring.lovable.app/smarthire.js";
+            <Code>{`import Talenval from "https://smarthiring.lovable.app/talenval.js";
 
-const sh = SmartHire.init({ apiKey: process.env.SMARTHIRE_API_KEY });
+const sh = Talenval.init({ apiKey: process.env.TALENVAL_API_KEY });
 
 // Mirror your whole careers board in one call (safe to re-run — deduped by external_id)
 await sh.jobs.sync(myJobs.map(j => ({
@@ -59,7 +59,7 @@ await sh.jobs.sync(myJobs.map(j => ({
 
 // Application form submit
 const { data: candidate } = await sh.candidates.apply({
-  job_id: smartHireJobId, name, email, resume_url: uploadedUrl,
+  job_id: talenvalJobId, name, email, resume_url: uploadedUrl,
 });
 
 // Move a candidate + trigger the status email/webhook
@@ -76,9 +76,9 @@ await sh.webhooks.create("https://acme.com/hooks/sh", ["candidate.stage_changed"
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Jobs — auto-listing on SmartHire</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Jobs — auto-listing on Talenval</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <p>When a company posts a job on their careers site and calls <code>POST /jobs</code>, the job is inserted into their SmartHire jobs board automatically. Pass <code>external_id</code> + <code>external_source</code> for safe retries — duplicate calls update the same row instead of creating a copy.</p>
+            <p>When a company posts a job on their careers site and calls <code>POST /jobs</code>, the job is inserted into their Talenval jobs board automatically. Pass <code>external_id</code> + <code>external_source</code> for safe retries — duplicate calls update the same row instead of creating a copy.</p>
             <ul className="list-disc pl-5 space-y-1">
               <li><code>GET /jobs?limit=50</code> — list</li>
               <li><code>POST /jobs</code> — create or upsert (dedup)</li>
@@ -162,9 +162,9 @@ Content-Type: application/json
           <CardContent className="space-y-3 text-sm">
             <p>Subscribe to real-time events. Each delivery is <code>POST</code> JSON with headers:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><code>X-SmartHire-Event</code> — e.g. <code>candidate.stage_changed</code></li>
-              <li><code>X-SmartHire-Event-Id</code> — unique per event (use for idempotency)</li>
-              <li><code>X-SmartHire-Signature: sha256=&lt;hex&gt;</code> — HMAC-SHA256 of the raw body with your endpoint secret</li>
+              <li><code>X-Talenval-Event</code> — e.g. <code>candidate.stage_changed</code></li>
+              <li><code>X-Talenval-Event-Id</code> — unique per event (use for idempotency)</li>
+              <li><code>X-Talenval-Signature: sha256=&lt;hex&gt;</code> — HMAC-SHA256 of the raw body with your endpoint secret</li>
             </ul>
             <p>Events: <code>candidate.stage_changed</code>, <code>interview.scheduled</code>, <code>interview.ai_session_created</code>, <code>interview.completed</code>, <code>offer.created</code>.</p>
             <p>Deliveries retry up to 3 times with exponential backoff on 5xx or network errors; 4xx are not retried. Response bodies (first 500 chars) are stored for debugging.</p>
@@ -175,9 +175,9 @@ Content-Type: application/json
 // → { data: { id, url, secret: "whsec_..." } }`}</Code>
             <p className="font-medium">Sample delivery</p>
             <Code>{`POST /hooks/sh
-X-SmartHire-Event: candidate.stage_changed
-X-SmartHire-Event-Id: 8b0c...
-X-SmartHire-Signature: sha256=9f2a...
+X-Talenval-Event: candidate.stage_changed
+X-Talenval-Event-Id: 8b0c...
+X-Talenval-Signature: sha256=9f2a...
 
 {
   "id": "8b0c...",
@@ -187,7 +187,7 @@ X-SmartHire-Signature: sha256=9f2a...
 }`}</Code>
             <p className="font-medium">Verify signature (Node)</p>
             <Code>{`import crypto from "node:crypto";
-const sig = req.headers["x-smarthire-signature"].split("=")[1];
+const sig = req.headers["x-talenval-signature"].split("=")[1];
 const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
 if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return res.status(401).end();`}</Code>
           </CardContent>

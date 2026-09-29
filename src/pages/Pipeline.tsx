@@ -38,7 +38,7 @@ export default function Pipeline() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "Pipeline — SmartHire";
+    document.title = "Pipeline — Talenval";
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) navigate("/auth", { replace: true });
       else load();

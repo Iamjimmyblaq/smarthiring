@@ -72,7 +72,7 @@ export default function RolePermissionsMatrix() {
           <CardTitle className="text-base flex items-center gap-2">
             <ShieldCheck className="h-4 w-4" /> Role permissions matrix
           </CardTitle>
-          <CardDescription>Define exactly what each role can do across SmartHire.</CardDescription>
+          <CardDescription>Define exactly what each role can do across Talenval.</CardDescription>
         </div>
         <Button size="sm" className="gap-2" onClick={save} disabled={saving}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save matrix

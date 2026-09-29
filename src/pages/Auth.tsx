@@ -21,7 +21,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    document.title = "Sign in — SmartHire";
+    document.title = "Sign in — Talenval";
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) resolveLandingRoute().then((route) => navigate(route, { replace: true }));
     });
@@ -65,11 +65,11 @@ const Auth = () => {
   return (
     <main className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-background">
       <Helmet>
-        <title>Sign in — SmartHire</title>
-        <meta name="description" content="Sign in to SmartHire or create a free account to start ranking candidates with AI in seconds." />
+        <title>Sign in — Talenval</title>
+        <meta name="description" content="Sign in to Talenval or create a free account to start ranking candidates with AI in seconds." />
         <link rel="canonical" href="https://smarthiring.lovable.app/auth" />
-        <meta property="og:title" content="Sign in — SmartHire" />
-        <meta property="og:description" content="Sign in or create a free SmartHire account to start ranking candidates." />
+        <meta property="og:title" content="Sign in — Talenval" />
+        <meta property="og:description" content="Sign in or create a free Talenval account to start ranking candidates." />
         <meta property="og:url" content="https://smarthiring.lovable.app/auth" />
       </Helmet>
       <h1 className="sr-only">Sign in or Create Account</h1>
@@ -84,7 +84,7 @@ const Auth = () => {
           <div className="mx-auto h-10 w-10 rounded-md bg-primary flex items-center justify-center">
             <Sparkles className="h-5 w-5 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl">Welcome to SmartHire</CardTitle>
+          <CardTitle className="text-2xl">Welcome to Talenval</CardTitle>
           <CardDescription>Sign in to screen and rank candidates.</CardDescription>
         </CardHeader>
         <CardContent>

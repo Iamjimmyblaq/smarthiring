@@ -32,7 +32,7 @@ const Jobs = () => {
   const planState = usePlan();
 
   useEffect(() => {
-    document.title = "Jobs — SmartHire";
+    document.title = "Jobs — Talenval";
   }, []);
 
   useEffect(() => {

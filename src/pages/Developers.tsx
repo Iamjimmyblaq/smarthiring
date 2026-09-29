@@ -37,7 +37,7 @@ export default function Developers() {
   const [hookUrl, setHookUrl] = useState("");
 
   useEffect(() => {
-    document.title = "Developers — SmartHire API";
+    document.title = "Developers — Talenval API";
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) navigate("/auth", { replace: true });
       else load();
@@ -97,7 +97,7 @@ export default function Developers() {
       <main className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Developers</h1>
-          <p className="text-muted-foreground mt-1">API keys and webhooks for integrating SmartHire with your systems.</p>
+          <p className="text-muted-foreground mt-1">API keys and webhooks for integrating Talenval with your systems.</p>
           <p className="text-sm text-muted-foreground mt-2">
             Base URL: <code className="bg-muted px-2 py-1 rounded">{API_BASE}</code> ·{" "}
             <a href="/api-docs" className="underline">Read the API docs →</a>
@@ -165,8 +165,8 @@ export default function Developers() {
                 <DialogHeader><DialogTitle>New webhook endpoint</DialogTitle></DialogHeader>
                 <div className="space-y-2">
                   <Label>URL</Label>
-                  <Input value={hookUrl} onChange={(e) => setHookUrl(e.target.value)} placeholder="https://your-app.com/webhooks/smarthire" />
-                  <p className="text-xs text-muted-foreground">We'll POST JSON events signed with HMAC-SHA256 in the <code>X-SmartHire-Signature</code> header.</p>
+                  <Input value={hookUrl} onChange={(e) => setHookUrl(e.target.value)} placeholder="https://your-app.com/webhooks/talenval" />
+                  <p className="text-xs text-muted-foreground">We'll POST JSON events signed with HMAC-SHA256 in the <code>X-Talenval-Signature</code> header.</p>
                 </div>
                 <DialogFooter><Button onClick={createHook}>Create</Button></DialogFooter>
               </DialogContent>

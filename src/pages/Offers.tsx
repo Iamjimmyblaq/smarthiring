@@ -30,7 +30,7 @@ export default function Offers() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    document.title = "Offers — SmartHire";
+    document.title = "Offers — Talenval";
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) navigate("/auth", { replace: true });
       else load();

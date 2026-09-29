@@ -210,7 +210,7 @@ function InterviewRoomContent() {
   });
 
   useEffect(() => {
-    document.title = "AI Interview — SmartHire";
+    document.title = "AI Interview — Talenval";
     if (!token) return;
     (async () => {
       try {

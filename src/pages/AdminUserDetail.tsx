@@ -71,7 +71,7 @@ export default function AdminUserDetail() {
   }, [id]);
 
   useEffect(() => {
-    document.title = "User details — SmartHire admin";
+    document.title = "User details — Talenval admin";
     if (!roleLoading && isAdmin) load();
     else if (!roleLoading) setLoading(false);
   }, [roleLoading, isAdmin, load]);

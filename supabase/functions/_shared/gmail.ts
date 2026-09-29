@@ -61,7 +61,7 @@ export async function sendGmail(opts: SendOpts) {
     opts.replyTo ? `Reply-To: ${sanitizeHeader(opts.replyTo)}` : "",
     `Subject: ${sanitizeHeader(opts.subject)}`,
     "MIME-Version: 1.0",
-    opts.fromName ? `X-SmartHire-Sender: ${sanitizeHeader(opts.fromName)}` : "",
+    opts.fromName ? `X-Talenval-Sender: ${sanitizeHeader(opts.fromName)}` : "",
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
   ].filter(Boolean).join("\r\n");
   const body = [
@@ -167,5 +167,5 @@ export async function sendQueuedEmail(opts: QueuedSendOpts) {
 }
 
 export function baseLayout(inner: string) {
-  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#222;line-height:1.55">${inner}<p style="color:#777;font-size:13px;margin-top:32px">Sent from the SmartHire recruiting workspace.</p></div>`;
+  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#222;line-height:1.55">${inner}<p style="color:#777;font-size:13px;margin-top:32px">Sent from the Talenval recruiting workspace.</p></div>`;
 }

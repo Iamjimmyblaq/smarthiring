@@ -23,7 +23,7 @@ export default function Onboarding() {
   const [newTaskInputs, setNewTaskInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    document.title = "Onboarding — SmartHire";
+    document.title = "Onboarding — Talenval";
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) navigate("/auth", { replace: true });
       else load();

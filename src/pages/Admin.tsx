@@ -90,7 +90,7 @@ export default function Admin() {
   const [memberTeam, setMemberTeam] = useState<string>("");
 
   useEffect(() => {
-    document.title = "Admin console — SmartHire";
+    document.title = "Admin console — Talenval";
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) navigate("/auth", { replace: true });
     });
@@ -321,7 +321,7 @@ export default function Admin() {
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `smarthire-users-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `talenval-users-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -341,7 +341,7 @@ export default function Admin() {
         <AppHeader />
         <main className="container mx-auto py-20 max-w-lg text-center">
           <h1 className="text-2xl font-semibold">Admin access required</h1>
-          <p className="text-muted-foreground mt-3">This console is restricted to SmartHire administrators.</p>
+          <p className="text-muted-foreground mt-3">This console is restricted to Talenval administrators.</p>
           <Button className="mt-6" onClick={() => navigate("/jobs")}>Back to app</Button>
         </main>
       </div>
