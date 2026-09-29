@@ -1,7 +1,7 @@
 import AppHeader from "@/components/AppHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api/v1`;
+const BASE = `${import.meta.env["VITE_SUPABASE_URL"]}/functions/v1/api/v1`;
 
 const Code = ({ children }: { children: string }) => (
   <pre className="bg-muted rounded-lg p-4 text-xs overflow-x-auto"><code>{children}</code></pre>

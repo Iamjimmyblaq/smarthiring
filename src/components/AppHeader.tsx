@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
+import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Home as HomeIcon, LogOut } from "lucide-react";
@@ -60,11 +61,8 @@ export default function AppHeader() {
             <NavLink
               key={i.to}
               to={i.to}
-              className={({ isActive }) =>
-                `px-3 py-1.5 rounded-md transition-colors ${
-                  isActive ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`
-              }
+              className="px-3 py-1.5 rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              activeClassName="bg-muted text-foreground font-medium"
             >
               {i.label}
             </NavLink>

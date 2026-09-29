@@ -45,15 +45,15 @@ export default function CandidateNameOverride({ candidateId, currentName, onSave
 
   const save = async () => {
     const next = name.trim();
-    if (!next) return toast.error("Name is required");
-    if (next === (currentName ?? "")) return toast.info("Name unchanged");
+    if (!next) { toast.error("Name is required"); return; }
+    if (next === (currentName ?? "")) { toast.info("Name unchanged"); return; }
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
     const { error } = await supabase
       .from("candidates")
       .update({ name: next, name_overridden_at: new Date().toISOString() })
       .eq("id", candidateId);
-    if (error) { setSaving(false); return toast.error(error.message); }
+    if (error) { setSaving(false); { toast.error(error.message); return; } }
     const { error: histErr } = await supabase.from("candidate_name_edits").insert({
       candidate_id: candidateId,
       old_name: currentName,

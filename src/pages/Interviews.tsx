@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -92,7 +92,7 @@ export default function Interviews() {
       notes: notes || null,
     });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     // also bump candidate stage
     await supabase.from("candidates").update({ stage: "interview" }).eq("id", cand.id);
     toast.success("Interview scheduled");
@@ -103,15 +103,15 @@ export default function Interviews() {
 
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase.from("interviews").update({ status }).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     load();
   };
 
   const sendDecisionEmail = async (iv: Interview, kind: "interview" | "rejection") => {
     const cand = candidates.find((c) => c.id === iv.candidate_id);
     const job = jobs.find((j) => j.id === iv.job_id);
-    if (!cand) return toast.error("Candidate not found");
-    if (!cand.email) return toast.error("Candidate has no email on file");
+    if (!cand) { toast.error("Candidate not found"); return; }
+    if (!cand.email) { toast.error("Candidate has no email on file"); return; }
 
     const companyName = job?.company_name || profile?.company_name || "";
     const hrEmail = job?.hr_email || profile?.hr_email || "";
@@ -155,7 +155,7 @@ export default function Interviews() {
       .from("interviews")
       .update({ rating, status: "completed" })
       .eq("id", iv.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
 
     const cand = candidates.find((c) => c.id === iv.candidate_id);
     const alreadySent = !!cand?.decision_email_sent_at;
@@ -171,7 +171,7 @@ export default function Interviews() {
   const remove = async (id: string) => {
     if (!confirm("Delete interview?")) return;
     const { error } = await supabase.from("interviews").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setItems((x) => x.filter((i) => i.id !== id));
   };
 
@@ -184,7 +184,7 @@ export default function Interviews() {
       body: { token: s.token, transcript: (s.transcript as unknown as { role: string; text: string }[]) ?? [] },
     });
     setEmailingReport(null);
-    if (error) return toast.error("Could not send the report. Please try again.");
+    if (error) { toast.error("Could not send the report. Please try again."); return; }
     if (data?.reportEmailed === false) {
       toast.error(data?.reportEmailError || "The report could not be delivered — check the HR email on this job.");
     } else {
@@ -207,7 +207,7 @@ export default function Interviews() {
   const deleteAiSession = async (id: string) => {
     if (!confirm("Delete this AI interview session?")) return;
     const { error } = await supabase.from("interview_sessions").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setAiSessions((x) => x.filter((s) => s.id !== id));
   };
 

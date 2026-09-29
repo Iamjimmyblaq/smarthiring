@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveLandingRoute } from "@/hooks/useIsAdmin";
 import { lovable } from "@/integrations/lovable/index";
@@ -32,7 +32,7 @@ const Auth = () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     navigate(await resolveLandingRoute(), { replace: true });
   };
 
@@ -46,7 +46,7 @@ const Auth = () => {
       options: { emailRedirectTo: redirectUrl, data: { full_name: fullName } },
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Account created. Check your email to confirm, then sign in.");
   };
 
@@ -79,7 +79,7 @@ const Auth = () => {
 
       {/* Auth form */}
       <div className="flex items-center justify-center px-4 py-8 sm:py-10">
-      <Card className="w-full max-w-md shadow-sm">
+      <Card className="w-full max-w-md shadow-xs">
         <CardHeader className="space-y-2 text-center">
           <div className="mx-auto h-10 w-10 rounded-md bg-primary flex items-center justify-center">
             <Sparkles className="h-5 w-5 text-primary-foreground" />

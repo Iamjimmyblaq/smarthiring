@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import MarketingNav from "@/components/marketing/MarketingNav";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
@@ -92,7 +92,7 @@ function DemoExperience() {
   const [minScore, setMinScore] = useState(0);
   const [onlyShortlisted, setOnlyShortlisted] = useState(false);
   const [shortlist, setShortlist] = useState<Set<string>>(new Set());
-  const [selectedId, setSelectedId] = useState<string>(DEMO_CANDIDATES[0].id);
+  const [selectedId, setSelectedId] = useState<string>(DEMO_CANDIDATES[0]!.id);
   const [uploading, setUploading] = useState(false);
 
   const ranked = useMemo(

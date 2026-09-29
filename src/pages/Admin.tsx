@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { useIsAdmin, type AppRole } from "@/hooks/useIsAdmin";
@@ -156,7 +156,7 @@ export default function Admin() {
       sort_order: tier.sort_order,
     }).eq("id", tier.id);
     setSaving(null);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`${tier.name} updated`);
   };
 
@@ -165,24 +165,24 @@ export default function Admin() {
     const { error } = await supabase.from("plan_tiers").insert({
       key, name: "New tier", price_amount: 0, sort_order: tiers.length + 1,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Tier created");
     load();
   };
 
   const deleteTier = async (id: string) => {
     const { error } = await supabase.from("plan_tiers").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setTiers((prev) => prev.filter((t) => t.id !== id));
   };
 
   const createTeam = async () => {
-    if (!teamName.trim()) return toast.error("Team name required");
+    if (!teamName.trim()) { toast.error("Team name required"); return; }
     const { data: userData } = await supabase.auth.getUser();
     const { error } = await supabase.from("teams").insert({
       name: teamName.trim(), description: teamDesc.trim() || null, owner_id: userData.user?.id ?? null,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setTeamName(""); setTeamDesc(""); setTeamOpen(false);
     toast.success("Team created");
     load();
@@ -190,12 +190,12 @@ export default function Admin() {
 
   const addMember = async () => {
     const email = memberEmail.trim().toLowerCase();
-    if (!email || !memberTeam) return toast.error("Pick a team and enter an email");
+    if (!email || !memberTeam) { toast.error("Pick a team and enter an email"); return; }
     const match = profiles.find((p) => (p.email ?? "").toLowerCase() === email);
     const { error } = await supabase.from("team_members").insert({
       team_id: memberTeam, email, role: memberRole, user_id: match?.id ?? null,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     if (match) {
       await supabase.from("user_roles").upsert({ user_id: match.id, role: memberRole }, { onConflict: "user_id,role" });
     }
@@ -206,7 +206,7 @@ export default function Admin() {
 
   const changeMemberRole = async (member: any, role: AppRole) => {
     const { error } = await supabase.from("team_members").update({ role }).eq("id", member.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     if (member.user_id) {
       await supabase.from("user_roles").delete().eq("user_id", member.user_id).neq("role", "super_admin");
       await supabase.from("user_roles").upsert({ user_id: member.user_id, role }, { onConflict: "user_id,role" });
@@ -217,7 +217,7 @@ export default function Admin() {
 
   const removeMember = async (id: string) => {
     const { error } = await supabase.from("team_members").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     load();
   };
 
@@ -287,14 +287,14 @@ export default function Admin() {
     const { error } = await supabase.from("blocked_ips").insert({
       ip, reason: "Multiple free-trial accounts", blocked_by: u.user?.id ?? null,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`${ip} blocked`);
     load();
   };
 
   const unblockIp = async (ip: string) => {
     const { error } = await supabase.from("blocked_ips").delete().eq("ip", ip);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     load();
   };
 
@@ -302,7 +302,7 @@ export default function Admin() {
     if (!confirm(`Permanently delete ${user.email ?? "this account"} and all of its data?`)) return;
     const { data, error } = await supabase.functions.invoke("admin-delete-user", { body: { user_id: user.id } });
     if (error || (data as { error?: string })?.error) {
-      return toast.error((data as { error?: string })?.error || "Could not delete this account");
+      { toast.error((data as { error?: string })?.error || "Could not delete this account"); return; }
     }
     toast.success("Account deleted");
     load();

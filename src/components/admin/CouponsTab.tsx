@@ -64,7 +64,7 @@ export default function CouponsTab({ tiers }: { tiers: Tier[] }) {
       applies_to_tiers: tiers.filter((t) => Number(t.price_amount) > 0).map((t) => t.key),
       created_by: u.user?.id ?? null,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Coupon created");
     load();
   };
@@ -84,13 +84,13 @@ export default function CouponsTab({ tiers }: { tiers: Tier[] }) {
       show_on_home: c.show_on_home,
     }).eq("id", c.id);
     setSaving(null);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`${c.code} saved`);
   };
 
   const remove = async (id: string) => {
     const { error } = await supabase.from("coupons").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setCoupons((prev) => prev.filter((c) => c.id !== id));
   };
 

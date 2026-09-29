@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "@/lib/router-compat";
 import { ConversationProvider, useConversation } from "@elevenlabs/react";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,7 +102,7 @@ function InterviewRoomContent() {
   const logEvent = (type: string, detail?: string) => {
     const p = proctorRef.current;
     if (!p) return;
-    if (p.events.length < 100) p.events.push({ at: new Date().toISOString(), type, detail });
+    if (p.events.length < 100) p.events.push({ at: new Date().toISOString(), type, ...(detail !== undefined ? { detail } : {}) });
   };
 
   /** Samples the webcam every second and measures frame-to-frame movement. */
@@ -122,13 +122,13 @@ function InterviewRoomContent() {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const frame = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
         let brightness = 0;
-        for (let i = 0; i < frame.length; i += 4) brightness += (frame[i] + frame[i + 1] + frame[i + 2]) / 3;
+        for (let i = 0; i < frame.length; i += 4) brightness += ((frame[i] ?? 0) + (frame[i + 1] ?? 0) + (frame[i + 2] ?? 0)) / 3;
         brightness /= frame.length / 4;
 
         const prev = lastFrameRef.current;
         if (prev) {
           let diff = 0;
-          for (let i = 0; i < frame.length; i += 4) diff += Math.abs(frame[i] - prev[i]);
+          for (let i = 0; i < frame.length; i += 4) diff += Math.abs((frame[i] ?? 0) - (prev[i] ?? 0));
           const motion = diff / (frame.length / 4);
           p.motionSamples += 1;
           p.motionTotal += motion;
@@ -396,7 +396,7 @@ function InterviewRoomContent() {
   useEffect(() => {
     const handler = () => {
       if (doneRef.current || !startedRef.current) return;
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/interview-finalize`;
+      const url = `${import.meta.env["VITE_SUPABASE_URL"]}/functions/v1/interview-finalize`;
       const body = JSON.stringify({
         token,
         transcript: transcriptRef.current,

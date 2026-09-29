@@ -50,11 +50,11 @@ export default function RolePermissionsMatrix() {
 
   const save = async () => {
     const changed = rows.filter((r) => dirty[r.id]);
-    if (changed.length === 0) return toast.info("No changes to save");
+    if (changed.length === 0) { toast.info("No changes to save"); return; }
     setSaving(true);
     for (const r of changed) {
       const { error } = await supabase.from("role_permissions").update({ allowed: r.allowed }).eq("id", r.id);
-      if (error) { setSaving(false); return toast.error(error.message); }
+      if (error) { setSaving(false); { toast.error(error.message); return; } }
     }
     setSaving(false);
     setDirty({});

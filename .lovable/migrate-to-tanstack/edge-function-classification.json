@@ -1,0 +1,24 @@
+{
+  "migration_id": "mig_01m3qmc10pff6t3vcphmc5ma1p",
+  "classified_at": "2026-09-29T22:35:00Z",
+  "functions": [
+    { "name": "api", "decision": "leave", "reason": "Public REST API for external company integrations (API-key auth, external URLs in docs). Must stay externally addressable." },
+    { "name": "paystack-webhook", "decision": "leave", "reason": "External webhook callback from Paystack (HMAC-SHA512 verified). Must stay externally addressable." },
+    { "name": "candidate-stage-notify", "decision": "leave", "reason": "Triggered from database on candidate stage changes; not a client-only call path." },
+    { "name": "interview-finalize", "decision": "leave", "reason": "Called by unauthenticated candidates via token, including a raw fetch to /functions/v1/interview-finalize in the pagehide safety net. URL is load-bearing." },
+    { "name": "get-interview-session", "decision": "leave", "reason": "Candidate-facing token endpoint used by unauthenticated interviewees." },
+    { "name": "ai-interview-turn", "decision": "leave", "reason": "Candidate-facing AI interview turn endpoint; uses Lovable AI secrets server-side and is invoked from token sessions." },
+    { "name": "elevenlabs-token", "decision": "leave", "reason": "Mints ElevenLabs conversation tokens for candidate interview rooms; secret-bearing and candidate-facing." },
+    { "name": "skill-test-session", "decision": "leave", "reason": "Candidate-facing assessment token endpoint used by unauthenticated test takers." },
+    { "name": "skill-test-submit", "decision": "leave", "reason": "Candidate-facing assessment submission endpoint; queues scored reports to HR." },
+    { "name": "skill-test-assign", "decision": "leave", "reason": "Enforces subscription tier limits server-side and sends invite emails; invoked via supabase.functions.invoke which works unchanged." },
+    { "name": "paystack-initialize", "decision": "leave", "reason": "Payment initialization holding Paystack secret key; invoked via supabase.functions.invoke." },
+    { "name": "paystack-verify", "decision": "leave", "reason": "Payment verification path paired with paystack-initialize/webhook; keeps one payment surface." },
+    { "name": "coupon-validate", "decision": "leave", "reason": "Coupon validation at checkout, coupled to the Paystack flow; invoked via supabase.functions.invoke." },
+    { "name": "score-candidate", "decision": "leave", "reason": "AI scoring using gateway secrets; invoked via supabase.functions.invoke, works unchanged." },
+    { "name": "admin-delete-user", "decision": "leave", "reason": "Uses service-role key for auth.users deletion; must remain in the trusted edge environment." },
+    { "name": "admin-payment-settings", "decision": "leave", "reason": "Service-role admin settings endpoint; invoked via supabase.functions.invoke." },
+    { "name": "interview-scheduled-notify", "decision": "leave", "reason": "Email notification sender in the queued/retry email pipeline (email_deliveries); shared backend path." }
+  ],
+  "summary": "17 found, 0 migrated to server functions, 17 left as edge functions. Every function is externally addressable (webhooks, public API, candidate token endpoints), database-triggered, or secret-bearing, and all client call sites use supabase.functions.invoke, which continues to work unchanged after the TanStack migration. Migrating any of them would break external URLs or move service-role secrets without benefit."
+}

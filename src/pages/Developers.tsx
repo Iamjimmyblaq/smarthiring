@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { toast } from "sonner";
 import { Copy, Key, Plus, Trash2, Webhook } from "lucide-react";
 
-const API_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api/v1`;
+const API_BASE = `${import.meta.env["VITE_SUPABASE_URL"]}/functions/v1/api/v1`;
 
 async function sha256Hex(input: string) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
@@ -63,7 +63,7 @@ export default function Developers() {
     const { error } = await supabase.from("api_keys").insert({
       user_id: u.user.id, name: newKeyName.trim(), key_prefix: plain.slice(0, 12), key_hash: hash,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setRevealed(plain); setNewKeyName(""); setOpenKey(false); load();
   };
 
@@ -81,7 +81,7 @@ export default function Developers() {
     const { error } = await supabase.from("webhook_endpoints").insert({
       user_id: u.user.id, url: hookUrl.trim(), secret, events: [], enabled: true,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setHookUrl(""); setOpenHook(false); load();
   };
 
@@ -99,7 +99,7 @@ export default function Developers() {
           <h1 className="text-3xl font-semibold tracking-tight">Developers</h1>
           <p className="text-muted-foreground mt-1">API keys and webhooks for integrating Talenval with your systems.</p>
           <p className="text-sm text-muted-foreground mt-2">
-            Base URL: <code className="bg-muted px-2 py-1 rounded">{API_BASE}</code> ·{" "}
+            Base URL: <code className="bg-muted px-2 py-1 rounded-sm">{API_BASE}</code> ·{" "}
             <a href="/api-docs" className="underline">Read the API docs →</a>
           </p>
         </div>

@@ -37,7 +37,7 @@ function lastY(doc: jsPDF) {
 function integrityRows(input: AssessmentReportInput): [string, string][] {
   const flags = input.integrityFlags ?? {};
   const rows: [string, string][] = [
-    ["Verdict", typeof flags.verdict === "string" ? flags.verdict : "—"],
+    ["Verdict", typeof flags["verdict"] === "string" ? flags["verdict"] : "—"],
     ["Plagiarism / anomaly score", input.plagiarismScore != null ? `${input.plagiarismScore}` : "—"],
   ];
   for (const [k, v] of Object.entries(flags)) {
@@ -46,13 +46,13 @@ function integrityRows(input: AssessmentReportInput): [string, string][] {
   }
   const p = (input.proctoring ?? {}) as Record<string, number | boolean | undefined>;
   if (input.proctoring) {
-    rows.push(["Camera", p.cameraEnabled ? "On for the full test" : "Not enabled"]);
-    rows.push(["Tab / window switches", String(p.tabSwitches ?? 0)]);
-    rows.push(["Left camera frame", `${p.awayFromFrameEvents ?? 0} time(s)`]);
-    rows.push(["High-movement events", String(p.highMotionEvents ?? 0)]);
+    rows.push(["Camera", p["cameraEnabled"] ? "On for the full test" : "Not enabled"]);
+    rows.push(["Tab / window switches", String(p["tabSwitches"] ?? 0)]);
+    rows.push(["Left camera frame", `${p["awayFromFrameEvents"] ?? 0} time(s)`]);
+    rows.push(["High-movement events", String(p["highMotionEvents"] ?? 0)]);
     rows.push([
       "Duration",
-      p.durationSeconds ? `${Math.max(1, Math.round(Number(p.durationSeconds) / 60))} min` : "—",
+      p["durationSeconds"] ? `${Math.max(1, Math.round(Number(p["durationSeconds"]) / 60))} min` : "—",
     ]);
   }
   return rows;
@@ -152,7 +152,7 @@ export function downloadAssessmentsBulkPdf(inputs: AssessmentReportInput[], file
       i.score != null ? `${i.score}/${i.maxScore ?? "—"}` : "—",
       i.percentage != null ? `${i.percentage}%` : "—",
       i.status.replace(/_/g, " "),
-      typeof i.integrityFlags?.verdict === "string" ? String(i.integrityFlags.verdict) : "—",
+      typeof i.integrityFlags?.["verdict"] === "string" ? String(i.integrityFlags["verdict"]) : "—",
     ]),
     styles: { fontSize: 9 },
     headStyles: { fillColor: [15, 118, 110] },

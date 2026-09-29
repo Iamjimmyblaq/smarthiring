@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,7 @@ export default function Onboarding() {
       user_id: u.user!.id, candidate_id: candidateId, title, sort_order: i,
     }));
     const { error } = await supabase.from("onboarding_tasks").insert(rows);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Default checklist added");
     load();
   };
@@ -75,7 +75,7 @@ export default function Onboarding() {
     const { error } = await supabase.from("onboarding_tasks").insert({
       user_id: u.user.id, candidate_id: candidateId, title, sort_order: order,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setNewTaskInputs((p) => ({ ...p, [candidateId]: "" }));
     load();
   };
@@ -85,19 +85,19 @@ export default function Onboarding() {
     const { error } = await supabase.from("onboarding_tasks")
       .update({ completed: next, completed_at: next ? new Date().toISOString() : null })
       .eq("id", t.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setTasksByCand((prev) => ({
       ...prev,
-      [t.candidate_id]: prev[t.candidate_id].map((x) => x.id === t.id ? { ...x, completed: next } : x),
+      [t.candidate_id]: (prev[t.candidate_id] ?? []).map((x) => x.id === t.id ? { ...x, completed: next } : x),
     }));
   };
 
   const remove = async (t: Task) => {
     const { error } = await supabase.from("onboarding_tasks").delete().eq("id", t.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setTasksByCand((prev) => ({
       ...prev,
-      [t.candidate_id]: prev[t.candidate_id].filter((x) => x.id !== t.id),
+      [t.candidate_id]: (prev[t.candidate_id] ?? []).filter((x) => x.id !== t.id),
     }));
   };
 

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { ArrowLeft, BadgeCheck, Bot, ClipboardCheck, Sparkles, Users } from "lucide-react";
 import hrDesk from "@/assets/hr-interview-desk.jpg";
 

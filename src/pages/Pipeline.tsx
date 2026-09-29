@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -83,7 +83,7 @@ export default function Pipeline() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="container mx-auto py-8">
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4 rounded-2xl border bg-gradient-to-br from-primary/5 via-background to-accent/10 p-6 shadow-sm">
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4 rounded-2xl border bg-gradient-to-br from-primary/5 via-background to-accent/10 p-6 shadow-xs">
           <div className="flex items-start gap-4">
             <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-md">
               <Users className="h-6 w-6" />
@@ -130,7 +130,7 @@ export default function Pipeline() {
 
         {/* AI interview showcase */}
         {progress.total > 0 && (progress.inFlight > 0 || progress.failed > 0) && (
-          <section className="mb-6 rounded-2xl border bg-card p-4 shadow-sm">
+          <section className="mb-6 rounded-2xl border bg-card p-4 shadow-xs">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-medium">
                 {progress.inFlight > 0 ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <AlertTriangle className="h-4 w-4 text-destructive" />}
@@ -148,7 +148,7 @@ export default function Pipeline() {
           </section>
         )}
 
-        <section className="mb-8 grid gap-6 rounded-2xl border bg-gradient-to-br from-accent/10 via-background to-primary/5 p-6 shadow-sm lg:grid-cols-2 lg:items-center">
+        <section className="mb-8 grid gap-6 rounded-2xl border bg-gradient-to-br from-accent/10 via-background to-primary/5 p-6 shadow-xs lg:grid-cols-2 lg:items-center">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
               <Bot className="h-3.5 w-3.5" /> AI Video Interview
@@ -197,7 +197,7 @@ export default function Pipeline() {
               return (
                 <div
                   key={s.key}
-                  className={`rounded-2xl border-2 p-3 min-h-[320px] shadow-sm transition-shadow hover:shadow-md ${s.column}`}
+                  className={`rounded-2xl border-2 p-3 min-h-[320px] shadow-xs transition-shadow hover:shadow-md ${s.column}`}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm font-semibold flex items-center gap-2">

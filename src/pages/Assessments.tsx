@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Copy, Loader2, Search, Send, ShieldCheck, Clock, Sparkles, Download, Wand2, Trash2 } from "lucide-react";
 import TestBuilderDialog from "@/components/assessments/TestBuilderDialog";
 import { usePlan } from "@/hooks/usePlan";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Progress } from "@/components/ui/progress";
 import { downloadAssessmentPdf, downloadAssessmentsBulkPdf, type AssessmentReportInput } from "@/lib/assessment-report";
 
@@ -125,7 +125,7 @@ export default function Assessments() {
   const deleteCustomTest = async (t: SkillTest) => {
     if (!confirm(`Delete "${t.title}"? Candidates already invited keep their link.`)) return;
     const { error } = await supabase.from("skill_tests").delete().eq("id", t.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Custom assessment deleted");
     load();
   };
@@ -150,14 +150,14 @@ export default function Assessments() {
       plagiarismScore: a.plagiarism_score,
       integrityFlags: (a.integrity_flags ?? {}) as Record<string, unknown>,
       proctoring: (a.proctoring ?? null) as Record<string, unknown> | null,
-      answers: Array.isArray(a.answers) ? (a.answers as AssessmentReportInput["answers"]) : [],
+      answers: Array.isArray(a.answers) ? (a.answers as NonNullable<AssessmentReportInput["answers"]>) : [],
     };
   };
 
   const submittedAssignments = assignments.filter((a) => a.status === "submitted");
 
   const downloadAll = () => {
-    if (submittedAssignments.length === 0) return toast.error("No submitted assessments to download yet.");
+    if (submittedAssignments.length === 0) { toast.error("No submitted assessments to download yet."); return; }
     downloadAssessmentsBulkPdf(submittedAssignments.map(toReportInput), "talenval-assessments");
     toast.success(`Downloaded ${submittedAssignments.length} result(s)`);
   };
@@ -322,7 +322,7 @@ export default function Assessments() {
                 const t = testById(a.test_id);
                 const c = candidateById(a.candidate_id);
                 const flags = (a.integrity_flags ?? {}) as Record<string, unknown>;
-                const verdict = typeof flags.verdict === "string" ? flags.verdict : null;
+                const verdict = typeof flags["verdict"] === "string" ? flags["verdict"] : null;
                 return (
                   <Card key={a.id}>
                     <CardContent className="p-4 flex flex-wrap items-center gap-3">

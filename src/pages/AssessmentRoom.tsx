@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import Logo from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +51,7 @@ export default function AssessmentRoom() {
   const awaySince = useRef<number | null>(null);
 
   const logEvent = (type: string, detail?: string) => {
-    stats.current.events.push({ at: new Date().toISOString(), type, detail });
+    stats.current.events.push({ at: new Date().toISOString(), type, ...(detail !== undefined ? { detail } : {}) });
   };
 
   useEffect(() => {
@@ -215,8 +215,8 @@ export default function AssessmentRoom() {
           let diff = 0;
           let bright = 0;
           for (let i = 0; i < frame.data.length; i += 16) {
-            diff += Math.abs(frame.data[i] - prev.data[i]);
-            bright += frame.data[i];
+            diff += Math.abs((frame.data[i] ?? 0) - (prev.data[i] ?? 0));
+            bright += frame.data[i] ?? 0;
           }
           const samples = frame.data.length / 16;
           const motion = diff / samples;
@@ -349,7 +349,7 @@ export default function AssessmentRoom() {
                     playsInline
                     className="w-36 rounded-md border bg-muted aspect-video object-cover"
                   />
-                  <span className="absolute bottom-1 left-1 flex items-center gap-1 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium">
+                  <span className="absolute bottom-1 left-1 flex items-center gap-1 rounded-sm bg-background/80 px-1.5 py-0.5 text-[10px] font-medium">
                     <span className={`h-1.5 w-1.5 rounded-full ${cameraOn ? "bg-destructive animate-pulse" : "bg-muted-foreground"}`} />
                     {cameraOn ? "Recording" : "Camera off"}
                   </span>

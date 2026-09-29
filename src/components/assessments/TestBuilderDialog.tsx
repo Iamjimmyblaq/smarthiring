@@ -54,14 +54,14 @@ export default function TestBuilderDialog({ open, onOpenChange, onCreated }: Pro
   };
 
   const save = async () => {
-    if (!title.trim()) return toast.error("Give your assessment a title");
-    if (!skillArea.trim()) return toast.error("Add the skill area this test measures");
+    if (!title.trim()) { toast.error("Give your assessment a title"); return; }
+    if (!skillArea.trim()) { toast.error("Add the skill area this test measures"); return; }
     const clean = questions.filter((q) => q.prompt.trim());
-    if (clean.length === 0) return toast.error("Add at least one question");
+    if (clean.length === 0) { toast.error("Add at least one question"); return; }
     for (const q of clean) {
       const opts = q.options.filter((o) => o.trim());
-      if (opts.length < 2) return toast.error(`"${q.prompt.slice(0, 30)}…" needs at least two answer options`);
-      if (!q.options[q.correct]?.trim()) return toast.error("Every question needs a correct answer selected");
+      if (opts.length < 2) { toast.error(`"${q.prompt.slice(0, 30)}…" needs at least two answer options`); return; }
+      if (!q.options[q.correct]?.trim()) { toast.error("Every question needs a correct answer selected"); return; }
     }
 
     setSaving(true);
