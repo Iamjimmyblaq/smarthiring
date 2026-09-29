@@ -43,6 +43,10 @@ export async function emitWebhook(userId: string, event: string, data: Record<st
               "X-Talenval-Event": event,
               "X-Talenval-Event-Id": eventId,
               "X-Talenval-Signature": `sha256=${sig}`,
+              // legacy aliases kept for existing integrations
+              "X-SmartHire-Event": event,
+              "X-SmartHire-Event-Id": eventId,
+              "X-SmartHire-Signature": `sha256=${sig}`,
               "User-Agent": "Talenval-Webhook/1.0",
             },
             body,
