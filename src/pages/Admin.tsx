@@ -151,7 +151,7 @@ export default function Admin() {
       max_resumes: tier.max_resumes,
       max_ai_interviews: tier.max_ai_interviews,
       max_assessments: tier.max_assessments,
-      features: tier.features,
+      features: tier.features.map((s) => s.trim()).filter(Boolean),
       is_active: tier.is_active,
       sort_order: tier.sort_order,
     }).eq("id", tier.id);
@@ -433,7 +433,7 @@ export default function Admin() {
                   </div>
                   <div className="space-y-1.5">
                     <Label>Features (one per line)</Label>
-                    <Textarea rows={4} value={tier.features.join("\n")} onChange={(e) => patchTier(tier.id, { features: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })} />
+                    <Textarea rows={6} value={tier.features.join("\n")} onChange={(e) => patchTier(tier.id, { features: e.target.value.split("\n") })} />
                   </div>
                   <Button onClick={() => saveTier(tier)} disabled={saving === tier.id} className="gap-2">
                     {saving === tier.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save {tier.name}
