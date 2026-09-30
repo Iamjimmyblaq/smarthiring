@@ -196,7 +196,7 @@ const Pricing = () => {
         })}</script>
       </Helmet>
       <AppHeader />
-      <main className="container mx-auto py-12 max-w-5xl">
+      <main className="container mx-auto py-12 max-w-7xl">
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Plans built for serious hiring</h1>
           <p className="text-muted-foreground mt-3">Start free. Upgrade when you need more roles or volume.</p>
@@ -230,7 +230,7 @@ const Pricing = () => {
           </div>
         )}
         {tiers.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {tiers.map((tier) => {
               const isCurrent = planState.plan === tier.key;
               const isFree = Number(tier.price_amount) === 0;

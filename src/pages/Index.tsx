@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import Logo from "@/components/Logo";
 import { Link } from "@/lib/router-compat";
 import {
   ArrowRight, Check, ChevronDown, FileSearch, ClipboardCheck, Video, Workflow,
@@ -21,14 +23,22 @@ function Kicker({ children, dark = false }: { children: React.ReactNode; dark?: 
 function Brand() {
   return (
     <span className="inline-flex items-center gap-2.5">
-      <span className="relative grid h-8 w-8 place-items-center rounded-[3px] bg-cyan font-display text-lg font-extrabold text-deep">
-        T<span className="absolute right-0 top-0 h-2 w-2 bg-gold" />
+      <span className="grid h-9 w-9 place-items-center rounded-[4px] bg-on-deep">
+        <Logo withWordmark={false} size={30} />
       </span>
-      <span className="font-display text-lg font-bold tracking-wide text-on-deep">
-        TALEN<span className="text-cyan">VAL</span>
-      </span>
+      <span className="font-display text-lg font-bold tracking-tight text-on-deep">Talenval</span>
     </span>
   );
+}
+
+function useSignedIn() {
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s));
+    return () => data.subscription.unsubscribe();
+  }, []);
+  return signedIn;
 }
 
 const capabilities = [
@@ -47,6 +57,7 @@ const candidates = [
 export default function Index() {
   const [open, setOpen] = useState(false);
   const [sel, setSel] = useState(0);
+  const signedIn = useSignedIn();
   const c = candidates[sel]!;
 
   return (
@@ -62,8 +73,14 @@ export default function Index() {
             <Link to="/pricing" className="hover:text-cyan">Pricing</Link>
           </nav>
           <div className="hidden items-center gap-4 md:flex">
-            <Link to="/auth" className="text-sm font-bold text-on-deep hover:text-cyan">Sign in</Link>
-            <Link to="/auth" className="inline-flex h-9 items-center rounded-[3px] bg-cyan px-4 text-xs font-bold text-deep hover:bg-cyan-soft">Start free</Link>
+            {signedIn ? (
+              <Link to="/jobs" className="inline-flex h-9 items-center rounded-[3px] bg-cyan px-4 text-xs font-bold text-deep hover:bg-cyan-soft">Go to dashboard</Link>
+            ) : (
+              <>
+                <Link to="/auth" className="text-sm font-bold text-on-deep hover:text-cyan">Sign in</Link>
+                <Link to="/auth" className="inline-flex h-9 items-center rounded-[3px] bg-cyan px-4 text-xs font-bold text-deep hover:bg-cyan-soft">Start free</Link>
+              </>
+            )}
           </div>
           <button onClick={() => setOpen((v) => !v)} aria-label="Menu" className="grid h-10 w-10 place-items-center rounded-[3px] border border-on-deep/25 bg-deep/35 text-on-deep md:hidden">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -76,8 +93,14 @@ export default function Index() {
             ))}
             <Link to="/pricing" className="block text-sm">Pricing</Link>
             <div className="flex gap-3 pt-2">
-              <Link to="/auth" className={`${btnOutline} h-10 flex-1`}>Sign in</Link>
-              <Link to="/auth" className={`${btnHero} h-10 flex-1`}>Start free</Link>
+              {signedIn ? (
+                <Link to="/jobs" className={`${btnHero} h-10 flex-1`}>Go to dashboard</Link>
+              ) : (
+                <>
+                  <Link to="/auth" className={`${btnOutline} h-10 flex-1`}>Sign in</Link>
+                  <Link to="/auth" className={`${btnHero} h-10 flex-1`}>Start free</Link>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -97,7 +120,7 @@ export default function Index() {
               Talenval screens every resume, tests real skills and runs AI video interviews — so you shortlist the right people in minutes, with reasons you can trust.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link to="/auth" className={btnHero}>Start free trial <ArrowRight className="h-4 w-4" /></Link>
+              <Link to={signedIn ? "/jobs" : "/auth"} className={btnHero}>{signedIn ? "Go to dashboard" : "Start free trial"} <ArrowRight className="h-4 w-4" /></Link>
               <Link to="/demo" className={btnOutline}>Explore Talenval</Link>
             </div>
             <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-on-deep">
@@ -239,7 +262,7 @@ export default function Index() {
         <div className="hero-shade absolute inset-0" />
         <div className="relative mx-auto max-w-[1240px] px-6">
           <h2 className="max-w-2xl font-display text-4xl font-bold tracking-tight md:text-6xl">Build a team that moves you forward.</h2>
-          <Link to="/auth" className={`${btnHero} mt-9`}>Start free trial <ArrowRight className="h-4 w-4" /></Link>
+          <Link to={signedIn ? "/jobs" : "/auth"} className={`${btnHero} mt-9`}>{signedIn ? "Go to dashboard" : "Start free trial"} <ArrowRight className="h-4 w-4" /></Link>
         </div>
       </section>
 
