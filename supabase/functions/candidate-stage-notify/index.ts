@@ -41,6 +41,9 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
     const { data: cand } = await admin.from("candidates").select("id, name, email, user_id, job_id, stage").eq("id", candidate_id).maybeSingle();
     if (!cand) return new Response(JSON.stringify({ error: "candidate not found" }), { status: 404, headers: cors });
+    // Security: only act on the stage actually stored in the database, so a forged
+    // request can't send fake rejection/offer emails to candidates.
+    if (cand.stage !== new_stage) return new Response(JSON.stringify({ error: "stage mismatch" }), { status: 409, headers: cors });
     const { data: job } = await admin.from("jobs").select("title, company_name, hr_email").eq("id", cand.job_id).maybeSingle();
     const { data: rec } = await admin.from("profiles").select("email, hr_email, full_name, company_name").eq("id", cand.user_id).maybeSingle();
     const company = job?.company_name || rec?.company_name || "the hiring team";
