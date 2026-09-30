@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.credit_balance(uuid, text) FROM authenticated, anon, PUBLIC;
