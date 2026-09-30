@@ -23,7 +23,7 @@ export default function Logo({
         alt="Talenval logo"
         width={size}
         height={size}
-        loading="lazy"
+        loading="eager"
         className="object-contain"
         style={{ width: size, height: size }}
       />
