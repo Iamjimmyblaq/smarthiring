@@ -14,15 +14,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bot, Download, FileSpreadsheet, FileText, Users, Video } from "lucide-react";
+import { Bot, Download, FileSpreadsheet, FileText, Users, Video, EyeOff, ScaleIcon, Share2 } from "lucide-react";
 import { AlertTriangle, Loader2, RefreshCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { normalizeParseStatus, parseProgress, retryAllFailed, retryResumeParse } from "@/lib/resume-parsing";
 import { toast } from "sonner";
 import { STAGES, type StageKey } from "@/lib/lifecycle";
 import type { Tables } from "@/integrations/supabase/types";
 import { createAiInterview } from "@/lib/ai-interview";
 import aiRoom from "@/assets/ai-interview-room.jpg";
+import { useBlindMode } from "@/hooks/useBlindMode";
+import { maskName, BLIND_NOTE } from "@/lib/blind";
+import { runFairHiringAudit, downloadFairHiringPdf } from "@/lib/fair-hiring";
+import ShareDossierDialog from "@/components/ShareDossierDialog";
 import {
   exportAllStagesExcel,
   exportAllStagesPdf,
