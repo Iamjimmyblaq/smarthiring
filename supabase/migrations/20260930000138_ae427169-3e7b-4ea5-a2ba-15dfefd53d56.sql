@@ -1,0 +1,5 @@
+UPDATE public.plan_tiers SET features = ARRAY['AI resume scoring & ranking','Custom assessment builder for L&D teams','Webcam-proctored AI video interviews','Email support'] WHERE key='basic';
+UPDATE public.plan_tiers SET features = ARRAY['AI resume scoring & ranking','Custom assessment builder for L&D teams','Webcam-proctored AI video interviews','Full recruitment pipeline & exports','Webhooks & API'] WHERE key='pro';
+UPDATE public.plan_tiers SET features = ARRAY['AI resume scoring & ranking','Custom assessment builder for L&D teams','Webcam-proctored AI video interviews','Full recruitment pipeline & exports','Webhooks & API','Priority support'] WHERE key='promax';
+UPDATE public.plan_tiers SET features = ARRAY['AI resume scoring & ranking','Custom assessment builder for L&D teams','Webcam-proctored AI video interviews','Full recruitment pipeline & exports','Webhooks & API','SSO & dedicated support','Custom SLAs'] WHERE key='enterprise';
+UPDATE public.plan_tiers SET features = ARRAY['AI resume scoring & ranking','Custom assessment builder for L&D teams','Webcam-proctored AI video interviews','Email support'] WHERE key='tier_msbmn2of';
