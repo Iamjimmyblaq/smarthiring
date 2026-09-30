@@ -320,6 +320,12 @@ const Index = () => {
               { icon: BarChart3, title: "Top 5 shortlist", desc: "Auto-highlighted standouts the moment scoring completes." },
               { icon: ShieldCheck, title: "Resume quality score", desc: "Spot weak or incomplete resumes before they cost you a slot." },
               { icon: Zap, title: "Bulk actions", desc: "Shortlist, reject or tag dozens of candidates in a single click." },
+              { icon: Sparkles, title: "New · Hiring manager dossier", desc: "Share a PIN-protected candidate link. Managers review scores and send back a decision in one click." },
+              { icon: Target, title: "New · Branded careers page", desc: "Publish your open roles, embed them on your website, and receive one-click applications straight into your pipeline." },
+              { icon: ShieldCheck, title: "New · Blind mode & fair hiring", desc: "Hide candidate names to cut bias, and download a fairness audit report for compliance." },
+              { icon: Filter, title: "New · Ask Talenval search", desc: "Search every past candidate, resume, test score and interview in plain English." },
+              { icon: BarChart3, title: "New · Top-up packs", desc: "Need more AI interviews, assessments or resume scans? Buy credits that never expire." },
+              { icon: Zap, title: "New · Enterprise-grade security", desc: "PIN lockouts, spam protection and strict admin-only access keep your hiring data safe." },
             ].map((f) => (
               <div key={f.title} className="group rounded-2xl border border-white/10 bg-card p-6 hover:border-brand/40 transition-colors">
                 <div className="size-10 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
