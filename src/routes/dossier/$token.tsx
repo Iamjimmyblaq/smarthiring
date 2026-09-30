@@ -8,8 +8,6 @@ export const Route = createFileRoute("/dossier/$token")({
       { name: "description", content: "A secure, read-only candidate evaluation dossier shared by a recruiter using Talenval." },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Candidate dossier — Talenval" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:description", content: "A secure, read-only candidate evaluation dossier shared by a recruiter using Talenval." },
     ],
   }),

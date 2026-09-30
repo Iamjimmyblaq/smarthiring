@@ -1,161 +1,288 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Logo from "@/components/Logo";
-import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/router-compat";
 import {
-  ArrowRight, Brain, CalendarCheck, Camera, Check, CheckCircle2, ChevronDown,
-  ClipboardCheck, Clock3, Eye, FileCheck2, FilePenLine, FileSearch,
-  Filter, Inbox, ListChecks, Menu, Mic, MonitorPlay, ShieldCheck,
-  Upload, UserRoundCheck, Video, WandSparkles, X, AlertCircle,
+  ArrowRight, Check, ChevronDown, FileSearch, ClipboardCheck, Video, Workflow,
+  Menu, X, AlertCircle,
 } from "lucide-react";
-import interviewImage from "@/assets/ai-interview-room.jpg";
+import hero from "@/assets/talenval-hiring-hero.jpg";
+
+const btnHero = "inline-flex h-12 items-center justify-center gap-2 rounded-[3px] bg-cyan px-6 text-sm font-bold text-deep transition-colors hover:bg-cyan-soft";
+const btnOutline = "inline-flex h-12 items-center justify-center gap-2 rounded-[3px] border border-on-deep/50 bg-deep/35 px-6 text-sm font-bold text-on-deep transition-colors hover:border-cyan hover:text-cyan";
+
+function Kicker({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
+  return (
+    <p className={`flex items-center gap-3 text-xs font-bold uppercase tracking-[0.22em] ${dark ? "text-cyan" : "text-ed-fg"}`}>
+      <span className="h-px w-[23px] bg-cyan" />
+      {children}
+    </p>
+  );
+}
+
+function Brand() {
+  return (
+    <span className="inline-flex items-center gap-2.5">
+      <span className="grid h-9 w-9 place-items-center rounded-[4px] bg-on-deep">
+        <Logo withWordmark={false} size={30} />
+      </span>
+      <span className="font-display text-lg font-bold tracking-tight text-on-deep">Talenval</span>
+    </span>
+  );
+}
 
 function useSignedIn() {
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
-    let active = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (active) setSignedIn(!!data.session);
-    });
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (active) setSignedIn(!!session);
-    });
-    return () => { active = false; data.subscription.unsubscribe(); };
+    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s));
+    return () => data.subscription.unsubscribe();
   }, []);
   return signedIn;
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <p className="flex items-center gap-2 text-xs font-bold uppercase text-home-violet tracking-[0.2em]"><span className="h-1.5 w-1.5 rounded-full bg-home-violet" />{children}</p>;
-}
-
-function HomeAction({ to, children, secondary = false, className = "" }: { to: string; children: React.ReactNode; secondary?: boolean; className?: string }) {
-  return <Button asChild variant={secondary ? "homeOutline" : "homePrimary"} className={`h-12 px-6 font-semibold ${className}`}><Link to={to}>{children}</Link></Button>;
-}
-
-function Brand() {
-  return <span className="inline-flex items-center gap-2.5"><Logo withWordmark={false} size={36} /><span className="font-display text-lg font-bold text-home-text">Talenval</span></span>;
-}
-
-const problems = [
-  { icon: Inbox, title: "200+ resumes per role", description: "Manual screening doesn't scale. Most resumes never get a real read." },
-  { icon: Clock3, title: "23 hours per role", description: "Recruiters can spend almost a full workweek on initial screening alone." },
-  { icon: ShieldCheck, title: "Inconsistent decisions", description: "Fatigue and bias quietly influence who makes it to the interview shortlist." },
-];
-
-const steps = [
-  { icon: ListChecks, title: "Define the role", description: "Required skills, years of experience, must-haves and nice-to-haves — structured." },
-  { icon: Upload, title: "Upload resumes", description: "Drag in PDF or DOCX files. Talenval parses and organizes them for review." },
-  { icon: Brain, title: "Get ranked candidates", description: "See each applicant's score, strengths, gaps and fit summary in one place." },
-];
-
-const stages = [
-  { icon: Inbox, title: "Sourced", description: "AI-ranked applicants" },
-  { icon: Filter, title: "Screening", description: "Shortlist top fits" },
-  { icon: CalendarCheck, title: "Interview", description: "AI video round & rating" },
-  { icon: FilePenLine, title: "Offer", description: "Salary, dates, status" },
-  { icon: UserRoundCheck, title: "Hired", description: "Onboarding checklist" },
-];
-
-const assessments = [
-  { icon: ClipboardCheck, title: "490+ skills tests", description: "Coding, languages, cognitive, situational and oilfield skills across the library." },
-  { icon: WandSparkles, title: "Build your own", description: "L&D teams can create company-specific tests with their own questions and scoring." },
-  { icon: Camera, title: "Webcam proctored", description: "Camera monitoring, paste blocking and integrity flags on each attempt." },
-  { icon: FileCheck2, title: "Scored PDF reports", description: "Review results individually or download assessment reports in bulk." },
+const capabilities = [
+  { icon: FileSearch, title: "Resume intelligence", desc: "Every resume parsed, scored and ranked against the job in seconds — with the reasons shown." },
+  { icon: ClipboardCheck, title: "Skills, proven", desc: "490+ validated, webcam-proctored assessments — coding, language, cognitive and role-specific." },
+  { icon: Video, title: "Better interviews", desc: "AI video interviews with transcripts, composure signals and a full proctoring report." },
+  { icon: Workflow, title: "One connected pipeline", desc: "Sourced to Hired in five stages, with automatic emails, offers and onboarding." },
 ];
 
 const candidates = [
   { name: "Amara O.", role: "Senior Product Engineer", overall: 92, skills: 94, exp: 88, quality: 91, strength: "Led 3 product launches; strong TypeScript and system design.", gap: "Limited people-management experience." },
   { name: "Daniel K.", role: "Senior Product Engineer", overall: 84, skills: 86, exp: 82, quality: 80, strength: "Deep backend and data-pipeline experience.", gap: "Few examples of customer-facing work." },
   { name: "Priya S.", role: "Senior Product Engineer", overall: 77, skills: 75, exp: 80, quality: 78, strength: "Great product sense and design collaboration.", gap: "Skills test showed gaps in SQL." },
-] as const;
+];
 
 export default function Index() {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(0);
+  const [sel, setSel] = useState(0);
   const signedIn = useSignedIn();
-  const candidate = candidates[selected] ?? candidates[0];
-  const actionTo = signedIn ? "/jobs" : "/auth";
-  const actionLabel = signedIn ? "Go to dashboard" : "Start free trial";
+  const c = candidates[sel]!;
 
   return (
-    <main className="min-h-screen bg-home-base font-body text-home-text">
-      <header className="relative z-20 border-b border-home-line/70">
-        <div className="mx-auto flex h-20 max-w-[1280px] items-center justify-between gap-4 px-6">
+    <main className="min-h-screen bg-ed-bg font-body text-ed-fg">
+      {/* HEADER */}
+      <header className="absolute inset-x-0 top-0 z-30">
+        <div className="mx-auto flex h-20 max-w-[1240px] items-center justify-between px-6">
           <Link to="/" aria-label="Talenval home"><Brand /></Link>
-          <nav className="hidden items-center gap-7 text-sm text-home-muted md:flex">
-            <a href="#solution" className="hover:text-home-text">Platform</a>
-            <a href="#how-it-works" className="hover:text-home-text">How it works</a>
-            <a href="#interviews" className="hover:text-home-text">AI interviews</a>
-            <a href="#assessments" className="hover:text-home-text">Assessments</a>
-            <Link to="/pricing" className="hover:text-home-text">Pricing</Link>
+          <nav className="hidden items-center gap-8 text-sm font-medium text-on-deep-muted md:flex">
+            <a href="#platform" className="hover:text-cyan">Platform</a>
+            <a href="#how-it-works" className="hover:text-cyan">How it works</a>
+            <a href="#product" className="hover:text-cyan">Explore the product</a>
+            <Link to="/pricing" className="hover:text-cyan">Pricing</Link>
           </nav>
           <div className="hidden items-center gap-4 md:flex">
-            {signedIn === true ? <HomeAction to="/jobs" className="h-9 text-xs">Go to dashboard</HomeAction> : signedIn === false ? <><Link to="/auth" className="text-sm font-semibold hover:text-home-violet">Sign in</Link><HomeAction to="/auth" className="h-9 text-xs">Start free</HomeAction></> : null}
+            {signedIn ? (
+              <Link to="/jobs" className="inline-flex h-9 items-center rounded-[3px] bg-cyan px-4 text-xs font-bold text-deep hover:bg-cyan-soft">Go to dashboard</Link>
+            ) : (
+              <>
+                <Link to="/auth" className="text-sm font-bold text-on-deep hover:text-cyan">Sign in</Link>
+                <Link to="/auth" className="inline-flex h-9 items-center rounded-[3px] bg-cyan px-4 text-xs font-bold text-deep hover:bg-cyan-soft">Start free</Link>
+              </>
+            )}
           </div>
-          <Button variant="homeOutline" size="icon" className="md:hidden" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} onClick={() => setOpen((value) => !value)}>{open ? <X /> : <Menu />}</Button>
+          <button onClick={() => setOpen((v) => !v)} aria-label="Menu" className="grid h-10 w-10 place-items-center rounded-[3px] border border-on-deep/25 bg-deep/35 text-on-deep md:hidden">
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
-        {open && <nav className="absolute inset-x-0 top-20 space-y-4 border-b border-home-line bg-home-base px-6 py-6 text-sm md:hidden">
-          {[["#solution", "Platform"], ["#how-it-works", "How it works"], ["#interviews", "AI interviews"], ["#assessments", "Assessments"]].map(([href, label]) => <a key={href} href={href} className="block" onClick={() => setOpen(false)}>{label}</a>)}
-          <Link to="/pricing" className="block" onClick={() => setOpen(false)}>Pricing</Link>
-          {signedIn === true ? <HomeAction to="/jobs">Go to dashboard</HomeAction> : signedIn === false ? <div className="flex gap-3"><HomeAction to="/auth" secondary>Sign in</HomeAction><HomeAction to="/auth">Start free</HomeAction></div> : null}
-        </nav>}
+        {open && (
+          <div className="mx-4 space-y-3 rounded-[5px] bg-deep p-5 text-on-deep md:hidden">
+            {[["#platform", "Platform"], ["#how-it-works", "How it works"], ["#product", "Explore the product"]].map(([h, l]) => (
+              <a key={h} href={h} onClick={() => setOpen(false)} className="block text-sm">{l}</a>
+            ))}
+            <Link to="/pricing" className="block text-sm">Pricing</Link>
+            <div className="flex gap-3 pt-2">
+              {signedIn ? (
+                <Link to="/jobs" className={`${btnHero} h-10 flex-1`}>Go to dashboard</Link>
+              ) : (
+                <>
+                  <Link to="/auth" className={`${btnOutline} h-10 flex-1`}>Sign in</Link>
+                  <Link to="/auth" className={`${btnHero} h-10 flex-1`}>Start free</Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
-      <section className="relative isolate flex min-h-[620px] items-center overflow-hidden py-16 md:min-h-[680px]">
-        <div className="home-hero-glow pointer-events-none absolute inset-0 -z-10" />
-        <div className="mx-auto grid w-full max-w-[1280px] items-center gap-14 px-6 lg:grid-cols-[1.08fr_0.92fr]">
-          <div>
-            <SectionLabel>AI resume screening</SectionLabel>
-            <h1 className="mt-7 max-w-[720px] font-display text-5xl font-bold leading-[1.07] sm:text-6xl lg:text-7xl">Hire smarter,<br /><span className="text-home-violet">not harder.</span></h1>
-            <p className="mt-8 max-w-[580px] text-lg leading-relaxed text-home-muted">Talenval parses, scores and ranks applicants against your role, so you can focus on the people worth interviewing.</p>
-            <div className="mt-10 flex flex-wrap gap-3">
-              {signedIn !== null && <HomeAction to={actionTo}>{actionLabel}<ArrowRight /></HomeAction>}
-              <HomeAction to="/demo" secondary>See demo</HomeAction>
+      {/* HERO */}
+      <section className="relative flex min-h-[740px] items-center overflow-hidden bg-deep">
+        <img src={hero} alt="Professional ascending illuminated steps toward a modern office at dusk" width={1920} height={1088} fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[70%_center]" />
+        <div className="hero-shade absolute inset-0" />
+        <div className="relative mx-auto w-full max-w-[1240px] px-6 pb-20 pt-32">
+          <div className="max-w-2xl">
+            <Kicker dark>The intelligent way to hire</Kicker>
+            <h1 className="mt-6 font-display text-[clamp(2.75rem,7vw,5.5rem)] font-bold leading-[1.02] tracking-tight text-on-deep">
+              See the person. Not just the <span className="text-cyan">paper.</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-on-deep-muted">
+              Talenval screens every resume, tests real skills and runs AI video interviews — so you shortlist the right people in minutes, with reasons you can trust.
+            </p>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link to={signedIn ? "/jobs" : "/auth"} className={btnHero}>{signedIn ? "Go to dashboard" : "Start free trial"} <ArrowRight className="h-4 w-4" /></Link>
+              <Link to="/demo" className={btnOutline}>Explore Talenval</Link>
             </div>
-            <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm text-home-muted">
-              {["No credit card", "First 100 resumes free", "Set up in minutes"].map((text) => <li key={text} className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-home-violet" />{text}</li>)}
+            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-on-deep">
+              {["No credit card", "First 100 resumes free", "Set up in minutes"].map((t) => (
+                <li key={t} className="flex items-center gap-2"><Check className="h-4 w-4 text-cyan" />{t}</li>
+              ))}
             </ul>
           </div>
-          <div className="relative mx-auto w-full max-w-[560px] pb-8" aria-label="Illustrative candidate match preview">
-            <div className="rounded-[8px] border border-home-line bg-home-surface p-5 shadow-2xl sm:p-7">
-              <div className="flex items-center gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-home-violet text-sm font-bold">JT</span><div className="min-w-0 flex-1"><p className="font-bold">Julian Thorne</p><p className="text-xs uppercase text-home-muted">Sr. Frontend Developer</p></div><div className="text-right"><b className="font-display text-3xl">96<span className="text-sm">%</span></b><p className="text-xs font-semibold uppercase text-home-violet">Match score</p></div></div>
-              <div className="mt-7 h-2 rounded-full bg-home-line"><div className="home-score-track h-full w-[96%] rounded-full" /></div>
-              <div className="mt-5 flex flex-wrap gap-2">{["React", "TypeScript", "Next.js", "GraphQL", "Accessibility"].map((skill) => <span key={skill} className="rounded-[5px] border border-home-line bg-home-surface-raised px-2.5 py-1 text-xs text-home-muted">{skill}</span>)}</div>
-              <div className="mt-6 grid grid-cols-3 gap-3 border-t border-home-line pt-5 text-xs text-home-muted"><div>Skills match <b className="mt-1 block text-home-text">7 / 8</b></div><div>Experience <b className="mt-1 block text-home-text">7 years</b></div><div>Resume quality <b className="mt-1 block text-home-text">94 / 100</b></div></div>
+        </div>
+        <a href="#metrics" className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1 text-xs uppercase tracking-[0.22em] text-on-deep-muted hover:text-cyan">
+          Discover more <ChevronDown className="h-4 w-4 animate-bounce" />
+        </a>
+      </section>
+
+      {/* METRICS */}
+      <section id="metrics" className="border-t border-on-deep/10 bg-deep">
+        <div className="mx-auto grid max-w-[1240px] grid-cols-2 gap-px px-6 py-12 md:grid-cols-4">
+          {[["70%", "less time screening"], ["490+", "skills assessments"], ["5", "connected hiring stages"], ["1", "clear view of every candidate"]].map(([n, l]) => (
+            <div key={l} className="py-4 md:border-l md:border-on-deep/10 md:pl-8 first:md:border-l-0 first:md:pl-0">
+              <div className="font-display text-4xl font-bold text-cyan md:text-5xl">{n}</div>
+              <div className="mt-2 text-sm text-on-deep-muted">{l}</div>
             </div>
-            <div className="absolute -bottom-2 -left-2 rounded-[8px] border border-home-violet/40 bg-home-surface px-5 py-4 shadow-xl sm:-left-8"><p className="text-[10px] font-bold uppercase text-home-muted tracking-[0.16em]">Processing</p><p className="mt-1 font-display text-lg font-bold">2.4s <span className="text-xs text-home-green">−70%</span></p><div className="mt-3 flex items-end gap-1.5">{[13, 18, 14, 25, 19, 22, 16].map((h, i) => <span key={i} className="w-5 rounded-t-[2px] bg-home-violet/60" style={{ height: h }} />)}</div></div>
-            <p className="sr-only">Illustrative sample data.</p>
+          ))}
+        </div>
+      </section>
+
+      {/* CAPABILITIES */}
+      <section id="platform" className="py-24">
+        <div className="mx-auto max-w-[1240px] px-6">
+          <Kicker>What we make possible</Kicker>
+          <h2 className="mt-5 max-w-2xl font-display text-4xl font-bold tracking-tight md:text-5xl">Every signal matters. See the full picture.</h2>
+          <div className="mt-14 grid gap-px overflow-hidden rounded-[5px] border border-ed-border bg-ed-border sm:grid-cols-2 lg:grid-cols-4">
+            {capabilities.map((f, i) => (
+              <div key={f.title} className="flex flex-col bg-ed-bg p-7">
+                <div className="flex items-center justify-between">
+                  <span className="grid h-11 w-11 place-items-center rounded-[3px] bg-deep text-cyan"><f.icon className="h-5 w-5" /></span>
+                  <span className="font-display text-xs font-semibold text-ed-muted">0{i + 1} / 04</span>
+                </div>
+                <h3 className="mt-8 font-display text-lg font-bold">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-ed-muted">{f.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
-        <a href="#problem" aria-label="Discover more" className="absolute bottom-4 left-1/2 hidden -translate-x-1/2 text-home-muted hover:text-home-violet lg:block"><ChevronDown /></a>
       </section>
 
-      <section id="problem" className="border-t border-home-line/60 py-20 md:py-28">
-        <div className="mx-auto max-w-[1280px] px-6"><SectionLabel>The problem</SectionLabel><h2 className="mt-6 max-w-[940px] font-display text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">Recruiters drown in resumes. Great hires slip through the cracks.</h2>
-          <div className="mt-12 grid gap-5 md:grid-cols-3">{problems.map(({ icon: Icon, title, description }) => <article key={title} className="rounded-[8px] border border-home-line bg-home-surface p-7"><span className="grid h-11 w-11 place-items-center rounded-[7px] border border-home-violet/30 bg-home-violet/10 text-home-violet"><Icon className="h-5 w-5" /></span><h3 className="mt-7 text-lg font-bold">{title}</h3><p className="mt-3 leading-relaxed text-home-muted">{description}</p></article>)}</div>
+      {/* HOW IT WORKS */}
+      <section id="how-it-works" className="bg-ed-tint py-24">
+        <div className="mx-auto grid max-w-[1240px] gap-14 px-6 lg:grid-cols-[5fr_7fr]">
+          <div className="lg:sticky lg:top-24 lg:self-start">
+            <Kicker>How it works</Kicker>
+            <h2 className="mt-5 font-display text-4xl font-bold tracking-tight md:text-5xl">From application to answer.</h2>
+            <p className="mt-5 text-ed-muted">Three steps replace weeks of manual screening.</p>
+            <Link to="/demo" className="mt-6 inline-flex items-center gap-2 font-bold underline-offset-4 hover:underline">See the demo <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+          <ol className="divide-y divide-ed-border border-y border-ed-border">
+            {[
+              ["Bring in your candidates", "Drag and drop resumes in bulk, or collect applications from your own careers page."],
+              ["Find the strongest fit", "Every applicant is ranked with an explainable score — skills, experience and resume quality."],
+              ["Move forward with confidence", "Send assessments and AI interviews, share dossiers with managers and move people through your pipeline."],
+            ].map(([t, d], i) => (
+              <li key={t} className="flex gap-6 py-8">
+                <span className="font-display text-3xl font-bold text-cyan">0{i + 1}</span>
+                <div>
+                  <h3 className="font-display text-xl font-bold">{t}</h3>
+                  <p className="mt-2 text-ed-muted">{d}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
-      <section id="solution" className="border-y border-home-line/60 py-20 md:py-28">
-        <div className="mx-auto grid max-w-[1280px] items-center gap-12 px-6 lg:grid-cols-2 lg:gap-20"><div><SectionLabel>The solution</SectionLabel><h2 className="mt-6 font-display text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">Talenval reads every resume — and explains every score.</h2><p className="mt-6 text-lg leading-relaxed text-home-muted">Define the role once. Drop in resumes. Talenval ranks candidates by matched skills, experience, strengths and gaps, so you can shortlist with confidence.</p><ul className="mt-9 grid gap-4 text-sm sm:grid-cols-2">{["Explainable scoring", "Bulk PDF + DOCX upload", "Candidate shortlisting", "Resume quality scoring"].map((item) => <li key={item} className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 shrink-0 text-home-violet" />{item}</li>)}</ul></div>
-          <div className="rounded-[8px] border border-home-line bg-home-surface p-6 sm:p-8" aria-label="Illustrative score breakdown"><div className="flex items-start justify-between gap-3"><div><h3 className="font-bold">Why this score?</h3><p className="mt-1 text-sm text-home-muted">Julian Thorne · Sr. Frontend Developer</p></div><div className="text-right"><span className="font-display text-3xl font-bold">96</span><p className="text-xs font-bold uppercase text-home-violet">Overall</p></div></div><div className="mt-9 space-y-5">{[["Required skills", "7 / 8", 88], ["Experience", "7 yrs vs 4 req.", 100], ["Resume quality", "94 / 100", 94], ["Nice-to-have skills", "2 / 3", 67]].map(([label, value, percent]) => <div key={String(label)}><div className="mb-2 flex justify-between gap-3 text-sm"><span className="text-home-muted">{label}</span><b>{value}</b></div><div className="h-1.5 rounded-full bg-home-line"><div className="home-score-track h-full rounded-full" style={{ width: `${percent}%` }} /></div></div>)}</div><p className="mt-6 text-xs text-home-muted">Illustrative sample data.</p></div>
+      {/* PRODUCT DEMO */}
+      <section id="product" className="py-24">
+        <div className="mx-auto max-w-[1240px] px-6">
+          <Kicker>Explore the product</Kicker>
+          <h2 className="mt-5 max-w-2xl font-display text-4xl font-bold tracking-tight md:text-5xl">Not another black box.</h2>
+          <p className="mt-4 max-w-xl text-ed-muted">Click a candidate to see exactly why they ranked where they did.</p>
+          <div className="mt-12 overflow-hidden rounded-[8px] border border-ed-border bg-card soft-shadow">
+            <div className="flex items-center justify-between bg-deep px-6 py-4 text-xs font-bold uppercase tracking-[0.22em] text-on-deep">
+              <span>Talenval <span className="text-cyan">/</span> Candidate insights</span>
+              <span className="hidden text-on-deep-muted sm:inline">{c.role}</span>
+            </div>
+            <div className="grid md:grid-cols-[320px_1fr]">
+              <div className="border-b border-ed-border md:border-b-0 md:border-r">
+                {candidates.map((p, i) => (
+                  <button key={p.name} onClick={() => setSel(i)} className={`flex h-[62px] w-full items-center gap-3 border-b border-ed-border px-6 text-left transition-colors ${sel === i ? "bg-ed-tint" : "hover:bg-ed-tint/60"}`}>
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[3px] bg-deep font-display text-xs font-bold text-cyan">#{i + 1}</span>
+                    <span className="min-w-0 flex-1 truncate font-medium">{p.name}</span>
+                    <span className="font-display font-bold">{p.overall}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="p-6 sm:p-8" key={sel}>
+                <div className="flex items-baseline justify-between">
+                  <h3 className="font-display text-2xl font-bold">{c.name}</h3>
+                  <span className="font-display text-3xl font-bold text-cyan">{c.overall}</span>
+                </div>
+                <div className="mt-6 space-y-4">
+                  {[["Skills matched", c.skills], ["Experience", c.exp], ["Resume quality", c.quality]].map(([l, v]) => (
+                    <div key={l as string}>
+                      <div className="mb-1.5 flex justify-between text-sm"><span>{l}</span><span className="font-bold">{v}</span></div>
+                      <div className="h-2 overflow-hidden rounded-full bg-ed-tint"><div className="score-fill h-full rounded-full bg-cyan" style={{ width: `${v}%` }} /></div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-6 flex gap-2 text-sm"><Check className="h-4 w-4 shrink-0 text-ed-success" />{c.strength}</p>
+                <p className="mt-2 flex gap-2 text-sm text-ed-muted"><AlertCircle className="h-4 w-4 shrink-0 text-gold" />{c.gap}</p>
+              </div>
+            </div>
+            <p className="border-t border-ed-border px-6 py-3 text-xs text-ed-muted">Illustrative sample data.</p>
+          </div>
         </div>
       </section>
 
-      <section id="how-it-works" className="py-20 md:py-28"><div className="mx-auto max-w-[1280px] px-6"><div className="text-center"><div className="flex justify-center"><SectionLabel>How it works</SectionLabel></div><h2 className="mt-6 font-display text-3xl font-bold sm:text-4xl md:text-5xl">From inbox to shortlist in three steps.</h2></div><div className="mt-14 grid gap-5 md:grid-cols-3">{steps.map(({ icon: Icon, title, description }, index) => <article key={title} className="rounded-[8px] border border-home-line bg-home-surface p-7"><p className="font-mono text-xs text-home-violet">0{index + 1}</p><Icon className="mt-6 h-6 w-6" /><h3 className="mt-6 text-lg font-bold">{title}</h3><p className="mt-3 leading-relaxed text-home-muted">{description}</p></article>)}</div></div></section>
+      {/* BEYOND */}
+      <section className="bg-deep py-24 text-on-deep">
+        <div className="mx-auto max-w-[1240px] px-6">
+          <Kicker dark>Beyond the resume</Kicker>
+          <div className="mt-10 grid gap-6 md:grid-cols-2">
+            {[
+              { icon: ClipboardCheck, tone: "text-cyan", t: "490+ skills assessments", d: "Proctored with webcam monitoring and paste-blocking, or build your own tests for your L&D team." },
+              { icon: Video, tone: "text-gold", t: "AI video interviews", d: "Candidates interview any time. You get a transcript, score, composure signals and a proctoring report." },
+            ].map((b) => (
+              <div key={b.t} className="rounded-[5px] bg-deep-raised p-8">
+                <b.icon className={`h-7 w-7 ${b.tone}`} />
+                <h3 className="mt-6 font-display text-2xl font-bold">{b.t}</h3>
+                <p className="mt-3 text-on-deep-muted">{b.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      <section id="pipeline" className="border-y border-home-line/60 py-20 md:py-28"><div className="mx-auto max-w-[1280px] px-6"><div className="text-center"><div className="flex justify-center"><SectionLabel>Full recruitment lifecycle</SectionLabel></div><h2 className="mt-6 font-display text-3xl font-bold sm:text-4xl md:text-5xl">One pipeline. Every stage. Zero spreadsheets.</h2><p className="mt-5 text-home-muted">From sourcing to onboarding — track candidates through a connected five-stage workflow.</p></div><div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{stages.map(({ icon: Icon, title, description }, index) => <div key={title} className="rounded-[8px] border border-home-line bg-home-surface p-6 text-center"><p className="font-mono text-xs text-home-violet">0{index + 1}</p><Icon className="mx-auto mt-4 h-6 w-6" /><h3 className="mt-5 font-bold">{title}</h3><p className="mt-2 text-sm text-home-muted">{description}</p></div>)}</div></div></section>
+      {/* CTA */}
+      <section className="relative overflow-hidden bg-deep py-28 text-on-deep">
+        <img src={hero} alt="" aria-hidden loading="lazy" width={1920} height={1088} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+        <div className="hero-shade absolute inset-0" />
+        <div className="relative mx-auto max-w-[1240px] px-6">
+          <h2 className="max-w-2xl font-display text-4xl font-bold tracking-tight md:text-6xl">Build a team that moves you forward.</h2>
+          <Link to={signedIn ? "/jobs" : "/auth"} className={`${btnHero} mt-9`}>{signedIn ? "Go to dashboard" : "Start free trial"} <ArrowRight className="h-4 w-4" /></Link>
+        </div>
+      </section>
 
-      <section id="interviews" className="py-20 md:py-28"><div className="mx-auto grid max-w-[1280px] items-center gap-12 px-6 lg:grid-cols-2 lg:gap-16"><div className="relative pb-6"><img src={interviewImage} alt="Illustration of Talenval's AI video interview room with candidate video, audio waveform, and results" loading="lazy" width={1100} height={736} className="w-full rounded-[8px] border border-home-line object-cover" /><div className="absolute bottom-0 right-0 rounded-[8px] border border-home-violet/40 bg-home-surface px-5 py-3 shadow-xl sm:right-4"><p className="text-xs font-bold uppercase text-home-muted">AI verdict</p><p className="mt-1 font-display text-xl font-bold">88 <span className="text-xs font-normal text-home-green">Advance to offer</span></p></div></div><div><SectionLabel>AI video interview</SectionLabel><h2 className="mt-6 font-display text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">An AI interviewer that actually sits in the room.</h2><p className="mt-6 text-lg leading-relaxed text-home-muted">Send one link. Candidates join with camera and microphone; the AI asks role-specific questions aloud, records answers and prepares a scored report with integrity signals for your team.</p><ul className="mt-8 grid gap-5 text-sm sm:grid-cols-2">{[{ icon: Video, text: "Live video round" }, { icon: Mic, text: "Natural voice Q&A" }, { icon: MonitorPlay, text: "Screen share capture" }, { icon: Eye, text: "Proctoring & integrity checks" }].map(({ icon: Icon, text }) => <li key={text} className="flex items-center gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-[7px] border border-home-violet/30 bg-home-violet/10 text-home-violet"><Icon className="h-4 w-4" /></span>{text}</li>)}</ul><div className="mt-9 flex flex-wrap gap-3">{signedIn !== null && <HomeAction to={signedIn ? "/interviews" : "/auth"}><Video />Run an AI interview</HomeAction>}<HomeAction to="/demo" secondary>See it in action</HomeAction></div></div></div></section>
-
-      <section id="assessments" className="border-y border-home-line/60 py-20 md:py-28"><div className="mx-auto max-w-[1280px] px-6"><SectionLabel>Skills assessments</SectionLabel><h2 className="mt-6 max-w-[890px] font-display text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">Prove the skill before the offer — or build the test yourself.</h2><p className="mt-6 max-w-[900px] text-lg leading-relaxed text-home-muted">Send from a library of 490+ tests — coding, language, cognitive, situational, role-specific and oilfield competencies. Learning and development teams can also author tailored assessments with their own questions, scoring and time limit.</p><div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{assessments.map(({ icon: Icon, title, description }) => <article key={title} className="rounded-[8px] border border-home-line bg-home-surface p-7"><span className="grid h-11 w-11 place-items-center rounded-[7px] border border-home-violet/30 bg-home-violet/10 text-home-violet"><Icon className="h-5 w-5" /></span><h3 className="mt-6 font-bold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-home-muted">{description}</p></article>)}</div><div className="mt-10 flex flex-wrap gap-3">{signedIn !== null && <HomeAction to={signedIn ? "/assessments" : "/auth"}><ClipboardCheck />Start assessing candidates</HomeAction>}<HomeAction to="/pricing" secondary>See assessment allowances</HomeAction></div></div></section>
-
-      <section id="product" className="py-20 md:py-28"><div className="mx-auto max-w-[1280px] px-6"><SectionLabel>Explore the product</SectionLabel><h2 className="mt-6 font-display text-3xl font-bold sm:text-4xl md:text-5xl">Not another black box.</h2><p className="mt-4 text-home-muted">Select a candidate to see why they ranked where they did.</p><div className="mt-10 overflow-hidden rounded-[8px] border border-home-line bg-home-surface"><div className="flex items-center justify-between gap-4 border-b border-home-line px-6 py-4 text-xs font-bold uppercase text-home-muted tracking-[0.16em]"><span>Talenval / Candidate insights</span><span className="hidden sm:inline">{candidate.role}</span></div><div className="grid md:grid-cols-[300px_1fr]"><div className="border-b border-home-line md:border-b-0 md:border-r">{candidates.map((person, index) => <Button key={person.name} variant="ghost" onClick={() => setSelected(index)} aria-pressed={selected === index} className={`flex h-16 w-full justify-start rounded-none border-b border-home-line px-5 text-left hover:bg-home-surface-raised hover:text-home-text ${selected === index ? "bg-home-surface-raised text-home-text" : "text-home-muted"}`}><span className="grid h-8 w-8 shrink-0 place-items-center rounded-[4px] bg-home-violet/20 text-xs text-home-violet">#{index + 1}</span><span className="min-w-0 flex-1 truncate">{person.name}</span><b>{person.overall}</b></Button>)}</div><div className="p-6 sm:p-8"><div className="flex items-start justify-between gap-4"><h3 className="font-display text-2xl font-bold">{candidate.name}</h3><span className="font-display text-3xl font-bold text-home-violet">{candidate.overall}</span></div><div className="mt-7 space-y-4">{[["Skills matched", candidate.skills], ["Experience", candidate.exp], ["Resume quality", candidate.quality]].map(([label, value]) => <div key={String(label)}><div className="mb-2 flex justify-between text-sm"><span>{label}</span><b>{value}</b></div><div className="h-2 rounded-full bg-home-line"><div className="home-score-track h-full rounded-full" style={{ width: `${value}%` }} /></div></div>)}</div><p className="mt-6 flex gap-2 text-sm"><Check className="h-4 w-4 shrink-0 text-home-green" />{candidate.strength}</p><p className="mt-3 flex gap-2 text-sm text-home-muted"><AlertCircle className="h-4 w-4 shrink-0 text-home-violet" />{candidate.gap}</p></div></div><p className="border-t border-home-line px-6 py-3 text-xs text-home-muted">Illustrative sample data.</p></div></div></section>
-
-      <section className="border-t border-home-line/60 bg-home-surface py-20 md:py-24"><div className="mx-auto max-w-[1280px] px-6"><h2 className="max-w-[800px] font-display text-3xl font-bold sm:text-4xl md:text-5xl">Build a team that moves you forward.</h2>{signedIn !== null && <HomeAction to={actionTo} className="mt-8">{actionLabel}<ArrowRight /></HomeAction>}</div></section>
-      <footer className="border-t border-home-line bg-home-base py-12 text-home-muted"><div className="mx-auto flex max-w-[1280px] flex-col gap-8 px-6 md:flex-row md:items-center md:justify-between"><div><Brand /><p className="mt-3 text-xs font-bold uppercase text-home-violet tracking-[0.16em]">See more. Hire better.</p></div><nav className="flex flex-wrap gap-6 text-sm"><Link to="/pricing" className="hover:text-home-text">Pricing</Link><Link to="/demo" className="hover:text-home-text">Demo</Link><Link to="/about" className="hover:text-home-text">About</Link><Link to="/faq" className="hover:text-home-text">FAQ</Link><Link to="/api-docs" className="hover:text-home-text">API</Link></nav><p className="text-xs">© {new Date().getFullYear()} Talenval</p></div></footer>
+      {/* FOOTER */}
+      <footer className="border-t border-on-deep/10 bg-deep py-12 text-on-deep-muted">
+        <div className="mx-auto flex max-w-[1240px] flex-col gap-8 px-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <Brand />
+            <p className="mt-3 text-xs font-bold uppercase tracking-[0.22em] text-cyan">See more. Hire better.</p>
+          </div>
+          <nav className="flex flex-wrap gap-6 text-sm">
+            <Link to="/pricing" className="hover:text-cyan">Pricing</Link>
+            <Link to="/demo" className="hover:text-cyan">Demo</Link>
+            <Link to="/about" className="hover:text-cyan">About</Link>
+            <Link to="/faq" className="hover:text-cyan">FAQ</Link>
+            <Link to="/api-docs" className="hover:text-cyan">API</Link>
+          </nav>
+          <p className="text-xs">© {new Date().getFullYear()} Talenval</p>
+        </div>
+      </footer>
     </main>
   );
 }

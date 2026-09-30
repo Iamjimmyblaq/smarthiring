@@ -71,15 +71,6 @@
   --color-ed-muted: oklch(0.47 0.03 245);
   --color-ed-border: oklch(0.87 0.015 230);
   --color-ed-success: oklch(0.69 0.13 162);
-  --color-home-base: oklch(0.15 0.014 270);
-  --color-home-surface: oklch(0.20 0.015 270);
-  --color-home-surface-raised: oklch(0.24 0.02 270);
-  --color-home-line: oklch(0.32 0.017 270);
-  --color-home-text: oklch(0.94 0.01 260);
-  --color-home-muted: oklch(0.77 0.025 260);
-  --color-home-violet: oklch(0.63 0.21 295);
-  --color-home-violet-hover: oklch(0.69 0.19 295);
-  --color-home-green: oklch(0.77 0.17 166);
   --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
   --font-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 
@@ -256,8 +247,6 @@
 }
 .soft-shadow { box-shadow: 0 16px 50px oklch(0.16 0.03 250 / 0.08); }
 .score-fill { animation: score-grow 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; transform-origin: left; }
-.home-hero-glow { background: radial-gradient(ellipse at 75% 45%, color-mix(in oklab, var(--color-home-violet) 14%, transparent), transparent 60%); }
-.home-score-track { background: linear-gradient(90deg, var(--color-home-violet), var(--color-home-violet-hover)); }
 @keyframes score-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @media (prefers-reduced-motion: reduce) {
   .score-fill, .animate-bounce { animation: none !important; }
