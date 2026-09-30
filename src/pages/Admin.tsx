@@ -432,7 +432,8 @@ export default function Admin() {
                     <Input value={tier.description ?? ""} onChange={(e) => patchTier(tier.id, { description: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Features (one per line)</Label>
+                    <Label>Extra features (one per line)</Label>
+                    <p className="text-xs text-muted-foreground">Resume, job, AI interview and assessment limits above are shown on the pricing page automatically — no need to repeat them here.</p>
                     <Textarea rows={6} value={tier.features.join("\n")} onChange={(e) => patchTier(tier.id, { features: e.target.value.split("\n") })} />
                   </div>
                   <Button onClick={() => saveTier(tier)} disabled={saving === tier.id} className="gap-2">
