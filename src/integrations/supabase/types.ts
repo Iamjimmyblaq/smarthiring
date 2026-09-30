@@ -71,6 +71,74 @@ export type Database = {
         }
         Relationships: []
       }
+      candidate_dossiers: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          decided_at: string | null
+          expires_at: string
+          id: string
+          last_viewed_at: string | null
+          manager_decision: string | null
+          manager_feedback: string | null
+          manager_name: string | null
+          pin: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          revoked: boolean
+          token: string
+          updated_at: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          decided_at?: string | null
+          expires_at?: string
+          id?: string
+          last_viewed_at?: string | null
+          manager_decision?: string | null
+          manager_feedback?: string | null
+          manager_name?: string | null
+          pin?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          revoked?: boolean
+          token: string
+          updated_at?: string
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          decided_at?: string | null
+          expires_at?: string
+          id?: string
+          last_viewed_at?: string | null
+          manager_decision?: string | null
+          manager_feedback?: string | null
+          manager_name?: string | null
+          pin?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          revoked?: boolean
+          token?: string
+          updated_at?: string
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_dossiers_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_name_edits: {
         Row: {
           candidate_id: string
@@ -213,6 +281,65 @@ export type Database = {
           },
         ]
       }
+      careers_pages: {
+        Row: {
+          about: string | null
+          auto_invite_ai_interview: boolean
+          auto_invite_test_id: string | null
+          brand_color: string
+          company_name: string
+          created_at: string
+          id: string
+          is_published: boolean
+          location: string | null
+          slug: string
+          tagline: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          about?: string | null
+          auto_invite_ai_interview?: boolean
+          auto_invite_test_id?: string | null
+          brand_color?: string
+          company_name: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          location?: string | null
+          slug: string
+          tagline?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          about?: string | null
+          auto_invite_ai_interview?: boolean
+          auto_invite_test_id?: string | null
+          brand_color?: string
+          company_name?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          location?: string | null
+          slug?: string
+          tagline?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "careers_pages_auto_invite_test_id_fkey"
+            columns: ["auto_invite_test_id"]
+            isOneToOne: false
+            referencedRelation: "skill_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_redemptions: {
         Row: {
           amount_discounted: number | null
@@ -320,6 +447,96 @@ export type Database = {
           updated_at?: string
           valid_from?: string
           valid_until?: string | null
+        }
+        Relationships: []
+      }
+      credit_packs: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          is_active: boolean
+          key: string
+          kind: string
+          name: string
+          price_amount: number
+          quantity: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          key: string
+          kind: string
+          name: string
+          price_amount: number
+          quantity: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          kind?: string
+          name?: string
+          price_amount?: number
+          quantity?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      credit_purchases: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          pack_key: string
+          provider: string
+          quantity: number
+          reference: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind: string
+          pack_key: string
+          provider?: string
+          quantity: number
+          reference: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          pack_key?: string
+          provider?: string
+          quantity?: number
+          reference?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -496,6 +713,69 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      job_applications: {
+        Row: {
+          candidate_id: string | null
+          cover_note: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          job_id: string
+          phone: string | null
+          resume_text: string | null
+          source: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          cover_note?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          job_id: string
+          phone?: string | null
+          resume_text?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string | null
+          cover_note?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          job_id?: string
+          phone?: string | null
+          resume_text?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       jobs: {
         Row: {
@@ -733,6 +1013,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          blind_mode: boolean
           company_name: string | null
           created_at: string
           email: string | null
@@ -746,6 +1027,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          blind_mode?: boolean
           company_name?: string | null
           created_at?: string
           email?: string | null
@@ -759,6 +1041,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          blind_mode?: boolean
           company_name?: string | null
           created_at?: string
           email?: string | null
@@ -1057,6 +1340,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          kind: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          kind: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_plans: {
         Row: {
           created_at: string
@@ -1194,6 +1504,14 @@ export type Database = {
         Args: { body: Json; fn_name: string }
         Returns: undefined
       }
+      credit_balance: {
+        Args: { _kind: string; _user_id: string }
+        Returns: number
+      }
+      get_dossier_by_token: {
+        Args: { _pin?: string; _token: string }
+        Returns: Json
+      }
       get_interview_session_by_token: {
         Args: { _token: string }
         Returns: {
@@ -1207,6 +1525,7 @@ export type Database = {
           status: string
         }[]
       }
+      get_public_careers: { Args: { _slug: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1217,6 +1536,28 @@ export type Database = {
       plan_limit: {
         Args: { _limit: string; _user_id: string }
         Returns: number
+      }
+      submit_dossier_decision: {
+        Args: {
+          _decision: string
+          _feedback: string
+          _manager_name: string
+          _pin: string
+          _token: string
+        }
+        Returns: Json
+      }
+      submit_job_application: {
+        Args: {
+          _cover_note: string
+          _email: string
+          _full_name: string
+          _job_id: string
+          _phone: string
+          _resume_text: string
+          _slug: string
+        }
+        Returns: Json
       }
     }
     Enums: {
