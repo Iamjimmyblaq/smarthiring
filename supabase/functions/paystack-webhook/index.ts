@@ -81,6 +81,17 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    if (meta.purchase_type === "credits") {
+      const { error: creditErr } = await admin.rpc("apply_credit_purchase", {
+        _user_id: userId,
+        _pack_key: String(meta.pack_key || ""),
+        _reference: reference,
+        _provider: "paystack",
+      });
+      if (creditErr) console.error("paystack-webhook: credit top-up failed", { reference, creditErr });
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
+
     await provisionPaidPlan(admin, {
       userId,
       tierKey: meta.tier_key || meta.plan || "pro",
