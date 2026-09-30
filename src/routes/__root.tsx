@@ -24,6 +24,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0" },
+      { name: "google-site-verification", content: "gkRwLsMwGv4svAGUi_qZwxB1Jfx1wBWO9SUGrCJVDOU" },
       { title: "Talenval — AI Talent Evaluation & Hiring" },
       {
         name: "description",
