@@ -266,7 +266,7 @@ export default function Pipeline() {
                         <CardContent className="p-3 space-y-2">
                           <div className="flex items-start justify-between gap-2">
                             <Link to={`/jobs/${c.job_id}`} className="font-medium text-sm hover:underline truncate">
-                              {c.name ?? "Unnamed"}
+                              {maskName(c.id, c.name, blind)}
                             </Link>
                             <div className="flex items-center gap-1 shrink-0">
                               {c.overall_score != null && (
@@ -277,10 +277,20 @@ export default function Pipeline() {
                                 variant="ghost"
                                 className="h-6 w-6 text-primary"
                                 title="Start AI video interview"
-                                aria-label={`Start AI video interview for ${c.name ?? "candidate"}`}
+                                aria-label={`Start AI video interview for ${maskName(c.id, c.name, blind)}`}
                                 onClick={() => createAiInterview(c, c.jobs?.title)}
                               >
                                 <Bot className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6"
+                                title="Share with a hiring manager"
+                                aria-label={`Share ${maskName(c.id, c.name, blind)} with a hiring manager`}
+                                onClick={() => setShareFor(c)}
+                              >
+                                <Share2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           </div>
