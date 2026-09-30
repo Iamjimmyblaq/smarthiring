@@ -44,6 +44,46 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // ---- Credit top-up packs (one-off purchase, no subscription change) ----
+    if (body?.purchase_type === "credits") {
+      const packKey = String(body?.pack_key || "");
+      const { data: pack } = await admin
+        .from("credit_packs")
+        .select("key, name, kind, quantity, price_amount, currency")
+        .eq("key", packKey)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (!pack) return json({ error: "That top-up pack isn't available. Please refresh and try again." }, 400);
+
+      const raw = String(pack.currency || "USD").trim().toUpperCase();
+      const packCurrency = raw === "$" ? "USD" : raw === "₦" ? "NGN" : raw;
+      const packPrice = Number(pack.price_amount);
+      if (!Number.isFinite(packPrice) || packPrice <= 0) return json({ error: "This pack has an invalid price." }, 400);
+
+      const packRes = await fetch("https://api.paystack.co/transaction/initialize", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${config.secretKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          amount: Math.round(packPrice * 100),
+          currency: packCurrency,
+          callback_url,
+          channels: ["card", "bank", "apple_pay", "ussd", "qr", "mobile_money", "bank_transfer"],
+          metadata: { user_id: user.id, purchase_type: "credits", pack_key: pack.key, kind: pack.kind, quantity: pack.quantity },
+        }),
+      });
+      const packData = await packRes.json();
+      if (!packData.status) return json({ error: packData.message || "Init failed" }, 400);
+      return json({
+        authorization_url: packData.data.authorization_url,
+        reference: packData.data.reference,
+        amount: packPrice,
+        currency: packCurrency,
+        pack: pack.key,
+      });
+    }
+
+
     const { data: tier } = await admin
       .from("plan_tiers")
       .select("key, name, price_amount, currency")
