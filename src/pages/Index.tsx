@@ -4,7 +4,7 @@ import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/router-compat";
 import {
-  ArrowRight, Check, ChevronDown, FileSearch, ClipboardCheck, Video, Workflow,
+  ArrowRight, Check, ChevronDown, ClipboardCheck, Video,
   Menu, X, AlertCircle, Clock3, ShieldCheck, Upload, ListChecks, Brain,
   Filter, CalendarCheck, FilePenLine, UserRoundCheck, Mic, MonitorUp,
   Eye, WandSparkles, Camera, FileCheck2, Inbox,
@@ -308,10 +308,9 @@ export default function Index() {
             <h2 className="mt-5 font-display text-4xl font-bold md:text-5xl">An AI interviewer that actually sits in the room.</h2>
             <p className="mt-6 text-lg leading-relaxed text-on-deep-muted">Send one link. Candidates join with camera and microphone; the AI asks role-specific questions aloud and returns a transcript, score and proctoring report for your team.</p>
             <ul className="mt-8 grid gap-5 text-sm sm:grid-cols-2">
-              {[[Video, "Live video round"], [Mic, "Natural voice Q&A"], [MonitorUp, "Screen share capture"], [Eye, "Integrity checks"]].map(([Icon, label]) => {
-                const IconComponent = Icon as typeof Video;
-                return <li key={label as string} className="flex items-center gap-3"><IconComponent className="h-5 w-5 shrink-0 text-cyan" />{label as string}</li>;
-              })}
+              {[{ icon: Video, label: "Live video round" }, { icon: Mic, label: "Natural voice Q&A" }, { icon: MonitorUp, label: "Screen share capture" }, { icon: Eye, label: "Integrity checks" }].map(({ icon: Icon, label }) => (
+                <li key={label} className="flex items-center gap-3"><Icon className="h-5 w-5 shrink-0 text-cyan" />{label}</li>
+              ))}
             </ul>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link to={signedIn ? "/interviews" : "/auth"} className={btnHero}>Run an AI interview <ArrowRight className="h-4 w-4" /></Link>
