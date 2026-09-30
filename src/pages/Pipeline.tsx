@@ -42,6 +42,8 @@ export default function Pipeline() {
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
+  const { blind, toggle: toggleBlind } = useBlindMode();
+  const [shareFor, setShareFor] = useState<Candidate | null>(null);
 
   useEffect(() => {
     document.title = "Pipeline — Talenval";
