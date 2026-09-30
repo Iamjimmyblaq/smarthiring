@@ -343,6 +343,12 @@ export default function Pipeline() {
           </div>
         )}
       </main>
+      <ShareDossierDialog
+        candidateId={shareFor?.id ?? null}
+        candidateName={shareFor ? maskName(shareFor.id, shareFor.name, blind) : ""}
+        jobTitle={shareFor?.jobs?.title}
+        onClose={() => setShareFor(null)}
+      />
     </div>
   );
 }
