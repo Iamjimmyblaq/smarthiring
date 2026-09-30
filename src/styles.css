@@ -58,6 +58,22 @@
   --color-sidebar-border: hsl(var(--sidebar-border));
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
+  --color-deep: oklch(0.17 0.044 250);
+  --color-deep-raised: oklch(0.23 0.053 247);
+  --color-on-deep: oklch(0.96 0.01 230);
+  --color-on-deep-muted: oklch(0.78 0.03 235);
+  --color-cyan: oklch(0.79 0.135 200);
+  --color-cyan-soft: oklch(0.91 0.055 198);
+  --color-gold: oklch(0.81 0.12 78);
+  --color-ed-bg: oklch(0.985 0.005 225);
+  --color-ed-tint: oklch(0.955 0.012 225);
+  --color-ed-fg: oklch(0.2 0.045 250);
+  --color-ed-muted: oklch(0.47 0.03 245);
+  --color-ed-border: oklch(0.87 0.015 230);
+  --color-ed-success: oklch(0.69 0.13 162);
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
