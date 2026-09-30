@@ -28,6 +28,23 @@ interface Tier {
 
 const fmtLimit = (v: number | null, label: string) => (v === null ? `Unlimited ${label}` : `${v.toLocaleString("en-US")} ${label}`);
 
+interface Pack {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  kind: "ai_interviews" | "assessments" | "resumes";
+  quantity: number;
+  price_amount: number;
+  currency: string;
+}
+
+const KIND_LABEL: Record<string, string> = {
+  ai_interviews: "AI interviews",
+  assessments: "assessments",
+  resumes: "resume scans",
+};
+
 interface CouponResult {
   valid: boolean;
   code?: string;
@@ -44,6 +61,8 @@ const Pricing = () => {
   const planState = usePlan();
   const [loading, setLoading] = useState(false);
   const [tiers, setTiers] = useState<Tier[]>([]);
+  const [packs, setPacks] = useState<Pack[]>([]);
+  const [credits, setCredits] = useState<Record<string, number>>({});
   const [couponInput, setCouponInput] = useState("");
   const [checking, setChecking] = useState(false);
   /** Validated discount per tier key, so every tier shows its own correct total. */
