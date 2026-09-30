@@ -117,24 +117,45 @@ export default function Pipeline() {
               </div>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2" disabled={candidates.length === 0}>
-                <Download className="h-4 w-4" /> Download all stages
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Export full pipeline</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => exportAllStagesExcel(candidates)}>
-                <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel (.xlsx)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportAllStagesPdf(candidates)}>
-                <FileText className="h-4 w-4 mr-2" /> PDF (.pdf)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2" title={BLIND_NOTE}>
+              <EyeOff className={`h-4 w-4 ${blind ? "text-primary" : "text-muted-foreground"}`} />
+              <Label htmlFor="blind" className="cursor-pointer text-xs font-medium">Blind mode</Label>
+              <Switch id="blind" checked={blind} onCheckedChange={toggleBlind} />
+            </div>
+            <Button
+              variant="outline"
+              className="gap-2"
+              disabled={candidates.length === 0}
+              onClick={() => downloadFairHiringPdf(runFairHiringAudit(candidates))}
+            >
+              <ScaleIcon className="h-4 w-4" /> Fair hiring report
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2" disabled={candidates.length === 0}>
+                  <Download className="h-4 w-4" /> Download all stages
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Export full pipeline</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => exportAllStagesExcel(candidates)}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel (.xlsx)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportAllStagesPdf(candidates)}>
+                  <FileText className="h-4 w-4 mr-2" /> PDF (.pdf)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
+
+        {blind && (
+          <p className="mb-6 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm text-muted-foreground">
+            <EyeOff className="h-4 w-4 shrink-0 text-primary" /> {BLIND_NOTE}
+          </p>
+        )}
 
         {/* AI interview showcase */}
         {progress.total > 0 && (progress.inFlight > 0 || progress.failed > 0) && (
