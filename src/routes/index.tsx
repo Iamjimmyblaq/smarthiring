@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Index from "@/pages/Index";
 
-const title = "Talenval — Hire with clarity";
-const description = "Screen resumes, test real skills and run AI video interviews with explainable AI scores. Shortlist the right people in minutes.";
+const title = "Talenval — Hire smarter, not harder";
+const description = "Screen resumes, rank candidates with explainable scores, run AI video interviews and skills assessments, and manage every hiring stage in Talenval.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
