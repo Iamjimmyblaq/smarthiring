@@ -14,15 +14,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bot, Download, FileSpreadsheet, FileText, Users, Video } from "lucide-react";
+import { Bot, Download, FileSpreadsheet, FileText, Users, Video, EyeOff, ScaleIcon, Share2 } from "lucide-react";
 import { AlertTriangle, Loader2, RefreshCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { normalizeParseStatus, parseProgress, retryAllFailed, retryResumeParse } from "@/lib/resume-parsing";
 import { toast } from "sonner";
 import { STAGES, type StageKey } from "@/lib/lifecycle";
 import type { Tables } from "@/integrations/supabase/types";
 import { createAiInterview } from "@/lib/ai-interview";
 import aiRoom from "@/assets/ai-interview-room.jpg";
+import { useBlindMode } from "@/hooks/useBlindMode";
+import { maskName, BLIND_NOTE } from "@/lib/blind";
+import { runFairHiringAudit, downloadFairHiringPdf } from "@/lib/fair-hiring";
+import ShareDossierDialog from "@/components/ShareDossierDialog";
 import {
   exportAllStagesExcel,
   exportAllStagesPdf,
@@ -36,6 +42,8 @@ export default function Pipeline() {
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
+  const { blind, toggle: toggleBlind } = useBlindMode();
+  const [shareFor, setShareFor] = useState<Candidate | null>(null);
 
   useEffect(() => {
     document.title = "Pipeline — Talenval";
@@ -109,24 +117,45 @@ export default function Pipeline() {
               </div>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2" disabled={candidates.length === 0}>
-                <Download className="h-4 w-4" /> Download all stages
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Export full pipeline</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => exportAllStagesExcel(candidates)}>
-                <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel (.xlsx)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportAllStagesPdf(candidates)}>
-                <FileText className="h-4 w-4 mr-2" /> PDF (.pdf)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2" title={BLIND_NOTE}>
+              <EyeOff className={`h-4 w-4 ${blind ? "text-primary" : "text-muted-foreground"}`} />
+              <Label htmlFor="blind" className="cursor-pointer text-xs font-medium">Blind mode</Label>
+              <Switch id="blind" checked={blind} onCheckedChange={toggleBlind} />
+            </div>
+            <Button
+              variant="outline"
+              className="gap-2"
+              disabled={candidates.length === 0}
+              onClick={() => downloadFairHiringPdf(runFairHiringAudit(candidates))}
+            >
+              <ScaleIcon className="h-4 w-4" /> Fair hiring report
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2" disabled={candidates.length === 0}>
+                  <Download className="h-4 w-4" /> Download all stages
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Export full pipeline</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => exportAllStagesExcel(candidates)}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel (.xlsx)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportAllStagesPdf(candidates)}>
+                  <FileText className="h-4 w-4 mr-2" /> PDF (.pdf)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
+
+        {blind && (
+          <p className="mb-6 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm text-muted-foreground">
+            <EyeOff className="h-4 w-4 shrink-0 text-primary" /> {BLIND_NOTE}
+          </p>
+        )}
 
         {/* AI interview showcase */}
         {progress.total > 0 && (progress.inFlight > 0 || progress.failed > 0) && (
@@ -237,7 +266,7 @@ export default function Pipeline() {
                         <CardContent className="p-3 space-y-2">
                           <div className="flex items-start justify-between gap-2">
                             <Link to={`/jobs/${c.job_id}`} className="font-medium text-sm hover:underline truncate">
-                              {c.name ?? "Unnamed"}
+                              {maskName(c.id, c.name, blind)}
                             </Link>
                             <div className="flex items-center gap-1 shrink-0">
                               {c.overall_score != null && (
@@ -248,10 +277,20 @@ export default function Pipeline() {
                                 variant="ghost"
                                 className="h-6 w-6 text-primary"
                                 title="Start AI video interview"
-                                aria-label={`Start AI video interview for ${c.name ?? "candidate"}`}
+                                aria-label={`Start AI video interview for ${maskName(c.id, c.name, blind)}`}
                                 onClick={() => createAiInterview(c, c.jobs?.title)}
                               >
                                 <Bot className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6"
+                                title="Share with a hiring manager"
+                                aria-label={`Share ${maskName(c.id, c.name, blind)} with a hiring manager`}
+                                onClick={() => setShareFor(c)}
+                              >
+                                <Share2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           </div>
@@ -304,6 +343,12 @@ export default function Pipeline() {
           </div>
         )}
       </main>
+      <ShareDossierDialog
+        candidateId={shareFor?.id ?? null}
+        candidateName={shareFor ? maskName(shareFor.id, shareFor.name, blind) : ""}
+        jobTitle={shareFor?.jobs?.title}
+        onClose={() => setShareFor(null)}
+      />
     </div>
   );
 }

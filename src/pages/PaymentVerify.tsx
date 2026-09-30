@@ -26,9 +26,14 @@ const PaymentVerify = () => {
       if (error || data?.error) {
         setStatus("error");
         setMessage(data?.error || error?.message || "Verification failed");
+      } else if (data?.credits) {
+        const c = data.credits as { quantity?: number; kind?: string };
+        const label = c.kind === "ai_interviews" ? "AI interviews" : c.kind === "assessments" ? "assessments" : "resume scans";
+        setStatus("success");
+        setMessage(`Top-up complete — ${c.quantity ?? ""} extra ${label} added to your account.`);
       } else {
         setStatus("success");
-        setMessage("You're now on Pro. Welcome aboard!");
+        setMessage(`You're now on ${data?.plan_name ?? "your new plan"}. Welcome aboard!`);
       }
     })();
   }, [params]);

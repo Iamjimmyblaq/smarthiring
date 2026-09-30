@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AssessmentsRouteImport } from './routes/assessments'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CareersPageRouteImport } from './routes/careers-page'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -24,6 +25,8 @@ import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AssessmentTokenRouteImport } from './routes/assessment/$token'
+import { Route as CareersSlugRouteImport } from './routes/careers/$slug'
+import { Route as DossierTokenRouteImport } from './routes/dossier/$token'
 import { Route as InterviewTokenRouteImport } from './routes/interview/$token'
 import { Route as JobsIndexRouteImport } from './routes/jobs/index'
 import { Route as JobsIdRouteImport } from './routes/jobs/$id'
@@ -53,6 +56,11 @@ const AssessmentsRoute = AssessmentsRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersPageRoute = CareersPageRouteImport.update({
+  id: '/careers-page',
+  path: '/careers-page',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -105,6 +113,16 @@ const AssessmentTokenRoute = AssessmentTokenRouteImport.update({
   path: '/assessment/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CareersSlugRoute = CareersSlugRouteImport.update({
+  id: '/careers/$slug',
+  path: '/careers/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DossierTokenRoute = DossierTokenRouteImport.update({
+  id: '/dossier/$token',
+  path: '/dossier/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InterviewTokenRoute = InterviewTokenRouteImport.update({
   id: '/interview/$token',
   path: '/interview/$token',
@@ -137,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/api-docs': typeof ApiDocsRoute
   '/assessments': typeof AssessmentsRoute
   '/auth': typeof AuthRoute
+  '/careers-page': typeof CareersPageRoute
   '/demo': typeof DemoRoute
   '/developers': typeof DevelopersRoute
   '/faq': typeof FaqRoute
@@ -146,6 +165,8 @@ export interface FileRoutesByFullPath {
   '/pipeline': typeof PipelineRoute
   '/pricing': typeof PricingRoute
   '/assessment/$token': typeof AssessmentTokenRoute
+  '/careers/$slug': typeof CareersSlugRoute
+  '/dossier/$token': typeof DossierTokenRoute
   '/interview/$token': typeof InterviewTokenRoute
   '/jobs/$id': typeof JobsIdRoute
   '/payment/verify': typeof PaymentVerifyRoute
@@ -159,6 +180,7 @@ export interface FileRoutesByTo {
   '/api-docs': typeof ApiDocsRoute
   '/assessments': typeof AssessmentsRoute
   '/auth': typeof AuthRoute
+  '/careers-page': typeof CareersPageRoute
   '/demo': typeof DemoRoute
   '/developers': typeof DevelopersRoute
   '/faq': typeof FaqRoute
@@ -168,6 +190,8 @@ export interface FileRoutesByTo {
   '/pipeline': typeof PipelineRoute
   '/pricing': typeof PricingRoute
   '/assessment/$token': typeof AssessmentTokenRoute
+  '/careers/$slug': typeof CareersSlugRoute
+  '/dossier/$token': typeof DossierTokenRoute
   '/interview/$token': typeof InterviewTokenRoute
   '/jobs/$id': typeof JobsIdRoute
   '/payment/verify': typeof PaymentVerifyRoute
@@ -182,6 +206,7 @@ export interface FileRoutesById {
   '/api-docs': typeof ApiDocsRoute
   '/assessments': typeof AssessmentsRoute
   '/auth': typeof AuthRoute
+  '/careers-page': typeof CareersPageRoute
   '/demo': typeof DemoRoute
   '/developers': typeof DevelopersRoute
   '/faq': typeof FaqRoute
@@ -191,6 +216,8 @@ export interface FileRoutesById {
   '/pipeline': typeof PipelineRoute
   '/pricing': typeof PricingRoute
   '/assessment/$token': typeof AssessmentTokenRoute
+  '/careers/$slug': typeof CareersSlugRoute
+  '/dossier/$token': typeof DossierTokenRoute
   '/interview/$token': typeof InterviewTokenRoute
   '/jobs/$id': typeof JobsIdRoute
   '/payment/verify': typeof PaymentVerifyRoute
@@ -206,6 +233,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/assessments'
     | '/auth'
+    | '/careers-page'
     | '/demo'
     | '/developers'
     | '/faq'
@@ -215,6 +243,8 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/pricing'
     | '/assessment/$token'
+    | '/careers/$slug'
+    | '/dossier/$token'
     | '/interview/$token'
     | '/jobs/$id'
     | '/payment/verify'
@@ -228,6 +258,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/assessments'
     | '/auth'
+    | '/careers-page'
     | '/demo'
     | '/developers'
     | '/faq'
@@ -237,6 +268,8 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/pricing'
     | '/assessment/$token'
+    | '/careers/$slug'
+    | '/dossier/$token'
     | '/interview/$token'
     | '/jobs/$id'
     | '/payment/verify'
@@ -250,6 +283,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/assessments'
     | '/auth'
+    | '/careers-page'
     | '/demo'
     | '/developers'
     | '/faq'
@@ -259,6 +293,8 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/pricing'
     | '/assessment/$token'
+    | '/careers/$slug'
+    | '/dossier/$token'
     | '/interview/$token'
     | '/jobs/$id'
     | '/payment/verify'
@@ -273,6 +309,7 @@ export interface RootRouteChildren {
   ApiDocsRoute: typeof ApiDocsRoute
   AssessmentsRoute: typeof AssessmentsRoute
   AuthRoute: typeof AuthRoute
+  CareersPageRoute: typeof CareersPageRoute
   DemoRoute: typeof DemoRoute
   DevelopersRoute: typeof DevelopersRoute
   FaqRoute: typeof FaqRoute
@@ -282,6 +319,8 @@ export interface RootRouteChildren {
   PipelineRoute: typeof PipelineRoute
   PricingRoute: typeof PricingRoute
   AssessmentTokenRoute: typeof AssessmentTokenRoute
+  CareersSlugRoute: typeof CareersSlugRoute
+  DossierTokenRoute: typeof DossierTokenRoute
   InterviewTokenRoute: typeof InterviewTokenRoute
   JobsIdRoute: typeof JobsIdRoute
   PaymentVerifyRoute: typeof PaymentVerifyRoute
@@ -325,6 +364,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers-page': {
+      id: '/careers-page'
+      path: '/careers-page'
+      fullPath: '/careers-page'
+      preLoaderRoute: typeof CareersPageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -397,6 +443,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssessmentTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/careers/$slug': {
+      id: '/careers/$slug'
+      path: '/careers/$slug'
+      fullPath: '/careers/$slug'
+      preLoaderRoute: typeof CareersSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dossier/$token': {
+      id: '/dossier/$token'
+      path: '/dossier/$token'
+      fullPath: '/dossier/$token'
+      preLoaderRoute: typeof DossierTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/interview/$token': {
       id: '/interview/$token'
       path: '/interview/$token'
@@ -441,6 +501,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDocsRoute: ApiDocsRoute,
   AssessmentsRoute: AssessmentsRoute,
   AuthRoute: AuthRoute,
+  CareersPageRoute: CareersPageRoute,
   DemoRoute: DemoRoute,
   DevelopersRoute: DevelopersRoute,
   FaqRoute: FaqRoute,
@@ -450,6 +511,8 @@ const rootRouteChildren: RootRouteChildren = {
   PipelineRoute: PipelineRoute,
   PricingRoute: PricingRoute,
   AssessmentTokenRoute: AssessmentTokenRoute,
+  CareersSlugRoute: CareersSlugRoute,
+  DossierTokenRoute: DossierTokenRoute,
   InterviewTokenRoute: InterviewTokenRoute,
   JobsIdRoute: JobsIdRoute,
   PaymentVerifyRoute: PaymentVerifyRoute,

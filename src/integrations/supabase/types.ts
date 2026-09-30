@@ -1504,6 +1504,15 @@ export type Database = {
         Args: { body: Json; fn_name: string }
         Returns: undefined
       }
+      apply_credit_purchase: {
+        Args: {
+          _pack_key: string
+          _provider?: string
+          _reference: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       credit_balance: {
         Args: { _kind: string; _user_id: string }
         Returns: number

@@ -28,6 +28,23 @@ interface Tier {
 
 const fmtLimit = (v: number | null, label: string) => (v === null ? `Unlimited ${label}` : `${v.toLocaleString("en-US")} ${label}`);
 
+interface Pack {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  kind: "ai_interviews" | "assessments" | "resumes";
+  quantity: number;
+  price_amount: number;
+  currency: string;
+}
+
+const KIND_LABEL: Record<string, string> = {
+  ai_interviews: "AI interviews",
+  assessments: "assessments",
+  resumes: "resume scans",
+};
+
 interface CouponResult {
   valid: boolean;
   code?: string;
@@ -44,6 +61,8 @@ const Pricing = () => {
   const planState = usePlan();
   const [loading, setLoading] = useState(false);
   const [tiers, setTiers] = useState<Tier[]>([]);
+  const [packs, setPacks] = useState<Pack[]>([]);
+  const [credits, setCredits] = useState<Record<string, number>>({});
   const [couponInput, setCouponInput] = useState("");
   const [checking, setChecking] = useState(false);
   /** Validated discount per tier key, so every tier shows its own correct total. */
@@ -58,7 +77,36 @@ const Pricing = () => {
       .eq("is_active", true)
       .order("sort_order")
       .then(({ data }) => setTiers(((data ?? []) as any[]).map((t) => ({ ...t, features: t.features ?? [] })) as Tier[]));
+    supabase
+      .from("credit_packs")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order")
+      .then(({ data }) => setPacks((data ?? []) as unknown as Pack[]));
+    supabase
+      .from("user_credits")
+      .select("kind, balance")
+      .then(({ data }) => setCredits(Object.fromEntries((data ?? []).map((r: any) => [r.kind, r.balance]))));
   }, []);
+
+  const buyPack = async (packKey: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("paystack-initialize", {
+        body: {
+          callback_url: `${window.location.origin}/payment/verify`,
+          purchase_type: "credits",
+          pack_key: packKey,
+        },
+      });
+      if (error) throw error;
+      if (!data?.authorization_url) throw new Error(data?.error || "No checkout URL returned");
+      window.location.href = data.authorization_url;
+    } catch (e: any) {
+      toast.error(e.message || "Could not start checkout");
+      setLoading(false);
+    }
+  };
 
   const applyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
@@ -275,6 +323,48 @@ const Pricing = () => {
             </CardContent>
           </Card>
         </div>
+        )}
+
+        {packs.length > 0 && (
+          <section className="mt-20">
+            <div className="text-center max-w-2xl mx-auto">
+              <h2 className="text-2xl md:text-3xl font-semibold">Need more this month? Top up instead of upgrading.</h2>
+              <p className="text-muted-foreground mt-2">
+                One-off packs for hiring surges. Credits never expire and are used automatically once your plan
+                allowance runs out.
+              </p>
+              {Object.values(credits).some((n) => n > 0) && (
+                <p className="mt-3 text-sm">
+                  Your credits:{" "}
+                  {Object.entries(credits)
+                    .filter(([, n]) => n > 0)
+                    .map(([k, n]) => `${n} ${KIND_LABEL[k] ?? k}`)
+                    .join(" · ")}
+                </p>
+              )}
+            </div>
+            <div className="grid gap-4 md:grid-cols-3 mt-8">
+              {packs.map((p) => (
+                <Card key={p.key} className="flex flex-col">
+                  <CardHeader>
+                    <h3 className="text-lg font-semibold">{p.name}</h3>
+                    <p className="text-3xl font-semibold mt-1">
+                      {p.currency === "USD" ? "$" : p.currency === "NGN" ? "₦" : `${p.currency} `}
+                      {Number(p.price_amount).toLocaleString("en-US")}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {p.description || `${p.quantity.toLocaleString("en-US")} extra ${KIND_LABEL[p.kind] ?? p.kind}`}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="mt-auto">
+                    <Button variant="outline" className="w-full" disabled={loading} onClick={() => buyPack(p.key)}>
+                      {loading ? "Redirecting…" : "Buy top-up"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
         )}
 
         <p className="text-center text-sm text-muted-foreground mt-10">

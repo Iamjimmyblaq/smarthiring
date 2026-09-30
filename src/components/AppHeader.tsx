@@ -44,6 +44,7 @@ export default function AppHeader() {
     { to: "/assessments", label: "Assessments" },
     { to: "/offers", label: "Offers" },
     { to: "/onboarding", label: "Onboarding" },
+    { to: "/careers-page", label: "Careers page" },
     { to: "/developers", label: "Developers" },
   ];
   const navItems = isAdmin ? [...items, { to: "/admin", label: "Admin" }] : items;

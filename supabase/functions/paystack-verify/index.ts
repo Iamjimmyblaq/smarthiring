@@ -57,6 +57,21 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // Credit top-up packs add usage credits instead of changing the plan.
+    if (meta.purchase_type === "credits") {
+      const { data: applied, error: creditErr } = await admin.rpc("apply_credit_purchase", {
+        _user_id: user.id,
+        _pack_key: String(meta.pack_key || ""),
+        _reference: reference,
+        _provider: "paystack",
+      });
+      if (creditErr || (applied as { error?: string })?.error) {
+        console.error("Credit top-up failed", { reference, creditErr, applied });
+        return json({ error: "Payment succeeded but credits could not be added. Please contact support." }, 500);
+      }
+      return json({ success: true, credits: applied });
+    }
+
     // Resolve the tier the customer actually paid for. The Paystack webhook is
     // the primary source of truth; this path is the fallback for the redirect.
     const tierKey: string = meta.tier_key || meta.plan || "pro";
