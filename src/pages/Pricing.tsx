@@ -325,6 +325,48 @@ const Pricing = () => {
         </div>
         )}
 
+        {packs.length > 0 && (
+          <section className="mt-20">
+            <div className="text-center max-w-2xl mx-auto">
+              <h2 className="text-2xl md:text-3xl font-semibold">Need more this month? Top up instead of upgrading.</h2>
+              <p className="text-muted-foreground mt-2">
+                One-off packs for hiring surges. Credits never expire and are used automatically once your plan
+                allowance runs out.
+              </p>
+              {Object.values(credits).some((n) => n > 0) && (
+                <p className="mt-3 text-sm">
+                  Your credits:{" "}
+                  {Object.entries(credits)
+                    .filter(([, n]) => n > 0)
+                    .map(([k, n]) => `${n} ${KIND_LABEL[k] ?? k}`)
+                    .join(" · ")}
+                </p>
+              )}
+            </div>
+            <div className="grid gap-4 md:grid-cols-3 mt-8">
+              {packs.map((p) => (
+                <Card key={p.key} className="flex flex-col">
+                  <CardHeader>
+                    <h3 className="text-lg font-semibold">{p.name}</h3>
+                    <p className="text-3xl font-semibold mt-1">
+                      {p.currency === "USD" ? "$" : p.currency === "NGN" ? "₦" : `${p.currency} `}
+                      {Number(p.price_amount).toLocaleString("en-US")}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {p.description || `${p.quantity.toLocaleString("en-US")} extra ${KIND_LABEL[p.kind] ?? p.kind}`}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="mt-auto">
+                    <Button variant="outline" className="w-full" disabled={loading} onClick={() => buyPack(p.key)}>
+                      {loading ? "Redirecting…" : "Buy top-up"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+
         <p className="text-center text-sm text-muted-foreground mt-10">
           Questions? <Link to="/jobs" className="underline">Back to dashboard</Link>
         </p>
