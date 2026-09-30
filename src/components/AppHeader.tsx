@@ -40,6 +40,7 @@ export default function AppHeader() {
   const items = [
     { to: "/jobs", label: "Jobs" },
     { to: "/pipeline", label: "Pipeline" },
+    { to: "/search", label: "Search" },
     { to: "/interviews", label: "Interviews" },
     { to: "/assessments", label: "Assessments" },
     { to: "/offers", label: "Offers" },
