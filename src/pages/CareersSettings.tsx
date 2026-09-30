@@ -1,3 +1,4 @@
+const PUBLIC_ORIGIN = "https://talenval.lovable.app";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,7 +47,7 @@ export default function CareersSettings() {
   const [origin, setOrigin] = useState("");
 
   useEffect(() => {
-    setOrigin(window.location.origin);
+    setOrigin(PUBLIC_ORIGIN);
     document.title = "Careers page — Talenval";
     (async () => {
       const { data: userData } = await supabase.auth.getUser();

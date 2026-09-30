@@ -33,5 +33,5 @@ export async function createDossier(candidateId: string, opts: DossierOptions = 
   });
   if (error) throw error;
 
-  return { token, url: `${window.location.origin}/dossier/${token}`, expiresAt: expires.toISOString() };
+  return { token, url: `https://talenval.lovable.app/dossier/${token}`, expiresAt: expires.toISOString() };
 }
