@@ -69,13 +69,13 @@ const candidates = [
   { name: "Amara O.", role: "Senior Product Engineer", overall: 92, skills: 94, exp: 88, quality: 91, strength: "Led 3 product launches; strong TypeScript and system design.", gap: "Limited people-management experience." },
   { name: "Daniel K.", role: "Senior Product Engineer", overall: 84, skills: 86, exp: 82, quality: 80, strength: "Deep backend and data-pipeline experience.", gap: "Few examples of customer-facing work." },
   { name: "Priya S.", role: "Senior Product Engineer", overall: 77, skills: 75, exp: 80, quality: 78, strength: "Great product sense and design collaboration.", gap: "Skills test showed gaps in SQL." },
-];
+] as const;
 
 export default function Index() {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(0);
   const signedIn = useSignedIn();
-  const candidate = candidates[selected];
+  const candidate = candidates[selected] ?? candidates[0];
   const actionTo = signedIn ? "/jobs" : "/auth";
   const actionLabel = signedIn ? "Go to dashboard" : "Start free trial";
 
