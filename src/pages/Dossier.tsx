@@ -66,7 +66,7 @@ export default function Dossier() {
     setLoading(true);
     const { data: res, error } = await supabase.rpc("get_dossier_by_token", {
       _token: token ?? "",
-      _pin: withPin ?? undefined,
+      _pin: withPin ?? "",
     });
     setLoading(false);
     if (error) { toast.error("This link could not be opened."); return; }
