@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AssessmentsRouteImport } from './routes/assessments'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CareersPageRouteImport } from './routes/careers-page'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -55,6 +56,11 @@ const AssessmentsRoute = AssessmentsRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersPageRoute = CareersPageRouteImport.update({
+  id: '/careers-page',
+  path: '/careers-page',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/api-docs': typeof ApiDocsRoute
   '/assessments': typeof AssessmentsRoute
   '/auth': typeof AuthRoute
+  '/careers-page': typeof CareersPageRoute
   '/demo': typeof DemoRoute
   '/developers': typeof DevelopersRoute
   '/faq': typeof FaqRoute
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/api-docs': typeof ApiDocsRoute
   '/assessments': typeof AssessmentsRoute
   '/auth': typeof AuthRoute
+  '/careers-page': typeof CareersPageRoute
   '/demo': typeof DemoRoute
   '/developers': typeof DevelopersRoute
   '/faq': typeof FaqRoute
@@ -198,6 +206,7 @@ export interface FileRoutesById {
   '/api-docs': typeof ApiDocsRoute
   '/assessments': typeof AssessmentsRoute
   '/auth': typeof AuthRoute
+  '/careers-page': typeof CareersPageRoute
   '/demo': typeof DemoRoute
   '/developers': typeof DevelopersRoute
   '/faq': typeof FaqRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/assessments'
     | '/auth'
+    | '/careers-page'
     | '/demo'
     | '/developers'
     | '/faq'
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/assessments'
     | '/auth'
+    | '/careers-page'
     | '/demo'
     | '/developers'
     | '/faq'
@@ -272,6 +283,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/assessments'
     | '/auth'
+    | '/careers-page'
     | '/demo'
     | '/developers'
     | '/faq'
@@ -297,6 +309,7 @@ export interface RootRouteChildren {
   ApiDocsRoute: typeof ApiDocsRoute
   AssessmentsRoute: typeof AssessmentsRoute
   AuthRoute: typeof AuthRoute
+  CareersPageRoute: typeof CareersPageRoute
   DemoRoute: typeof DemoRoute
   DevelopersRoute: typeof DevelopersRoute
   FaqRoute: typeof FaqRoute
@@ -351,6 +364,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers-page': {
+      id: '/careers-page'
+      path: '/careers-page'
+      fullPath: '/careers-page'
+      preLoaderRoute: typeof CareersPageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -481,6 +501,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDocsRoute: ApiDocsRoute,
   AssessmentsRoute: AssessmentsRoute,
   AuthRoute: AuthRoute,
+  CareersPageRoute: CareersPageRoute,
   DemoRoute: DemoRoute,
   DevelopersRoute: DevelopersRoute,
   FaqRoute: FaqRoute,
