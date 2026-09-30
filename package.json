@@ -79,7 +79,11 @@
     "next-themes": "^0.3.0",
     "pdfjs-dist": "^5.7.284",
     "react-helmet-async": "^3.0.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "@lovable.dev/email-js": "0.1.0",
+    "@lovable.dev/webhooks-js": "^0.0.1",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
@@ -105,5 +109,10 @@
     "jsdom": "^20.0.3",
     "vitest": "^3.2.4"
   },
-  "version": "0.0.0"
+  "version": "0.0.0",
+  "pnpm": {
+    "overrides": {
+      "entities": "4.5.0"
+    }
+  }
 }
