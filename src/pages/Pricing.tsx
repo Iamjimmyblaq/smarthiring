@@ -58,7 +58,36 @@ const Pricing = () => {
       .eq("is_active", true)
       .order("sort_order")
       .then(({ data }) => setTiers(((data ?? []) as any[]).map((t) => ({ ...t, features: t.features ?? [] })) as Tier[]));
+    supabase
+      .from("credit_packs")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order")
+      .then(({ data }) => setPacks((data ?? []) as unknown as Pack[]));
+    supabase
+      .from("user_credits")
+      .select("kind, balance")
+      .then(({ data }) => setCredits(Object.fromEntries((data ?? []).map((r: any) => [r.kind, r.balance]))));
   }, []);
+
+  const buyPack = async (packKey: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("paystack-initialize", {
+        body: {
+          callback_url: `${window.location.origin}/payment/verify`,
+          purchase_type: "credits",
+          pack_key: packKey,
+        },
+      });
+      if (error) throw error;
+      if (!data?.authorization_url) throw new Error(data?.error || "No checkout URL returned");
+      window.location.href = data.authorization_url;
+    } catch (e: any) {
+      toast.error(e.message || "Could not start checkout");
+      setLoading(false);
+    }
+  };
 
   const applyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
