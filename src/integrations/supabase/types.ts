@@ -77,6 +77,7 @@ export type Database = {
           created_at: string
           decided_at: string | null
           expires_at: string
+          failed_pin_attempts: number
           id: string
           last_viewed_at: string | null
           manager_decision: string | null
@@ -96,6 +97,7 @@ export type Database = {
           created_at?: string
           decided_at?: string | null
           expires_at?: string
+          failed_pin_attempts?: number
           id?: string
           last_viewed_at?: string | null
           manager_decision?: string | null
@@ -115,6 +117,7 @@ export type Database = {
           created_at?: string
           decided_at?: string | null
           expires_at?: string
+          failed_pin_attempts?: number
           id?: string
           last_viewed_at?: string | null
           manager_decision?: string | null
