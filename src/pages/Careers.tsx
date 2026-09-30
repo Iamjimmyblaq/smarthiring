@@ -168,9 +168,9 @@ function ApplyDialog({ job, slug, onClose, brand }: { job: PublicJob | null; slu
   const readFile = async (file: File) => {
     setFileName(file.name);
     if (file.type === "application/pdf") {
-      const { extractTextFromFile } = await import("@/lib/resume-parser");
+      const { extractResumeText } = await import("@/lib/resume-parser");
       try {
-        const text = await extractTextFromFile(file);
+        const text = await extractResumeText(file);
         setResumeText(text);
         return;
       } catch { /* fall through to plain read */ }
