@@ -51,10 +51,12 @@ Deno.serve(async (req) => {
       .eq("is_active", true)
       .maybeSingle();
 
-    // Fall back to the legacy fixed Pro price if the tier table is unavailable.
-    const currency: string = (tier?.currency as string) || (body?.currency as string) || config.currency || "USD";
-    let price = tier ? Number(tier.price_amount) : Number(body?.amount ? Number(body.amount) / 100 : 29);
-    if (!Number.isFinite(price) || price < 0) price = 0;
+    // Never trust a price or currency from the browser — the plan must exist and be active.
+    if (!tier) return json({ error: "That plan isn't available. Please refresh the pricing page and try again." }, 400);
+    const rawCurrency = String(tier.currency || config.currency || "USD").trim().toUpperCase();
+    const currency: string = rawCurrency === "$" ? "USD" : rawCurrency === "₦" ? "NGN" : rawCurrency;
+    let price = Number(tier.price_amount);
+    if (!Number.isFinite(price) || price < 0) return json({ error: "This plan has an invalid price." }, 400);
 
     let couponId: string | null = null;
     let discount = 0;
