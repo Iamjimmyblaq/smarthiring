@@ -11,7 +11,7 @@ import { createDossier } from "@/lib/dossier";
 interface Props {
   candidateId: string | null;
   candidateName: string;
-  jobTitle?: string;
+  jobTitle?: string | undefined;
   onClose: () => void;
 }
 

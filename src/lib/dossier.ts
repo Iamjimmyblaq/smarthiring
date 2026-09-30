@@ -1,10 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DossierOptions {
-  pin?: string;
-  expiresDays?: number;
-  recipientName?: string;
-  recipientEmail?: string;
+  pin?: string | undefined;
+  expiresDays?: number | undefined;
+  recipientName?: string | undefined;
+  recipientEmail?: string | undefined;
 }
 
 function makeToken() {
