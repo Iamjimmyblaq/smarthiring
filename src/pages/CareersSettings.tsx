@@ -76,16 +76,25 @@ export default function CareersSettings() {
     if (!row.company_name.trim()) { toast.error("Add your company name."); return; }
     setSaving(true);
     const { data: userData } = await supabase.auth.getUser();
-    const payload = { ...row, slug, user_id: userData.user!.id };
-    const { error } = await supabase.from("careers_pages").upsert(payload, { onConflict: "user_id" });
-    setSaving(false);
-    if (error) {
-      toast.error(error.message.includes("duplicate") ? "That page address is already taken." : error.message);
-      return;
+    const user = userData.user!;
+    // Several HRs at the same company can each have a page: if the address is taken by a
+    // colleague, automatically add the HR's name (or a short code) to make it unique.
+    const who = slugify((user.user_metadata?.full_name as string) || user.email?.split("@")[0] || "").split("-")[0];
+    const candidates = [slug, who ? `${slug}-${who}` : null, `${slug}-${Math.random().toString(36).slice(2, 6)}`]
+      .filter((s): s is string => Boolean(s));
+    let saved: string | null = null;
+    let lastError = "";
+    for (const s of candidates) {
+      const { error } = await supabase.from("careers_pages").upsert({ ...row, slug: s, user_id: user.id }, { onConflict: "user_id" });
+      if (!error) { saved = s; break; }
+      lastError = error.message;
+      if (!error.message.toLowerCase().includes("duplicate")) break;
     }
-    setRow({ ...row, slug });
+    setSaving(false);
+    if (!saved) { toast.error(lastError || "Couldn't save your careers page."); return; }
+    setRow({ ...row, slug: saved });
     setExists(true);
-    toast.success("Careers page saved.");
+    toast.success(saved === slug ? "Careers page saved." : `That address was in use by a colleague, so your page is at /careers/${saved}.`);
   };
 
   const publicUrl = `${origin}/careers/${row.slug}`;
