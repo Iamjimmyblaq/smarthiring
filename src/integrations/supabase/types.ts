@@ -1507,6 +1507,10 @@ export type Database = {
         Args: { body: Json; fn_name: string }
         Returns: undefined
       }
+      admin_set_user_plan: {
+        Args: { _period_end: string; _plan: string; _user_id: string }
+        Returns: Json
+      }
       apply_credit_purchase: {
         Args: {
           _pack_key: string
@@ -1538,6 +1542,7 @@ export type Database = {
         }[]
       }
       get_public_careers: { Args: { _slug: string }; Returns: Json }
+      get_public_job: { Args: { _job_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1568,6 +1573,17 @@ export type Database = {
           _phone: string
           _resume_text: string
           _slug: string
+        }
+        Returns: Json
+      }
+      submit_job_link_application: {
+        Args: {
+          _cover_note: string
+          _email: string
+          _full_name: string
+          _job_id: string
+          _phone: string
+          _resume_text: string
         }
         Returns: Json
       }
