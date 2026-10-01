@@ -103,7 +103,7 @@ export default function Assessments() {
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("skill-test-assign", {
-        body: { candidateId, testId: assignTest.id, origin: window.location.origin },
+        body: { candidateId, testId: assignTest.id, origin: "https://talenval.com" },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -353,7 +353,7 @@ export default function Assessments() {
                       <Button
                         size="sm" variant="ghost" className="gap-2"
                         onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/assessment/${a.token}`);
+                          navigator.clipboard.writeText(`https://talenval.com/assessment/${a.token}`);
                           toast.success("Assessment link copied");
                         }}
                       >

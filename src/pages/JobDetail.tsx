@@ -189,7 +189,7 @@ const JobDetail = () => {
       .select("token")
       .single();
     if (error) { toast.error(error.message); return; }
-    const link = `${window.location.origin}/interview/${data.token}`;
+    const link = `https://talenval.com/interview/${data.token}`;
     try { await navigator.clipboard.writeText(link); } catch { /* ignore */ }
     const subject = encodeURIComponent(`AI screening interview for ${job?.title ?? "the role"}`);
     const body = encodeURIComponent(
