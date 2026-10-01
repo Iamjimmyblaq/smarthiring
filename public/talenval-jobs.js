@@ -2,7 +2,7 @@
  * Talenval embeddable jobs widget.
  *
  *   <div id="talenval-careers"></div>
- *   <script src="https://talenval.lovable.app/talenval-jobs.js" data-company="your-company" defer></script>
+ *   <script src="https://talenval.com/talenval-jobs.js" data-company="your-company" defer></script>
  *
  * Optional attributes:
  *   data-target="#my-container"   where to mount (defaults to #talenval-careers)

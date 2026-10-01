@@ -91,6 +91,10 @@ function InterviewRoomContent() {
   const [, force] = useState(0);
   const cameraStreamRef = useRef<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
+  // Every capture stream ever opened on this page, so End Interview can stop all of them
+  // (including ones orphaned by a retried start) and the browser's "sharing" bar closes.
+  const allStreamsRef = useRef<MediaStream[]>([]);
+  const conversationIdRef = useRef<string | null>(null);
   const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
   const [avReady, setAvReady] = useState(false);
   const [screenShareOn, setScreenShareOn] = useState(false);
@@ -241,6 +245,7 @@ function InterviewRoomContent() {
       // Interactive video interview: require camera+mic and screen share for proctoring.
       const camStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { width: 640, height: 480 } });
       cameraStreamRef.current = camStream;
+      allStreamsRef.current.push(camStream);
       if (cameraVideoRef.current) {
         cameraVideoRef.current.srcObject = camStream;
         await cameraVideoRef.current.play().catch(() => {});
@@ -249,6 +254,7 @@ function InterviewRoomContent() {
         // deno-lint-ignore no-explicit-any
         const display = await (navigator.mediaDevices as any).getDisplayMedia({ video: true, audio: false });
         screenStreamRef.current = display;
+        allStreamsRef.current.push(display);
         setScreenShareOn(true);
         display.getVideoTracks()[0]?.addEventListener("ended", () => {
           setScreenShareOn(false);
@@ -278,6 +284,12 @@ function InterviewRoomContent() {
           signedUrl: data.signedUrl,
           overrides: data.overrides,
         });
+      }
+      if (data?.conversationToken || data?.signedUrl) {
+        try { conversationIdRef.current = conversation.getId?.() ?? null; } catch { /* not ready */ }
+      }
+      if (data?.conversationToken || data?.signedUrl) {
+        // handled above
       } else if (data?.fallbackMode === "text_ai") {
         const { data: turnData, error: turnError } = await supabase.functions.invoke("ai-interview-turn", {
           body: { token, transcript: transcriptRef.current },
@@ -293,6 +305,7 @@ function InterviewRoomContent() {
           connectionType: "webrtc",
           overrides: data.overrides,
         });
+        try { conversationIdRef.current = conversation.getId?.() ?? null; } catch { /* not ready */ }
       } else {
         throw new Error("No interview agent was returned. Please ask the recruiter to regenerate the link.");
       }
@@ -339,6 +352,8 @@ function InterviewRoomContent() {
   const releaseDevices = () => {
     cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
     screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+    allStreamsRef.current.forEach((st) => st.getTracks().forEach((t) => t.stop()));
+    allStreamsRef.current = [];
     if (cameraVideoRef.current) cameraVideoRef.current.srcObject = null;
     cameraStreamRef.current = null; screenStreamRef.current = null;
     setAvReady(false); setScreenShareOn(false); setTextMode(false);
@@ -351,7 +366,12 @@ function InterviewRoomContent() {
     let lastError: unknown = null;
     for (let i = 0; i < attempts; i++) {
       try {
-        const conversationId = conversation.getId?.();
+        // getId() throws "No active conversation" once the session has ended, so use the id
+        // captured while the call was live.
+        let conversationId = conversationIdRef.current;
+        if (!conversationId) {
+          try { conversationId = conversation.getId?.() ?? null; } catch { conversationId = null; }
+        }
         const { data, error } = await supabase.functions.invoke("interview-finalize", {
           body: { token, transcript: transcriptRef.current, conversationId, proctoring: proctoringRef.current },
         });
@@ -379,15 +399,20 @@ function InterviewRoomContent() {
 
   const stop = async () => {
     proctoringRef.current = proctoringRef.current ?? stopProctoring();
-    try { await conversation.endSession(); } catch (e) { console.error("endSession failed", e); }
-    // Hard stop every capture device: camera, mic and screen share.
+    if (!conversationIdRef.current) {
+      try { conversationIdRef.current = conversation.getId?.() ?? null; } catch { /* session already closed */ }
+    }
+    // Hard stop every capture device first (camera, mic, screen share) so the
+    // browser's sharing bar closes immediately, even if ending the call fails.
     releaseDevices();
+    try { await conversation.endSession(); } catch (e) { console.error("endSession failed", e); }
     await finalize();
   };
 
   useEffect(() => () => {
     cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
     screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+    allStreamsRef.current.forEach((st) => st.getTracks().forEach((t) => t.stop()));
     if (motionTimerRef.current) clearInterval(motionTimerRef.current);
   }, []);
 

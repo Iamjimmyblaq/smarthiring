@@ -1,13 +1,13 @@
 /*!
  * SmartHire JS SDK v1 — drop-in client for the SmartHire public API.
  * Usage (browser):
- *   <script src="https://smarthiring.lovable.app/smarthire.js"></script>
+ *   <script src="https://talenval.com/smarthire.js"></script>
  *   <script>
  *     const sh = SmartHire.init({ apiKey: "sh_live_..." }); // server-side key: proxy through your backend
  *     await sh.jobs.create({ external_id: "req-1", external_source: "acme", title: "Engineer" });
  *   </script>
  * Usage (Node / Deno / bundlers):
- *   import SmartHire from "https://smarthiring.lovable.app/smarthire.js";
+ *   import SmartHire from "https://talenval.com/smarthire.js";
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();

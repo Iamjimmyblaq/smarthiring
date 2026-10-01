@@ -53,7 +53,9 @@ Deno.serve(async (req) => {
       : { data: null };
     const { data: profile } = await admin.from("profiles").select("company_name, hr_email, email").eq("id", user.id).maybeSingle();
 
-    const base = typeof origin === "string" && origin.startsWith("http") ? origin.replace(/\/$/, "") : "https://smarthiring.lovable.app";
+    // Always send candidates to the public site — preview/editor addresses require a Lovable login.
+    void origin;
+    const base = "https://talenval.com";
     const link = `${base}/assessment/${token}`;
     const company = job?.company_name || profile?.company_name || "the hiring team";
 

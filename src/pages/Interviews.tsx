@@ -196,9 +196,7 @@ export default function Interviews() {
   const copyLink = async (token: string) => {
     // Always share the public production URL — preview origins require auth and
     // render a blank page for candidates.
-    const origin = window.location.hostname.includes("lovable.app") && !window.location.hostname.includes("id-preview")
-      ? window.location.origin
-      : "https://smarthiring.lovable.app";
+    const origin = "https://talenval.com";
     const link = `${origin}/interview/${token}`;
     try { await navigator.clipboard.writeText(link); toast.success("Link copied"); }
     catch { toast.error("Could not copy"); }

@@ -23,7 +23,7 @@ export default function FAQ() {
       <Helmet>
         <title>FAQ — Talenval AI Recruitment Questions Answered</title>
         <meta name="description" content="Answers to common Talenval questions: AI resume scoring, proctored AI video interviews, automatic candidate emails, pricing tiers and API integration." />
-        <link rel="canonical" href="https://smarthiring.lovable.app/faq" />
+        <link rel="canonical" href="https://talenval.com/faq" />
         <meta property="og:title" content="Talenval FAQ" />
         <meta property="og:description" content="How Talenval's AI screening, interviews, plans and API work." />
         <meta property="og:type" content="website" />

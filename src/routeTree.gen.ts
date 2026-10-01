@@ -25,6 +25,7 @@ import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as ApplyJobIdRouteImport } from './routes/apply/$jobId'
 import { Route as AssessmentTokenRouteImport } from './routes/assessment/$token'
 import { Route as CareersSlugRouteImport } from './routes/careers/$slug'
 import { Route as DossierTokenRouteImport } from './routes/dossier/$token'
@@ -116,6 +117,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApplyJobIdRoute = ApplyJobIdRouteImport.update({
+  id: '/apply/$jobId',
+  path: '/apply/$jobId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AssessmentTokenRoute = AssessmentTokenRouteImport.update({
   id: '/assessment/$token',
   path: '/assessment/$token',
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/pipeline': typeof PipelineRoute
   '/pricing': typeof PricingRoute
   '/search': typeof SearchRoute
+  '/apply/$jobId': typeof ApplyJobIdRoute
   '/assessment/$token': typeof AssessmentTokenRoute
   '/careers/$slug': typeof CareersSlugRoute
   '/dossier/$token': typeof DossierTokenRoute
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/pipeline': typeof PipelineRoute
   '/pricing': typeof PricingRoute
   '/search': typeof SearchRoute
+  '/apply/$jobId': typeof ApplyJobIdRoute
   '/assessment/$token': typeof AssessmentTokenRoute
   '/careers/$slug': typeof CareersSlugRoute
   '/dossier/$token': typeof DossierTokenRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/pipeline': typeof PipelineRoute
   '/pricing': typeof PricingRoute
   '/search': typeof SearchRoute
+  '/apply/$jobId': typeof ApplyJobIdRoute
   '/assessment/$token': typeof AssessmentTokenRoute
   '/careers/$slug': typeof CareersSlugRoute
   '/dossier/$token': typeof DossierTokenRoute
@@ -270,6 +279,7 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/pricing'
     | '/search'
+    | '/apply/$jobId'
     | '/assessment/$token'
     | '/careers/$slug'
     | '/dossier/$token'
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/pricing'
     | '/search'
+    | '/apply/$jobId'
     | '/assessment/$token'
     | '/careers/$slug'
     | '/dossier/$token'
@@ -326,6 +337,7 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/pricing'
     | '/search'
+    | '/apply/$jobId'
     | '/assessment/$token'
     | '/careers/$slug'
     | '/dossier/$token'
@@ -355,6 +367,7 @@ export interface RootRouteChildren {
   PipelineRoute: typeof PipelineRoute
   PricingRoute: typeof PricingRoute
   SearchRoute: typeof SearchRoute
+  ApplyJobIdRoute: typeof ApplyJobIdRoute
   AssessmentTokenRoute: typeof AssessmentTokenRoute
   CareersSlugRoute: typeof CareersSlugRoute
   DossierTokenRoute: typeof DossierTokenRoute
@@ -482,6 +495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apply/$jobId': {
+      id: '/apply/$jobId'
+      path: '/apply/$jobId'
+      fullPath: '/apply/$jobId'
+      preLoaderRoute: typeof ApplyJobIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/assessment/$token': {
       id: '/assessment/$token'
       path: '/assessment/$token'
@@ -571,6 +591,7 @@ const rootRouteChildren: RootRouteChildren = {
   PipelineRoute: PipelineRoute,
   PricingRoute: PricingRoute,
   SearchRoute: SearchRoute,
+  ApplyJobIdRoute: ApplyJobIdRoute,
   AssessmentTokenRoute: AssessmentTokenRoute,
   CareersSlugRoute: CareersSlugRoute,
   DossierTokenRoute: DossierTokenRoute,

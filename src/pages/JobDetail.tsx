@@ -18,6 +18,7 @@ import {
 import { extractResumeText, quickExtractMeta } from "@/lib/resume-parser";
 import type { Tables } from "@/integrations/supabase/types";
 import { usePlan } from "@/hooks/usePlan";
+import ShareJobLink from "@/components/ShareJobLink";
 
 type Candidate = Tables<"candidates">;
 type Job = Tables<"jobs">;
@@ -189,7 +190,7 @@ const JobDetail = () => {
       .select("token")
       .single();
     if (error) { toast.error(error.message); return; }
-    const link = `${window.location.origin}/interview/${data.token}`;
+    const link = `https://talenval.com/interview/${data.token}`;
     try { await navigator.clipboard.writeText(link); } catch { /* ignore */ }
     const subject = encodeURIComponent(`AI screening interview for ${job?.title ?? "the role"}`);
     const body = encodeURIComponent(
@@ -272,6 +273,7 @@ const JobDetail = () => {
               )}
             </div>
             {job.requirements && <p className="text-muted-foreground mt-3 max-w-3xl whitespace-pre-line line-clamp-3">{job.requirements}</p>}
+            <ShareJobLink jobId={job.id} title={job.title} />
           </div>
         )}
 
