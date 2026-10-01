@@ -177,10 +177,10 @@ const Pricing = () => {
       <Helmet>
         <title>Pricing — Talenval</title>
         <meta name="description" content="Talenval pricing: start free with 1 job and 100 resumes, or upgrade to Pro at $29/mo for unlimited jobs, unlimited resumes and advanced AI insights." />
-        <link rel="canonical" href="https://smarthiring.lovable.app/pricing" />
+        <link rel="canonical" href="https://talenval.com/pricing" />
         <meta property="og:title" content="Pricing — Talenval" />
         <meta property="og:description" content="Free plan for 1 job and 100 resumes. Pro at $29/mo for unlimited hiring." />
-        <meta property="og:url" content="https://smarthiring.lovable.app/pricing" />
+        <meta property="og:url" content="https://talenval.com/pricing" />
         <meta name="twitter:title" content="Pricing — Talenval" />
         <meta name="twitter:description" content="Free plan for 1 job and 100 resumes. Pro at $29/mo for unlimited hiring." />
         <script type="application/ld+json">{JSON.stringify({
@@ -190,8 +190,8 @@ const Pricing = () => {
           "description": "Unlimited jobs, unlimited resumes, advanced AI insights, bias reduction mode, bulk actions and priority support.",
           "brand": { "@type": "Brand", "name": "Talenval" },
           "offers": [
-            { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "url": "https://smarthiring.lovable.app/pricing" },
-            { "@type": "Offer", "name": "Pro", "price": "29", "priceCurrency": "USD", "url": "https://smarthiring.lovable.app/pricing" }
+            { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "url": "https://talenval.com/pricing" },
+            { "@type": "Offer", "name": "Pro", "price": "29", "priceCurrency": "USD", "url": "https://talenval.com/pricing" }
           ]
         })}</script>
       </Helmet>

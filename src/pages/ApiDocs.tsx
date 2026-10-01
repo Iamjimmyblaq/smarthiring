@@ -30,7 +30,7 @@ export default function ApiDocs() {
           <CardHeader><CardTitle>Drop-in SDK — connect your site in 3 lines</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <p>Paste this snippet into your company's codebase to talk to Talenval without writing any HTTP code. Keep the API key on your server and proxy browser calls through your backend.</p>
-            <Code>{`<script src="https://smarthiring.lovable.app/talenval.js"></script>
+            <Code>{`<script src="https://talenval.com/talenval.js"></script>
 <script>
   const sh = Talenval.init({ apiKey: "sh_live_..." });
 
@@ -47,7 +47,7 @@ export default function ApiDocs() {
   });
 </script>`}</Code>
             <p className="font-medium">Node / Next.js / Deno</p>
-            <Code>{`import Talenval from "https://smarthiring.lovable.app/talenval.js";
+            <Code>{`import Talenval from "https://talenval.com/talenval.js";
 
 const sh = Talenval.init({ apiKey: process.env.TALENVAL_API_KEY });
 
@@ -151,7 +151,7 @@ Content-Type: application/json
     "id": "sess_...",
     "token": "abc...",
     "expires_at": "2026-07-19T09:00:00Z",
-    "interview_url": "https://smarthiring.lovable.app/interview/abc..."
+    "interview_url": "https://talenval.com/interview/abc..."
 } }`}</Code>
             <p><code>GET /interviews/ai-sessions/:id</code> — status, transcript, per-skill scores.</p>
           </CardContent>

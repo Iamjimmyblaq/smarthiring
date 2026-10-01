@@ -24,7 +24,7 @@ export default function About() {
       <Helmet>
         <title>About Talenval — AI Talent Intelligence Platform</title>
         <meta name="description" content="Talenval is an AI-powered talent intelligence platform that screens resumes, runs proctored AI video interviews and manages the full hiring lifecycle." />
-        <link rel="canonical" href="https://smarthiring.lovable.app/about" />
+        <link rel="canonical" href="https://talenval.com/about" />
         <meta property="og:title" content="About Talenval" />
         <meta property="og:description" content="Why Talenval exists and how AI screening, interviews and pipelines help teams hire better." />
         <meta property="og:type" content="website" />

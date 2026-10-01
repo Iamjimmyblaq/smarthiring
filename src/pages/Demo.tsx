@@ -39,10 +39,10 @@ export default function Demo() {
         <Helmet>
           <title>Live Demo — Talenval</title>
           <meta name="description" content="Try Talenval live: a Frontend Developer role prefilled with 10 sample candidates, ranked instantly with explainable AI scoring." />
-          <link rel="canonical" href="https://smarthiring.lovable.app/demo" />
+          <link rel="canonical" href="https://talenval.com/demo" />
           <meta property="og:title" content="Live Demo — Talenval" />
           <meta property="og:description" content="Try Talenval live with a prefilled role and 10 sample candidates ranked instantly." />
-          <meta property="og:url" content="https://smarthiring.lovable.app/demo" />
+          <meta property="og:url" content="https://talenval.com/demo" />
         </Helmet>
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </main>
@@ -55,10 +55,10 @@ export default function Demo() {
         <Helmet>
           <title>Live Demo — Talenval</title>
           <meta name="description" content="Try Talenval live: a Frontend Developer role prefilled with 10 sample candidates, ranked instantly with explainable AI scoring." />
-          <link rel="canonical" href="https://smarthiring.lovable.app/demo" />
+          <link rel="canonical" href="https://talenval.com/demo" />
           <meta property="og:title" content="Live Demo — Talenval" />
           <meta property="og:description" content="Try Talenval live with a prefilled role and 10 sample candidates ranked instantly." />
-          <meta property="og:url" content="https://smarthiring.lovable.app/demo" />
+          <meta property="og:url" content="https://talenval.com/demo" />
         </Helmet>
         <MarketingNav />
         <section className="pt-40 pb-32">

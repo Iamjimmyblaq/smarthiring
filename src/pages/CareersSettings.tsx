@@ -1,4 +1,4 @@
-const PUBLIC_ORIGIN = "https://talenval.lovable.app";
+const PUBLIC_ORIGIN = "https://talenval.com";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";

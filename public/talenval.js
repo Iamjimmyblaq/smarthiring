@@ -1,13 +1,13 @@
 /*!
  * Talenval JS SDK v1 — drop-in client for the Talenval public API.
  * Usage (browser):
- *   <script src="https://smarthiring.lovable.app/talenval.js"></script>
+ *   <script src="https://talenval.com/talenval.js"></script>
  *   <script>
  *     const sh = Talenval.init({ apiKey: "sh_live_..." }); // server-side key: proxy through your backend
  *     await sh.jobs.create({ external_id: "req-1", external_source: "acme", title: "Engineer" });
  *   </script>
  * Usage (Node / Deno / bundlers):
- *   import Talenval from "https://smarthiring.lovable.app/talenval.js";
+ *   import Talenval from "https://talenval.com/talenval.js";
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();

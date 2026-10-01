@@ -198,7 +198,7 @@ export default function Interviews() {
     // render a blank page for candidates.
     const origin = window.location.hostname.includes("lovable.app") && !window.location.hostname.includes("id-preview")
       ? window.location.origin
-      : "https://smarthiring.lovable.app";
+      : "https://talenval.com";
     const link = `${origin}/interview/${token}`;
     try { await navigator.clipboard.writeText(link); toast.success("Link copied"); }
     catch { toast.error("Could not copy"); }

@@ -5,7 +5,7 @@ export function publicOrigin() {
   const h = window.location.hostname;
   return h.includes("lovable.app") && !h.includes("id-preview")
     ? window.location.origin
-    : "https://smarthiring.lovable.app";
+    : "https://talenval.com";
 }
 
 type MinimalCandidate = {

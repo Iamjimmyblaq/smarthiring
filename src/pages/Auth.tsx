@@ -67,10 +67,10 @@ const Auth = () => {
       <Helmet>
         <title>Sign in — Talenval</title>
         <meta name="description" content="Sign in to Talenval or create a free account to start ranking candidates with AI in seconds." />
-        <link rel="canonical" href="https://smarthiring.lovable.app/auth" />
+        <link rel="canonical" href="https://talenval.com/auth" />
         <meta property="og:title" content="Sign in — Talenval" />
         <meta property="og:description" content="Sign in or create a free Talenval account to start ranking candidates." />
-        <meta property="og:url" content="https://smarthiring.lovable.app/auth" />
+        <meta property="og:url" content="https://talenval.com/auth" />
       </Helmet>
       <h1 className="sr-only">Sign in or Create Account</h1>
 
