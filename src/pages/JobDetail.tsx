@@ -18,6 +18,7 @@ import {
 import { extractResumeText, quickExtractMeta } from "@/lib/resume-parser";
 import type { Tables } from "@/integrations/supabase/types";
 import { usePlan } from "@/hooks/usePlan";
+import ShareJobLink from "@/components/ShareJobLink";
 
 type Candidate = Tables<"candidates">;
 type Job = Tables<"jobs">;
@@ -272,6 +273,7 @@ const JobDetail = () => {
               )}
             </div>
             {job.requirements && <p className="text-muted-foreground mt-3 max-w-3xl whitespace-pre-line line-clamp-3">{job.requirements}</p>}
+            <ShareJobLink jobId={job.id} title={job.title} />
           </div>
         )}
 
