@@ -7,7 +7,7 @@ const cors = {
 };
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const SITE_URL = Deno.env.get("SITE_URL") || "https://smarthiring.lovable.app";
+const SITE_URL = Deno.env.get("SITE_URL") || "https://talenval.com";
 const RESERVED_JOB_FIELDS = new Set(["id", "user_id", "created_at", "updated_at"]);
 const JOB_FIELDS = new Set(["title", "description", "requirements", "required_skills", "min_years_experience", "company_name", "hr_email", "status", "external_id", "external_source"]);
 const CANDIDATE_FIELDS = new Set(["job_id", "name", "email", "phone", "resume_path", "resume_text", "stage", "status", "processing_status"]);
