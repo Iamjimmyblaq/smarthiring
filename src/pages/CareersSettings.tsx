@@ -79,7 +79,7 @@ export default function CareersSettings() {
     const user = userData.user!;
     // Several HRs at the same company can each have a page: if the address is taken by a
     // colleague, automatically add the HR's name (or a short code) to make it unique.
-    const who = slugify((user.user_metadata?.full_name as string) || user.email?.split("@")[0] || "").split("-")[0];
+    const who = slugify((user.user_metadata?.['full_name'] as string) || user.email?.split("@")[0] || "").split("-")[0];
     const candidates = [slug, who ? `${slug}-${who}` : null, `${slug}-${Math.random().toString(36).slice(2, 6)}`]
       .filter((s): s is string => Boolean(s));
     let saved: string | null = null;
