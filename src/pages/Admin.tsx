@@ -170,6 +170,16 @@ export default function Admin() {
     load();
   };
 
+  const setUserPlan = async (userId: string, plan: string) => {
+    if (!window.confirm(`Change this user's plan to "${plan}"? This applies immediately.`)) return;
+    const periodEnd = plan === "free" ? null : new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();
+    const { data, error } = await supabase.rpc("admin_set_user_plan", { _user_id: userId, _plan: plan, _period_end: periodEnd as string });
+    const res = data as unknown as { ok?: boolean; error?: string } | null;
+    if (error || res?.error) { toast.error(error?.message ?? "Unknown plan"); return; }
+    toast.success(plan === "free" ? "User moved to free plan." : `Plan set to ${plan} for 30 days.`);
+    load();
+  };
+
   const deleteTier = async (id: string) => {
     const { error } = await supabase.from("plan_tiers").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
@@ -362,8 +372,8 @@ export default function Admin() {
           {isSuperAdmin && <Badge className="bg-emerald-600 text-white">Super admin</Badge>}
         </div>
 
-        <Tabs defaultValue="plans">
-          <TabsList className="flex-wrap h-auto">
+        <Tabs defaultValue="plans" orientation="vertical" className="flex flex-col gap-6 md:flex-row">
+          <TabsList className="flex h-auto w-full flex-col items-stretch gap-1 md:w-52 md:shrink-0 md:sticky md:top-6 self-start [&>button]:justify-start">
             <TabsTrigger value="plans">Subscriptions</TabsTrigger>
             <TabsTrigger value="teams">Teams &amp; roles</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
@@ -371,7 +381,7 @@ export default function Admin() {
             <TabsTrigger value="payments">Payments</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="plans" className="space-y-4 pt-4">
+          <TabsContent value="plans" className="mt-0 min-w-0 flex-1 space-y-4">
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">Leave a limit empty for unlimited. Changes appear on the pricing page instantly.</p>
               <Button size="sm" onClick={addTier} className="gap-2"><Plus className="h-4 w-4" /> Add tier</Button>
@@ -444,7 +454,7 @@ export default function Admin() {
             ))}
           </TabsContent>
 
-          <TabsContent value="teams" className="space-y-4 pt-4">
+          <TabsContent value="teams" className="mt-0 min-w-0 flex-1 space-y-4">
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">Create teams, invite people by email and assign their platform role.</p>
               <Button size="sm" className="gap-2" onClick={() => setTeamOpen(true)}><Plus className="h-4 w-4" /> New team</Button>
@@ -452,7 +462,7 @@ export default function Admin() {
 
             <Card>
               <CardHeader><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4" /> Add a member</CardTitle></CardHeader>
-              <CardContent className="grid gap-3 md:grid-cols-4">
+              <CardContent className="grid gap-3">
                 <Select value={memberTeam} onValueChange={setMemberTeam}>
                   <SelectTrigger><SelectValue placeholder="Team" /></SelectTrigger>
                   <SelectContent>
@@ -510,7 +520,7 @@ export default function Admin() {
             <RolePermissionsMatrix />
           </TabsContent>
 
-          <TabsContent value="users" className="space-y-4 pt-4">
+          <TabsContent value="users" className="mt-0 min-w-0 flex-1 space-y-4">
             <div className="flex flex-wrap justify-between items-center gap-3">
               <p className="text-sm text-muted-foreground">
                 {filteredUsers.length} user{filteredUsers.length === 1 ? "" : "s"} · engagement, subscription and usage across the platform.
@@ -529,7 +539,7 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3">
               {[
                 { label: "Total users", value: users.length },
                 { label: "Paid subscribers", value: users.filter((u) => u.plan !== "free").length },
@@ -586,7 +596,18 @@ export default function Admin() {
                         </td>
                         <td className="p-3">{u.company_name || "—"}</td>
                         <td className="p-3">
-                          <Badge variant={u.plan === "free" ? "outline" : "default"}>{u.plan}</Badge>
+                          <select
+                            className="rounded-md border bg-background px-2 py-1 text-xs"
+                            value={u.plan}
+                            aria-label={`Plan for ${u.email ?? u.id}`}
+                            onChange={(e) => setUserPlan(u.id, e.target.value)}
+                          >
+                            <option value="free">free</option>
+                            {tiers.filter((t) => t.key !== "free").map((t) => (
+                              <option key={t.id} value={t.key}>{t.name}</option>
+                            ))}
+                            {u.plan !== "free" && !tiers.some((t) => t.key === u.plan) && <option value={u.plan}>{u.plan}</option>}
+                          </select>
                         </td>
                         <td className="p-3 text-xs">{u.roles.length ? u.roles.join(", ").replace(/_/g, " ") : "member"}</td>
                         <td className="p-3 text-right tabular-nums">{u.jobs}</td>
@@ -661,12 +682,12 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="coupons" className="space-y-4 pt-4">
+          <TabsContent value="coupons" className="mt-0 min-w-0 flex-1 space-y-4">
             <CouponsTab tiers={tiers.map((t) => ({ key: t.key, name: t.name, price_amount: Number(t.price_amount), currency: t.currency }))} />
             <CouponAuditLog />
           </TabsContent>
 
-          <TabsContent value="payments" className="space-y-4 pt-4">
+          <TabsContent value="payments" className="mt-0 min-w-0 flex-1 space-y-4">
             <PaymentSettingsTab />
           </TabsContent>
         </Tabs>
