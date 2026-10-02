@@ -48,50 +48,36 @@ function escapeHtml(input: string): string {
     .replace(/'/g, "&#39;");
 }
 
-export async function sendGmail(opts: SendOpts) {
-  if (!GOOGLE_MAIL_API_KEY || !LOVABLE_API_KEY || !opts.to) {
-    console.warn("sendGmail skipped: missing keys/recipient", { hasGmail: !!GOOGLE_MAIL_API_KEY, to: opts.to });
+// Candidate/HR emails now send from hello@talenval.com (verified domain
+// notify.talenval.com) through the app's server relay. Reply-To is the HR.
+const RELAY_URL = Deno.env.get("EMAIL_RELAY_URL") || "https://talenval.com/api/public/candidate-email";
+const EMAIL_RELAY_SECRET = Deno.env.get("EMAIL_RELAY_SECRET");
+
+export async function sendGmail(opts: SendOpts & { idempotencyKey?: string; label?: string }) {
+  if (!EMAIL_RELAY_SECRET || !opts.to) {
+    console.warn("email send skipped: missing relay secret/recipient");
     return { ok: false, reason: "missing_config" };
   }
-  const boundary = `bnd_${crypto.randomUUID()}`;
-  const text = stripHtml(opts.text || opts.html);
+  const text = opts.text || stripHtml(opts.html);
   const html = opts.html || `<p>${escapeHtml(text).replace(/\n/g, "<br>")}</p>`;
-  const headers = [
-    `To: ${sanitizeHeader(opts.to)}`,
-    opts.replyTo ? `Reply-To: ${sanitizeHeader(opts.replyTo)}` : "",
-    `Subject: ${sanitizeHeader(opts.subject)}`,
-    "MIME-Version: 1.0",
-    opts.fromName ? `X-Talenval-Sender: ${sanitizeHeader(opts.fromName)}` : "",
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-  ].filter(Boolean).join("\r\n");
-  const body = [
-    "",
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    "",
-    text,
-    "",
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    "",
-    html,
-    "",
-    `--${boundary}--`,
-  ].join("\r\n");
-  const raw = toBase64Url(headers + "\r\n" + body);
-  const res = await fetch(`${GATEWAY_URL}/users/me/messages/send`, {
+  const replyTo = opts.replyTo && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(opts.replyTo) ? opts.replyTo : undefined;
+  const res = await fetch(RELAY_URL, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": GOOGLE_MAIL_API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ raw }),
+    headers: { Authorization: `Bearer ${EMAIL_RELAY_SECRET}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      to: sanitizeHeader(opts.to),
+      subject: sanitizeHeader(opts.subject),
+      html, text,
+      fromName: opts.fromName ? sanitizeHeader(opts.fromName) : undefined,
+      replyTo,
+      idempotencyKey: opts.idempotencyKey || crypto.randomUUID(),
+      label: opts.label,
+    }),
   });
-  if (!res.ok) {
-    const txt = await res.text();
-    console.error("Gmail send failed", opts.to, res.status, txt);
-    return { ok: false, status: res.status, error: txt };
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok || !body.ok) {
+    console.error("Email send failed", res.status, body?.error);
+    return { ok: false, status: res.status, error: String(body?.error ?? res.status) };
   }
   return { ok: true };
 }
