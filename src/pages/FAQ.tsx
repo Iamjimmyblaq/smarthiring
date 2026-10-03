@@ -14,7 +14,7 @@ const faqs = [
   { q: "What plans are available?", a: "Basic, Pro, Pro Max and Enterprise. Each plan has its own limits on resume uploads, active jobs and AI interviews. Limits and pricing are configured by the Talenval admin and shown live on the pricing page." },
   { q: "Can I integrate Talenval with my own careers site?", a: "Yes. The public REST API lets you create jobs, submit candidates, move stages and start AI interviews. Jobs posted through the API appear on your Talenval board automatically, with deduplication via external_id. Webhooks push events back to your system." },
   { q: "Is my data secure?", a: "Every record is isolated per account with row-level security, API keys are stored hashed, and webhook deliveries are signed with HMAC-SHA256." },
-  { q: "How do I get support?", a: "Email help.smarthire@gmail.com. Pro Max and Enterprise plans include priority support." },
+  { q: "How do I get support?", a: "Email support@talenval.com for help, billing or subscription issues. For Enterprise plans, contact sales@talenval.com. Pro Max and Enterprise plans include priority support." },
 ];
 
 export default function FAQ() {
@@ -58,7 +58,7 @@ export default function FAQ() {
           <div className="mt-12 text-center">
             <p className="text-muted-foreground">Still stuck? We reply fast.</p>
             <div className="mt-4 flex justify-center gap-3">
-              <a href="mailto:help.smarthire@gmail.com"><Button className="rounded-xl px-8">Email support</Button></a>
+              <a href="mailto:support@talenval.com"><Button className="rounded-xl px-8">Email support</Button></a>
               <Link to="/api-docs"><Button variant="outline" className="rounded-xl px-8">API docs</Button></Link>
             </div>
           </div>
