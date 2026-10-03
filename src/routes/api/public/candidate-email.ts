@@ -51,7 +51,7 @@ export const Route = createFileRoute("/api/public/candidate-email")({
               purpose: "transactional",
               label: d.label ?? "candidate-notification",
               idempotency_key: d.idempotencyKey,
-              reply_to: d.replyTo,
+              ...(d.replyTo ? { reply_to: d.replyTo } : {}),
             },
             { apiKey, sendUrl: process.env["LOVABLE_SEND_URL"] },
           );
