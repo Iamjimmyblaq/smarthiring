@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { drawBrandHeader, drawBrandFooters } from "./report-branding";
 
 export interface ProctoringData {
   durationSeconds?: number;
@@ -28,6 +29,7 @@ export interface ProctoringReportInput {
   summary?: string | null;
   proctoring: ProctoringData | null;
   transcript: { role: string; text: string }[];
+  companyName?: string | null;
 }
 
 export function composureFromProctoring(p: ProctoringData | null) {
@@ -66,11 +68,7 @@ export function proctoringRows(p: ProctoringData | null): [string, string][] {
 export function downloadProctoringPdf(input: ProctoringReportInput) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const marginX = 40;
-  let y = 46;
-
-  doc.setFontSize(18);
-  doc.text("AI Interview & Proctoring Report", marginX, y);
-  y += 20;
+  let y = drawBrandHeader(doc, "AI Interview & Proctoring Report", input.companyName);
   doc.setFontSize(11);
   doc.setTextColor(110);
   doc.text(
@@ -153,5 +151,6 @@ export function downloadProctoringPdf(input: ProctoringReportInput) {
   }
 
   const safe = input.candidateName.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "candidate";
+  drawBrandFooters(doc, input.companyName);
   doc.save(`proctoring-report-${safe}.pdf`);
 }

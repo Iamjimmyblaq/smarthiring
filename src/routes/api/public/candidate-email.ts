@@ -47,11 +47,11 @@ export const Route = createFileRoute("/api/public/candidate-email")({
               sender_domain: SENDER_DOMAIN,
               subject: d.subject,
               html: d.html,
-              text: d.text,
+              text: d.text || d.html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim(),
               purpose: "transactional",
               label: d.label ?? "candidate-notification",
               idempotency_key: d.idempotencyKey,
-              reply_to: d.replyTo,
+              ...(d.replyTo ? { reply_to: d.replyTo } : {}),
             },
             { apiKey, sendUrl: process.env["LOVABLE_SEND_URL"] },
           );

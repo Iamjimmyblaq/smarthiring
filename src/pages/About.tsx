@@ -86,9 +86,13 @@ export default function About() {
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-2xl font-semibold tracking-tight">Talk to us</h2>
           <p className="mt-3 text-muted-foreground">
-            Questions, partnerships or enterprise rollouts — reach the team at{" "}
-            <a className="underline" href="mailto:help.smarthire@gmail.com">help.smarthire@gmail.com</a>.
+            We'd love to hear from you.
           </p>
+          <ul className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
+            <li className="rounded-xl border p-4"><p className="font-medium">Support &amp; billing</p><a className="text-primary underline" href="mailto:support@talenval.com">support@talenval.com</a></li>
+            <li className="rounded-xl border p-4"><p className="font-medium">Enterprise sales</p><a className="text-primary underline" href="mailto:sales@talenval.com">sales@talenval.com</a></li>
+            <li className="rounded-xl border p-4"><p className="font-medium">Investors</p><a className="text-primary underline" href="mailto:founders@talenval.com">founders@talenval.com</a></li>
+          </ul>
         </div>
       </section>
     </main>
