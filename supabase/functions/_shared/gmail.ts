@@ -128,7 +128,7 @@ export async function sendQueuedEmail(opts: QueuedSendOpts) {
     if ((existing?.attempts ?? 0) >= MAX_ATTEMPTS) return { ok: false, reason: "max_attempts" };
   }
 
-  const result = await sendGmail(opts);
+  const result = await sendGmail({ ...opts, label: opts.purpose });
   const attempts = (row?.attempts ?? 0) + 1;
 
   if (result.ok) {
@@ -153,5 +153,5 @@ export async function sendQueuedEmail(opts: QueuedSendOpts) {
 }
 
 export function baseLayout(inner: string) {
-  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#222;line-height:1.55">${inner}<p style="color:#777;font-size:13px;margin-top:32px">Sent from the Talenval recruiting workspace.</p></div>`;
+  return `<div style="background:#ffffff;padding:24px 0"><div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#1f2937;line-height:1.6;border:1px solid #e5e7eb;border-radius:12px"><div style="font-weight:700;font-size:18px;color:#0b1f4d;margin-bottom:16px">Talen<span style="color:#16a34a">val</span></div>${inner}<p style="color:#6b7280;font-size:12px;margin-top:32px;border-top:1px solid #e5e7eb;padding-top:12px">Sent on behalf of the hiring team via Talenval. Reply to this email to reach the recruiter directly.</p></div></div>`;
 }
