@@ -213,6 +213,7 @@ export default function Interviews() {
     downloadProctoringPdf({
       candidateName: candName(s.candidate_id),
       jobTitle: jobs.find((j) => j.id === s.job_id)?.title ?? "Role",
+      companyName: jobs.find((j) => j.id === s.job_id)?.company_name || profile?.company_name || null,
       completedAt: s.ended_at ?? s.created_at,
       scores: (s.scores ?? {}) as Record<string, number>,
       sentiment: s.sentiment,

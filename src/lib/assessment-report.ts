@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { drawBrandHeader, drawBrandFooters } from "./report-branding";
 
 export interface AssessmentGradedAnswer {
   question_id?: string;
@@ -25,6 +26,7 @@ export interface AssessmentReportInput {
   integrityFlags?: Record<string, unknown> | null;
   proctoring?: Record<string, unknown> | null;
   answers?: AssessmentGradedAnswer[];
+  companyName?: string | null;
 }
 
 const MARGIN = 40;
@@ -60,10 +62,7 @@ function integrityRows(input: AssessmentReportInput): [string, string][] {
 
 /** Renders one candidate's assessment result onto the given document, starting at `startY`. */
 function renderOne(doc: jsPDF, input: AssessmentReportInput, startY: number) {
-  let y = startY;
-  doc.setFontSize(16);
-  doc.text("Skills Assessment Report", MARGIN, y);
-  y += 18;
+  let y = drawBrandHeader(doc, "Skills Assessment Report", input.companyName) + startY - 46;
   doc.setFontSize(11);
   doc.setTextColor(110);
   doc.text(
@@ -135,16 +134,16 @@ const safeName = (s: string) => s.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || 
 export function downloadAssessmentPdf(input: AssessmentReportInput) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   renderOne(doc, input, 46);
+  drawBrandFooters(doc, input.companyName);
   doc.save(`assessment-${safeName(input.candidateName)}-${safeName(input.testTitle)}.pdf`);
 }
 
 export function downloadAssessmentsBulkPdf(inputs: AssessmentReportInput[], fileLabel = "assessments") {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
 
-  doc.setFontSize(18);
-  doc.text("Assessment results summary", MARGIN, 50);
+  const top = drawBrandHeader(doc, "Assessment results summary", inputs[0]?.companyName);
   autoTable(doc, {
-    startY: 70,
+    startY: top,
     head: [["Candidate", "Assessment", "Score", "%", "Status", "Integrity"]],
     body: inputs.map((i) => [
       i.candidateName,
@@ -164,5 +163,6 @@ export function downloadAssessmentsBulkPdf(inputs: AssessmentReportInput[], file
     renderOne(doc, input, 46);
   });
 
+  drawBrandFooters(doc, inputs[0]?.companyName);
   doc.save(`${safeName(fileLabel)}-results.pdf`);
 }
