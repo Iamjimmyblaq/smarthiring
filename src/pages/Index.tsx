@@ -366,7 +366,12 @@ export default function Index() {
             <Link to="/faq" className="hover:text-cyan">FAQ</Link>
             <Link to="/api-docs" className="hover:text-cyan">API</Link>
           </nav>
-          <p className="text-xs">© {new Date().getFullYear()} Talenval</p>
+          <div className="flex flex-col gap-1 text-xs">
+            <a href="mailto:support@talenval.com" className="hover:text-cyan">Support: support@talenval.com</a>
+            <a href="mailto:sales@talenval.com" className="hover:text-cyan">Sales: sales@talenval.com</a>
+            <a href="mailto:founders@talenval.com" className="hover:text-cyan">Investors: founders@talenval.com</a>
+            <p className="mt-2">© {new Date().getFullYear()} Talenval</p>
+          </div>
         </div>
       </footer>
     </main>
